@@ -1,0 +1,1084 @@
+
+CREATE DATABASE [LocalTourDB]
+GO
+
+USE [LocalTourDB]
+GO
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Destination](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[ScheduleId] [int] NOT NULL,
+	[PlaceId] [int] NOT NULL,
+	[StartDate] [datetime] NULL,
+	[EndDate] [datetime] NULL,
+	[Detail] [nvarchar](500) NULL,
+	[IsArrived] [bit] NOT NULL,
+ CONSTRAINT [PK__Destinat__3214EC075FB40EB3] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[DistrictNCity](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[ProvinceNCityId] [int] NOT NULL,
+	[Name] [nvarchar](256) NOT NULL,
+ CONSTRAINT [PK__District__3214EC073559C46C] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[FollowUser](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[UserFollow] [uniqueidentifier] NOT NULL,
+	[DateCreated] [datetime] NOT NULL,
+ CONSTRAINT [PK__FollowUs__3214EC07E852A412] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[MarkPlace]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[MarkPlace](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[PlaceId] [int] NOT NULL,
+	[CreatedDate] [datetime] NOT NULL,
+	[IsVisited] [bit] NOT NULL,
+ CONSTRAINT [PK__MarkPlac__3214EC075B1B5A52] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Notification]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Notification](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[NotificationType] [nvarchar](50) NOT NULL,
+	[Title] [nvarchar](100) NOT NULL,
+	[Message] [nvarchar](500) NOT NULL,
+	[TimeSend] [datetime] NOT NULL,
+	[DateCreated] [datetime] NOT NULL,
+	[IsRead] [bit] NOT NULL,
+ CONSTRAINT [PK__Notifica__3214EC072B1506E9] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Place]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Place](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[WardId] [int] NOT NULL,
+	[PhotoDisplay] [nvarchar](max) NOT NULL,
+	[TimeOpen] [time](7) NOT NULL,
+	[TimeClose] [time](7) NOT NULL,
+	[Longitude] [float] NOT NULL,
+	[Latitude] [float] NOT NULL,
+ CONSTRAINT [PK__Place__3214EC07A5F86A6C] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PlaceActivity]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PlaceActivity](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PlaceId] [int] NOT NULL,
+	[PhotoDisplay] [nvarchar](max) NULL,
+ CONSTRAINT [PK__PlaceAct__3214EC07FBDC9096] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PlaceActivityPhoto]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PlaceActivityPhoto](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PlaceActivityId] [int] NOT NULL,
+	[Url] [nvarchar](max) NOT NULL,
+	[CreateDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__PlaceAct__3214EC070CF7F942] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PlaceActivityTranslation]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PlaceActivityTranslation](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PlaceActivityId] [int] NOT NULL,
+	[LanguageCode] [nvarchar](10) NOT NULL,
+	[ActivityName] [nvarchar](256) NOT NULL,
+	[Price] [float] NOT NULL,
+	[Description] [nvarchar](256) NULL,
+	[PriceType] [nvarchar](256) NOT NULL,
+	[Discount] [float] NULL,
+ CONSTRAINT [PK__PlaceAct__3214EC074972DF4F] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PlaceActivityVideo]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PlaceActivityVideo](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PlaceActivityId] [int] NOT NULL,
+	[Url] [nvarchar](max) NOT NULL,
+	[CreateDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__PlaceAct__3214EC07757B02CE] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PlaceFeeedback]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PlaceFeeedback](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PlaceId] [int] NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[Rating] [int] NOT NULL,
+	[Content] [nvarchar](1000) NULL,
+	[CreatedDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__PlaceFee__3214EC07675359AF] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PlaceFeeedbackHelpful]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PlaceFeeedbackHelpful](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[PlaceFeedBackId] [int] NOT NULL,
+	[CreatedDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__PlaceFee__3214EC0722482C22] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PlaceFeeedbackPhoto]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PlaceFeeedbackPhoto](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[FeedbackId] [int] NOT NULL,
+	[Url] [nvarchar](max) NOT NULL,
+	[CreateDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__PlaceFee__3214EC07F900AFD4] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PlaceFeeedbackVideo]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PlaceFeeedbackVideo](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[FeedbackId] [int] NOT NULL,
+	[Url] [nvarchar](max) NOT NULL,
+	[CreateDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__PlaceFee__3214EC076CD2C9E8] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PlacePhoto]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PlacePhoto](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PlaceId] [int] NOT NULL,
+	[Url] [nvarchar](max) NOT NULL,
+	[CreateDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__PlacePho__3214EC07462BF81A] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PlaceSearchHistory]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PlaceSearchHistory](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[PlaceId] [int] NOT NULL,
+	[LastSearch] [datetime] NOT NULL,
+ CONSTRAINT [PK__PlaceSea__3214EC079DA173E8] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PlaceTag]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PlaceTag](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[TagId] [int] NOT NULL,
+	[PlaceId] [int] NOT NULL,
+ CONSTRAINT [PK__PlaceTag__3214EC07FDB575E8] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PlaceTranslation]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PlaceTranslation](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PlaceId] [int] NOT NULL,
+	[LanguageCode] [nvarchar](10) NOT NULL,
+	[Name] [nvarchar](256) NOT NULL,
+	[Description] [nvarchar](max) NULL,
+	[Address] [nvarchar](256) NOT NULL,
+	[Contact] [nvarchar](256) NULL,
+ CONSTRAINT [PK__PlaceTra__3214EC07129B5F41] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PlaceVideo]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PlaceVideo](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PlaceId] [int] NOT NULL,
+	[Url] [nvarchar](max) NOT NULL,
+	[CreateDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__PlaceVid__3214EC0738FC327B] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Post]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Post](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[AuthorId] [uniqueidentifier] NOT NULL,
+	[PlaceId] [int] NOT NULL,
+	[Longitude] [float] NOT NULL,
+	[Latitude] [float] NOT NULL,
+	[Title] [nvarchar](100) NOT NULL,
+	[CreatedDate] [datetime] NOT NULL,
+	[UpdateDate] [datetime] NOT NULL,
+	[Content] [text] NOT NULL,
+	[IsPublic] [bit] NOT NULL,
+ CONSTRAINT [PK__Post__3214EC071BECE7A5] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PostComment]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PostComment](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PostId] [int] NOT NULL,
+	[ParentId] [int] NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[Content] [text] NOT NULL,
+	[CreatedDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__PostComm__3214EC07AA2FEB14] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PostCommentLike]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PostCommentLike](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PostCommentId] [int] NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[CreatedDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__PostComm__3214EC079423D1AB] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PostLike]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PostLike](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PostId] [int] NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[CreatedDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__PostLike__3214EC077C735035] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PostPhoto]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PostPhoto](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PostId] [int] NOT NULL,
+	[Url] [nvarchar](max) NOT NULL,
+	[CreateDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__PostPhot__3214EC07208B636E] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[PostVideo]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[PostVideo](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[PostId] [int] NOT NULL,
+	[Url] [nvarchar](max) NOT NULL,
+	[CreateDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__PostVide__3214EC07F2F3D2F4] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ProvinceNCity]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ProvinceNCity](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [nvarchar](256) NOT NULL,
+ CONSTRAINT [PK__Province__3214EC071622F61A] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[RoleClaims]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[RoleClaims](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[RoleId] [uniqueidentifier] NOT NULL,
+	[ClaimType] [nvarchar](max) NULL,
+	[ClaimValue] [nvarchar](max) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Roles]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Roles](
+	[Id] [uniqueidentifier] NOT NULL,
+	[Name] [nvarchar](256) NULL,
+	[NormalizedName] [nvarchar](256) NULL,
+	[ConcurrencyStamp] [nvarchar](max) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Schedule]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Schedule](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[ScheduleName] [nvarchar](256) NOT NULL,
+	[StartDate] [datetime] NULL,
+	[EndDate] [datetime] NULL,
+	[CreatedDate] [datetime] NOT NULL,
+	[Status] [nvarchar](256) NOT NULL,
+	[IsPublic] [bit] NULL,
+ CONSTRAINT [PK__Schedule__3214EC07EDAB183D] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ScheduleComment]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ScheduleComment](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[ScheduleId] [int] NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[ParentFeedBackId] [int] NULL,
+	[Content] [nvarchar](1000) NULL,
+	[CreatedDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__Schedule__3214EC07CA0FD2B2] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ScheduleCommentLike]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ScheduleCommentLike](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[ScheduleCommentId] [int] NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[CreatedDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__Schedule__3214EC07781C15A5] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ScheduleCommentPhoto]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ScheduleCommentPhoto](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[FeedbackId] [int] NOT NULL,
+	[Url] [nvarchar](max) NOT NULL,
+	[CreateDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__Schedule__3214EC07D8446407] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ScheduleCommentVideo]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ScheduleCommentVideo](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[FeedbackId] [int] NOT NULL,
+	[Url] [nvarchar](max) NOT NULL,
+	[CreateDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__Schedule__3214EC079FD1B6EB] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ScheduleLike]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ScheduleLike](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[ScheduleId] [int] NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[CreatedDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__Schedule__3214EC07E488B40B] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ScheduleUserLike]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ScheduleUserLike](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[ScheduleId] [int] NOT NULL,
+	[IsPublic] [bit] NULL,
+ CONSTRAINT [PK__Schedule__3214EC07B72F4ED7] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Tag]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Tag](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[TagName] [nvarchar](256) NOT NULL,
+	[TagPhotoUrl] [nvarchar](max) NOT NULL,
+ CONSTRAINT [PK__Tag__3214EC07E300626A] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[TraveledPlace]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[TraveledPlace](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[PlaceId] [int] NOT NULL,
+	[TimeArrive] [datetime] NOT NULL,
+ CONSTRAINT [PK__Traveled__3214EC07EA3DEEA3] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[UserBan]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[UserBan](
+	[Id] [uniqueidentifier] NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[EndDate] [datetime] NOT NULL,
+ CONSTRAINT [PK__UserBan__3214EC07601B92B5] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[UserClaims]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[UserClaims](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[ClaimType] [nvarchar](max) NULL,
+	[ClaimValue] [nvarchar](max) NULL,
+ CONSTRAINT [PK__UserClai__3214EC076F757939] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[UserDevice]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[UserDevice](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+	[DeviceId] [varchar](36) NOT NULL,
+ CONSTRAINT [PK__UserDevi__3214EC07324CE9A9] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[UserLogins]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[UserLogins](
+	[LoginProvider] [uniqueidentifier] NOT NULL,
+	[ProviderKey] [uniqueidentifier] NOT NULL,
+	[ProviderDisplayName] [nvarchar](max) NULL,
+	[UserId] [uniqueidentifier] NOT NULL,
+ CONSTRAINT [PK__UserLogi__2B2C5B52B36DFDF8] PRIMARY KEY CLUSTERED 
+(
+	[LoginProvider] ASC,
+	[ProviderKey] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[UserRoles]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[UserRoles](
+	[UserId] [uniqueidentifier] NOT NULL,
+	[RoleId] [uniqueidentifier] NOT NULL,
+ CONSTRAINT [PK__UserRole__AF2760ADE308CAEF] PRIMARY KEY CLUSTERED 
+(
+	[UserId] ASC,
+	[RoleId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Users]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Users](
+	[Id] [uniqueidentifier] NOT NULL,
+	[UserName] [nvarchar](256) NULL,
+	[NormalizedUserName] [nvarchar](256) NULL,
+	[Email] [nvarchar](256) NULL,
+	[NormalizedEmail] [nvarchar](256) NULL,
+	[EmailConfirmed] [bit] NOT NULL,
+	[PasswordHash] [nvarchar](max) NULL,
+	[SecurityStamp] [nvarchar](max) NULL,
+	[ConcurrencyStamp] [nvarchar](max) NULL,
+	[PhoneNumber] [nvarchar](max) NULL,
+	[PhoneNumberConfirmed] [bit] NOT NULL,
+	[TwoFactorEnabled] [bit] NOT NULL,
+	[LockoutEnd] [datetimeoffset](7) NULL,
+	[LockoutEnabled] [bit] NOT NULL,
+	[AccessFailedCount] [int] NOT NULL,
+	[FirstName] [nvarchar](256) NULL,
+	[LastName] [nvarchar](256) NULL,
+	[DateOfBirth] [datetime] NULL,
+	[Address] [nvarchar](500) NULL,
+	[Gender] [nvarchar](10) NULL,
+	[ProfilePictureUrl] [nvarchar](max) NULL,
+	[DateCreated] [datetime] NOT NULL,
+	[DateUpdated] [datetime] NOT NULL,
+	[LastLoginDate] [datetime] NULL,
+	[Biography] [nvarchar](256) NULL,
+ CONSTRAINT [PK__Users__3214EC070E2ADBBF] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[UserTokens]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[UserTokens](
+	[UserId] [uniqueidentifier] NOT NULL,
+	[LoginProvider] [uniqueidentifier] NOT NULL,
+	[Name] [uniqueidentifier] NOT NULL,
+	[Value] [nvarchar](max) NULL,
+ CONSTRAINT [PK__UserToke__8CC498418FB8416B] PRIMARY KEY CLUSTERED 
+(
+	[UserId] ASC,
+	[LoginProvider] ASC,
+	[Name] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Ward]    Script Date: 9/16/2024 11:20:47 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Ward](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[DistrictNCityId] [int] NOT NULL,
+	[WardName] [nvarchar](256) NOT NULL,
+ CONSTRAINT [PK__Ward__3214EC07FF6F6DEF] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[Notification] ADD  DEFAULT ((0)) FOR [IsRead]
+GO
+ALTER TABLE [dbo].[Post] ADD  CONSTRAINT [DF__Post__Public__48CFD27E]  DEFAULT ((0)) FOR [IsPublic]
+GO
+ALTER TABLE [dbo].[Schedule] ADD  DEFAULT ((0)) FOR [IsPublic]
+GO
+ALTER TABLE [dbo].[ScheduleUserLike] ADD  CONSTRAINT [DF__ScheduleU__IsPub__7B5B524B]  DEFAULT ((0)) FOR [IsPublic]
+GO
+ALTER TABLE [dbo].[Destination]  WITH CHECK ADD  CONSTRAINT [FK__Destinati__Place__3A4CA8FD] FOREIGN KEY([PlaceId])
+REFERENCES [dbo].[Place] ([Id])
+GO
+ALTER TABLE [dbo].[Destination] CHECK CONSTRAINT [FK__Destinati__Place__3A4CA8FD]
+GO
+ALTER TABLE [dbo].[Destination]  WITH CHECK ADD  CONSTRAINT [FK__Destinati__Sched__395884C4] FOREIGN KEY([ScheduleId])
+REFERENCES [dbo].[Schedule] ([Id])
+GO
+ALTER TABLE [dbo].[Destination] CHECK CONSTRAINT [FK__Destinati__Sched__395884C4]
+GO
+ALTER TABLE [dbo].[DistrictNCity]  WITH CHECK ADD  CONSTRAINT [FK__DistrictN__Provi__37703C52] FOREIGN KEY([ProvinceNCityId])
+REFERENCES [dbo].[ProvinceNCity] ([Id])
+GO
+ALTER TABLE [dbo].[DistrictNCity] CHECK CONSTRAINT [FK__DistrictN__Provi__37703C52]
+GO
+ALTER TABLE [dbo].[FollowUser]  WITH CHECK ADD  CONSTRAINT [FK__FollowUse__UserF__1CBC4616] FOREIGN KEY([UserFollow])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[FollowUser] CHECK CONSTRAINT [FK__FollowUse__UserF__1CBC4616]
+GO
+ALTER TABLE [dbo].[FollowUser]  WITH CHECK ADD  CONSTRAINT [FK__FollowUse__UserI__1BC821DD] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[FollowUser] CHECK CONSTRAINT [FK__FollowUse__UserI__1BC821DD]
+GO
+ALTER TABLE [dbo].[MarkPlace]  WITH CHECK ADD  CONSTRAINT [FK__MarkPlace__Place__1EA48E88] FOREIGN KEY([PlaceId])
+REFERENCES [dbo].[Place] ([Id])
+GO
+ALTER TABLE [dbo].[MarkPlace] CHECK CONSTRAINT [FK__MarkPlace__Place__1EA48E88]
+GO
+ALTER TABLE [dbo].[MarkPlace]  WITH CHECK ADD  CONSTRAINT [FK__MarkPlace__UserI__1DB06A4F] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[MarkPlace] CHECK CONSTRAINT [FK__MarkPlace__UserI__1DB06A4F]
+GO
+ALTER TABLE [dbo].[Notification]  WITH CHECK ADD  CONSTRAINT [FK__Notificat__UserI__1AD3FDA4] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[Notification] CHECK CONSTRAINT [FK__Notificat__UserI__1AD3FDA4]
+GO
+ALTER TABLE [dbo].[Place]  WITH CHECK ADD  CONSTRAINT [FK__Place__WardId__2DE6D218] FOREIGN KEY([WardId])
+REFERENCES [dbo].[Ward] ([Id])
+GO
+ALTER TABLE [dbo].[Place] CHECK CONSTRAINT [FK__Place__WardId__2DE6D218]
+GO
+ALTER TABLE [dbo].[PlaceActivity]  WITH CHECK ADD  CONSTRAINT [FK__PlaceActi__Place__2EDAF651] FOREIGN KEY([PlaceId])
+REFERENCES [dbo].[Place] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceActivity] CHECK CONSTRAINT [FK__PlaceActi__Place__2EDAF651]
+GO
+ALTER TABLE [dbo].[PlaceActivityPhoto]  WITH CHECK ADD  CONSTRAINT [FK__PlaceActi__Place__30C33EC3] FOREIGN KEY([PlaceActivityId])
+REFERENCES [dbo].[PlaceActivity] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceActivityPhoto] CHECK CONSTRAINT [FK__PlaceActi__Place__30C33EC3]
+GO
+ALTER TABLE [dbo].[PlaceActivityTranslation]  WITH CHECK ADD  CONSTRAINT [FK__PlaceActi__Place__47A6A41B] FOREIGN KEY([PlaceActivityId])
+REFERENCES [dbo].[PlaceActivity] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceActivityTranslation] CHECK CONSTRAINT [FK__PlaceActi__Place__47A6A41B]
+GO
+ALTER TABLE [dbo].[PlaceActivityVideo]  WITH CHECK ADD  CONSTRAINT [FK__PlaceActi__Place__2FCF1A8A] FOREIGN KEY([PlaceActivityId])
+REFERENCES [dbo].[PlaceActivity] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceActivityVideo] CHECK CONSTRAINT [FK__PlaceActi__Place__2FCF1A8A]
+GO
+ALTER TABLE [dbo].[PlaceFeeedback]  WITH CHECK ADD  CONSTRAINT [FK__PlaceFeee__Place__151B244E] FOREIGN KEY([PlaceId])
+REFERENCES [dbo].[Place] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceFeeedback] CHECK CONSTRAINT [FK__PlaceFeee__Place__151B244E]
+GO
+ALTER TABLE [dbo].[PlaceFeeedback]  WITH CHECK ADD  CONSTRAINT [FK__PlaceFeee__UserI__160F4887] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceFeeedback] CHECK CONSTRAINT [FK__PlaceFeee__UserI__160F4887]
+GO
+ALTER TABLE [dbo].[PlaceFeeedbackHelpful]  WITH CHECK ADD  CONSTRAINT [FK__PlaceFeee__Place__3D2915A8] FOREIGN KEY([PlaceFeedBackId])
+REFERENCES [dbo].[PlaceFeeedback] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceFeeedbackHelpful] CHECK CONSTRAINT [FK__PlaceFeee__Place__3D2915A8]
+GO
+ALTER TABLE [dbo].[PlaceFeeedbackHelpful]  WITH CHECK ADD  CONSTRAINT [FK__PlaceFeee__UserI__3E1D39E1] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceFeeedbackHelpful] CHECK CONSTRAINT [FK__PlaceFeee__UserI__3E1D39E1]
+GO
+ALTER TABLE [dbo].[PlaceFeeedbackPhoto]  WITH CHECK ADD  CONSTRAINT [FK__PlaceFeee__Feedb__17036CC0] FOREIGN KEY([FeedbackId])
+REFERENCES [dbo].[PlaceFeeedback] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceFeeedbackPhoto] CHECK CONSTRAINT [FK__PlaceFeee__Feedb__17036CC0]
+GO
+ALTER TABLE [dbo].[PlaceFeeedbackVideo]  WITH CHECK ADD  CONSTRAINT [FK__PlaceFeeedba__Id__19DFD96B] FOREIGN KEY([Id])
+REFERENCES [dbo].[PlaceFeeedback] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceFeeedbackVideo] CHECK CONSTRAINT [FK__PlaceFeeedba__Id__19DFD96B]
+GO
+ALTER TABLE [dbo].[PlacePhoto]  WITH CHECK ADD  CONSTRAINT [FK__PlacePhoto__Id__18EBB532] FOREIGN KEY([Id])
+REFERENCES [dbo].[Place] ([Id])
+GO
+ALTER TABLE [dbo].[PlacePhoto] CHECK CONSTRAINT [FK__PlacePhoto__Id__18EBB532]
+GO
+ALTER TABLE [dbo].[PlaceSearchHistory]  WITH CHECK ADD  CONSTRAINT [FK__PlaceSear__Place__339FAB6E] FOREIGN KEY([PlaceId])
+REFERENCES [dbo].[Place] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceSearchHistory] CHECK CONSTRAINT [FK__PlaceSear__Place__339FAB6E]
+GO
+ALTER TABLE [dbo].[PlaceSearchHistory]  WITH CHECK ADD  CONSTRAINT [FK__PlaceSear__UserI__32AB8735] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceSearchHistory] CHECK CONSTRAINT [FK__PlaceSear__UserI__32AB8735]
+GO
+ALTER TABLE [dbo].[PlaceTag]  WITH CHECK ADD  CONSTRAINT [FK__PlaceTag__PlaceI__245D67DE] FOREIGN KEY([PlaceId])
+REFERENCES [dbo].[Place] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceTag] CHECK CONSTRAINT [FK__PlaceTag__PlaceI__245D67DE]
+GO
+ALTER TABLE [dbo].[PlaceTag]  WITH CHECK ADD  CONSTRAINT [FK__PlaceTag__TagId__25518C17] FOREIGN KEY([TagId])
+REFERENCES [dbo].[Tag] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceTag] CHECK CONSTRAINT [FK__PlaceTag__TagId__25518C17]
+GO
+ALTER TABLE [dbo].[PlaceTranslation]  WITH CHECK ADD  CONSTRAINT [FK__PlaceTran__Place__46B27FE2] FOREIGN KEY([PlaceId])
+REFERENCES [dbo].[Place] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceTranslation] CHECK CONSTRAINT [FK__PlaceTran__Place__46B27FE2]
+GO
+ALTER TABLE [dbo].[PlaceVideo]  WITH CHECK ADD  CONSTRAINT [FK__PlaceVide__Place__17F790F9] FOREIGN KEY([PlaceId])
+REFERENCES [dbo].[Place] ([Id])
+GO
+ALTER TABLE [dbo].[PlaceVideo] CHECK CONSTRAINT [FK__PlaceVide__Place__17F790F9]
+GO
+ALTER TABLE [dbo].[Post]  WITH CHECK ADD  CONSTRAINT [FK__Post__AuthorId__2CF2ADDF] FOREIGN KEY([AuthorId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[Post] CHECK CONSTRAINT [FK__Post__AuthorId__2CF2ADDF]
+GO
+ALTER TABLE [dbo].[Post]  WITH CHECK ADD  CONSTRAINT [FK__Post__PlaceId__2BFE89A6] FOREIGN KEY([PlaceId])
+REFERENCES [dbo].[Place] ([Id])
+GO
+ALTER TABLE [dbo].[Post] CHECK CONSTRAINT [FK__Post__PlaceId__2BFE89A6]
+GO
+ALTER TABLE [dbo].[PostComment]  WITH CHECK ADD  CONSTRAINT [FK__PostComme__Paren__2A164134] FOREIGN KEY([ParentId])
+REFERENCES [dbo].[PostComment] ([Id])
+GO
+ALTER TABLE [dbo].[PostComment] CHECK CONSTRAINT [FK__PostComme__Paren__2A164134]
+GO
+ALTER TABLE [dbo].[PostComment]  WITH CHECK ADD  CONSTRAINT [FK__PostComme__PostI__2B0A656D] FOREIGN KEY([PostId])
+REFERENCES [dbo].[Post] ([Id])
+GO
+ALTER TABLE [dbo].[PostComment] CHECK CONSTRAINT [FK__PostComme__PostI__2B0A656D]
+GO
+ALTER TABLE [dbo].[PostComment]  WITH CHECK ADD  CONSTRAINT [FK__PostComme__UserI__3493CFA7] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[PostComment] CHECK CONSTRAINT [FK__PostComme__UserI__3493CFA7]
+GO
+ALTER TABLE [dbo].[PostCommentLike]  WITH CHECK ADD  CONSTRAINT [FK__PostComme__PostC__40F9A68C] FOREIGN KEY([PostCommentId])
+REFERENCES [dbo].[PostComment] ([Id])
+GO
+ALTER TABLE [dbo].[PostCommentLike] CHECK CONSTRAINT [FK__PostComme__PostC__40F9A68C]
+GO
+ALTER TABLE [dbo].[PostCommentLike]  WITH CHECK ADD  CONSTRAINT [FK__PostComme__UserI__41EDCAC5] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[PostCommentLike] CHECK CONSTRAINT [FK__PostComme__UserI__41EDCAC5]
+GO
+ALTER TABLE [dbo].[PostLike]  WITH CHECK ADD  CONSTRAINT [FK__PostLike__PostId__3F115E1A] FOREIGN KEY([PostId])
+REFERENCES [dbo].[Post] ([Id])
+GO
+ALTER TABLE [dbo].[PostLike] CHECK CONSTRAINT [FK__PostLike__PostId__3F115E1A]
+GO
+ALTER TABLE [dbo].[PostLike]  WITH CHECK ADD  CONSTRAINT [FK__PostLike__UserId__40058253] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[PostLike] CHECK CONSTRAINT [FK__PostLike__UserId__40058253]
+GO
+ALTER TABLE [dbo].[PostPhoto]  WITH CHECK ADD  CONSTRAINT [FK__PostPhoto__PostI__367C1819] FOREIGN KEY([PostId])
+REFERENCES [dbo].[Post] ([Id])
+GO
+ALTER TABLE [dbo].[PostPhoto] CHECK CONSTRAINT [FK__PostPhoto__PostI__367C1819]
+GO
+ALTER TABLE [dbo].[PostVideo]  WITH CHECK ADD  CONSTRAINT [FK__PostVideo__PostI__3587F3E0] FOREIGN KEY([PostId])
+REFERENCES [dbo].[Post] ([Id])
+GO
+ALTER TABLE [dbo].[PostVideo] CHECK CONSTRAINT [FK__PostVideo__PostI__3587F3E0]
+GO
+ALTER TABLE [dbo].[RoleClaims]  WITH CHECK ADD  CONSTRAINT [FK_RoleClaims_Roles_RoleId] FOREIGN KEY([RoleId])
+REFERENCES [dbo].[Roles] ([Id])
+GO
+ALTER TABLE [dbo].[RoleClaims] CHECK CONSTRAINT [FK_RoleClaims_Roles_RoleId]
+GO
+ALTER TABLE [dbo].[Schedule]  WITH CHECK ADD  CONSTRAINT [FK__Schedule__UserId__1F98B2C1] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[Schedule] CHECK CONSTRAINT [FK__Schedule__UserId__1F98B2C1]
+GO
+ALTER TABLE [dbo].[ScheduleComment]  WITH CHECK ADD  CONSTRAINT [FK__ScheduleC__Paren__31B762FC] FOREIGN KEY([ParentFeedBackId])
+REFERENCES [dbo].[ScheduleComment] ([Id])
+GO
+ALTER TABLE [dbo].[ScheduleComment] CHECK CONSTRAINT [FK__ScheduleC__Paren__31B762FC]
+GO
+ALTER TABLE [dbo].[ScheduleComment]  WITH CHECK ADD  CONSTRAINT [FK__ScheduleC__Sched__208CD6FA] FOREIGN KEY([ScheduleId])
+REFERENCES [dbo].[Schedule] ([Id])
+GO
+ALTER TABLE [dbo].[ScheduleComment] CHECK CONSTRAINT [FK__ScheduleC__Sched__208CD6FA]
+GO
+ALTER TABLE [dbo].[ScheduleComment]  WITH CHECK ADD  CONSTRAINT [FK__ScheduleC__UserI__2180FB33] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[ScheduleComment] CHECK CONSTRAINT [FK__ScheduleC__UserI__2180FB33]
+GO
+ALTER TABLE [dbo].[ScheduleCommentLike]  WITH CHECK ADD  CONSTRAINT [FK__ScheduleC__Sched__43D61337] FOREIGN KEY([ScheduleCommentId])
+REFERENCES [dbo].[ScheduleComment] ([Id])
+GO
+ALTER TABLE [dbo].[ScheduleCommentLike] CHECK CONSTRAINT [FK__ScheduleC__Sched__43D61337]
+GO
+ALTER TABLE [dbo].[ScheduleCommentLike]  WITH CHECK ADD  CONSTRAINT [FK__ScheduleC__UserI__44CA3770] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[ScheduleCommentLike] CHECK CONSTRAINT [FK__ScheduleC__UserI__44CA3770]
+GO
+ALTER TABLE [dbo].[ScheduleCommentPhoto]  WITH CHECK ADD  CONSTRAINT [FK__ScheduleC__Feedb__22751F6C] FOREIGN KEY([FeedbackId])
+REFERENCES [dbo].[ScheduleComment] ([Id])
+GO
+ALTER TABLE [dbo].[ScheduleCommentPhoto] CHECK CONSTRAINT [FK__ScheduleC__Feedb__22751F6C]
+GO
+ALTER TABLE [dbo].[ScheduleCommentVideo]  WITH CHECK ADD  CONSTRAINT [FK__ScheduleC__Feedb__236943A5] FOREIGN KEY([FeedbackId])
+REFERENCES [dbo].[ScheduleComment] ([Id])
+GO
+ALTER TABLE [dbo].[ScheduleCommentVideo] CHECK CONSTRAINT [FK__ScheduleC__Feedb__236943A5]
+GO
+ALTER TABLE [dbo].[ScheduleLike]  WITH CHECK ADD  CONSTRAINT [FK__ScheduleL__Sched__42E1EEFE] FOREIGN KEY([ScheduleId])
+REFERENCES [dbo].[Schedule] ([Id])
+GO
+ALTER TABLE [dbo].[ScheduleLike] CHECK CONSTRAINT [FK__ScheduleL__Sched__42E1EEFE]
+GO
+ALTER TABLE [dbo].[ScheduleLike]  WITH CHECK ADD  CONSTRAINT [FK__ScheduleL__UserI__45BE5BA9] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[ScheduleLike] CHECK CONSTRAINT [FK__ScheduleL__UserI__45BE5BA9]
+GO
+ALTER TABLE [dbo].[ScheduleUserLike]  WITH CHECK ADD  CONSTRAINT [FK__ScheduleU__Sched__3B40CD36] FOREIGN KEY([ScheduleId])
+REFERENCES [dbo].[Schedule] ([Id])
+GO
+ALTER TABLE [dbo].[ScheduleUserLike] CHECK CONSTRAINT [FK__ScheduleU__Sched__3B40CD36]
+GO
+ALTER TABLE [dbo].[ScheduleUserLike]  WITH CHECK ADD  CONSTRAINT [FK__ScheduleU__UserI__3C34F16F] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[ScheduleUserLike] CHECK CONSTRAINT [FK__ScheduleU__UserI__3C34F16F]
+GO
+ALTER TABLE [dbo].[TraveledPlace]  WITH CHECK ADD  CONSTRAINT [FK__TraveledP__Place__2739D489] FOREIGN KEY([PlaceId])
+REFERENCES [dbo].[Place] ([Id])
+GO
+ALTER TABLE [dbo].[TraveledPlace] CHECK CONSTRAINT [FK__TraveledP__Place__2739D489]
+GO
+ALTER TABLE [dbo].[TraveledPlace]  WITH CHECK ADD  CONSTRAINT [FK__TraveledP__UserI__2645B050] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[TraveledPlace] CHECK CONSTRAINT [FK__TraveledP__UserI__2645B050]
+GO
+ALTER TABLE [dbo].[UserBan]  WITH CHECK ADD  CONSTRAINT [FK__UserBan__Id__282DF8C2] FOREIGN KEY([Id])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[UserBan] CHECK CONSTRAINT [FK__UserBan__Id__282DF8C2]
+GO
+ALTER TABLE [dbo].[UserClaims]  WITH CHECK ADD  CONSTRAINT [FK_UserClaims_Users_UserId] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[UserClaims] CHECK CONSTRAINT [FK_UserClaims_Users_UserId]
+GO
+ALTER TABLE [dbo].[UserDevice]  WITH CHECK ADD  CONSTRAINT [FK__UserDevic__UserI__29221CFB] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[UserDevice] CHECK CONSTRAINT [FK__UserDevic__UserI__29221CFB]
+GO
+ALTER TABLE [dbo].[UserLogins]  WITH CHECK ADD  CONSTRAINT [FK_UserLogins_Users_UserId] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[UserLogins] CHECK CONSTRAINT [FK_UserLogins_Users_UserId]
+GO
+ALTER TABLE [dbo].[UserRoles]  WITH CHECK ADD  CONSTRAINT [FK_UserRoles_Roles_RoleId] FOREIGN KEY([RoleId])
+REFERENCES [dbo].[Roles] ([Id])
+GO
+ALTER TABLE [dbo].[UserRoles] CHECK CONSTRAINT [FK_UserRoles_Roles_RoleId]
+GO
+ALTER TABLE [dbo].[UserRoles]  WITH CHECK ADD  CONSTRAINT [FK_UserRoles_Users_UserId] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[UserRoles] CHECK CONSTRAINT [FK_UserRoles_Users_UserId]
+GO
+ALTER TABLE [dbo].[UserTokens]  WITH CHECK ADD  CONSTRAINT [FK_UserTokens_Users_UserId] FOREIGN KEY([UserId])
+REFERENCES [dbo].[Users] ([Id])
+GO
+ALTER TABLE [dbo].[UserTokens] CHECK CONSTRAINT [FK_UserTokens_Users_UserId]
+GO
+ALTER TABLE [dbo].[Ward]  WITH CHECK ADD  CONSTRAINT [FK__Ward__DistrictNC__3864608B] FOREIGN KEY([DistrictNCityId])
+REFERENCES [dbo].[DistrictNCity] ([Id])
+GO
+ALTER TABLE [dbo].[Ward] CHECK CONSTRAINT [FK__Ward__DistrictNC__3864608B]
+GO
+USE [master]
+GO
+ALTER DATABASE [LocalTourDB] SET  READ_WRITE 
+GO
