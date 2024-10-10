@@ -1,0 +1,6 @@
+@LocalTour.WebApi_HostAddress = http://localhost:5202
+
+GET {{LocalTour.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
