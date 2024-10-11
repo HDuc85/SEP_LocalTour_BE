@@ -1,5 +1,5 @@
-﻿using LocalTour.Domain;
-using LocalTour.Domain.Entities;
+﻿using LocalTour.Domain.Entities;
+using LocalTour.Domain.Models;
 using LocalTour.Services.Abstract;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;

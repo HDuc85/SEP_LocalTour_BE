@@ -1,4 +1,4 @@
-﻿namespace LocalTour.Domain
+﻿namespace LocalTour.Domain.Common
 {
     public class JwtModel
     {
