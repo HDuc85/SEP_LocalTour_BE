@@ -67,5 +67,9 @@ namespace LocalTour.Data
         {
             await _context.SaveChangesAsync();
         }
+        public IQueryable<T> GetAll()
+        {
+            return _context.Set<T>();
+        }
     }
 }
