@@ -33,6 +33,7 @@ public static class QueryableExtensions
             // Set a default sorting property if sortBy is null or invalid
             sortBy = typeof(TEntity) == typeof(Place) ? nameof(Place.Id) :
                      typeof(TEntity) == typeof(PlaceTranslation) ? nameof(PlaceTranslation.Id) :
+                     typeof(TEntity) == typeof(Event) ? nameof(Event.Id) :
                      throw new ArgumentException("Invalid sortBy property.");
         }
 

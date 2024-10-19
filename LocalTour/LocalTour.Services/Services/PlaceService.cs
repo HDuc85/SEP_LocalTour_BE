@@ -52,7 +52,7 @@ namespace LocalTour.Services.Services
                         PlaceId = placeEntity.Id,
                         TagId = tags,
                     };
-                    placeEntity.PlaceTags.Add(placetag);
+                   await _unitOfWork.RepositoryPlaceTag.Insert(placetag);
                 };
                 
             }
@@ -66,7 +66,7 @@ namespace LocalTour.Services.Services
                     Address = translation.Address,
                     Contact = translation.Contact
                 };
-                placeEntity.PlaceTranslations.Add(translationEntity);
+                await _unitOfWork.RepositoryPlaceTranslation.Insert(translationEntity);
             }
             await _unitOfWork.CommitAsync();
             return place;

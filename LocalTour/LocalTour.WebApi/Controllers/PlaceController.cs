@@ -17,7 +17,7 @@ namespace LocalTour.WebApi.Controllers
             _placeService = placeService;
         }
         [HttpPost("create")]
-        public async Task<ActionResult<ServiceResponseModel<PlaceRequest>>> CreatePlace([FromBody] PlaceRequest request)
+        public async Task<ActionResult<ServiceResponseModel<PlaceRequest>>> CreatePlace([FromForm] PlaceRequest request)
         {
             if (request == null)
             {

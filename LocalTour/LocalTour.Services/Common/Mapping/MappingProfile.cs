@@ -13,6 +13,8 @@ public class MappingProfile : Profile
     {
         ApplyMappingFromAssembly(Assembly.GetExecutingAssembly());
         CreateMap<Place, PlaceRequest>();
+        CreateMap<Event, EventRequest>();
+        CreateMap<PlaceActivity, PlaceActivityRequest>();
 
     }
 
