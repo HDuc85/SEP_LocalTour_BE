@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\LocalTour.Data\LocalTour.Data.csproj" />
     <ProjectReference Include="..\LocalTour.Domain\LocalTour.Domain.csproj" />
   </ItemGroup>
 

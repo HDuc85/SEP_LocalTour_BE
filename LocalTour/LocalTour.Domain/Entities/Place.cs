@@ -19,6 +19,8 @@ public partial class Place
 
     public double Latitude { get; set; }
 
+    public string Status { get; set; }
+
     public virtual ICollection<Destination> Destinations { get; set; } = new List<Destination>();
 
     public virtual ICollection<Event> Events { get; set; } = new List<Event>();
