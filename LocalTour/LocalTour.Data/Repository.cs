@@ -18,7 +18,7 @@ namespace LocalTour.Data
             _context = localTourDbContext;
         }
 
-        public async Task<IEnumerable<T>> GetData(Expression<Func<T, bool>> expression)
+        public async Task<IEnumerable<T>> GetData(Expression<Func<T, bool>> expression = null)
         {
             if (expression == null)
             {

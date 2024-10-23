@@ -1,4 +1,7 @@
-﻿using LocalTour.Domain;
+﻿using FirebaseAdmin.Auth;
+using LocalTour.Domain;
+using LocalTour.Domain.Common;
+using LocalTour.Domain.ViewModel;
 using LocalTour.Services.Abstract;
 using LocalTour.WebApi.ViewModel;
 using Microsoft.AspNetCore.Authorization;
@@ -33,7 +36,7 @@ namespace LocalTour.WebApi.Controllers
             }
 
             (string accessToken, DateTime expiredDateAccessToken) = await _tokenHandler.CreateAccessToken(user);
-            (string refreshToken, DateTime expiredDateRefreshToken, string codeRefreshToken) = await _tokenHandler.CreateRefreshToken(user);
+            (string refreshToken, DateTime expiredDateRefreshToken) = await _tokenHandler.CreateRefreshToken(user);
 
             return Ok(new JwtModel
             {
@@ -45,7 +48,7 @@ namespace LocalTour.WebApi.Controllers
             });
         }
 
-        [HttpPost("refresh-token")]
+        [HttpPost("refreshToken")]
         public async Task<IActionResult> RefreshToken([FromBody]string refreshToken)
         {
             var validate = await _tokenHandler.ValidateRefreshToken(refreshToken);
@@ -53,5 +56,53 @@ namespace LocalTour.WebApi.Controllers
                 return Unauthorized("Invalid RefreshToken");
             return Ok(validate);
         }
+
+        [HttpPost("verifyTokenFirebase")]
+        public async Task<IActionResult> VerifyToken(string idToken)
+        {
+            try
+            {
+                FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
+                string phoneNumber = decodedToken.Claims.ContainsKey("phoneNumber")
+                                    ? decodedToken.Claims["phoneNumber"].ToString()
+                                    : "Phone number not available"; ;
+
+
+                var user = await _userService.FindByPhoneNumber(phoneNumber);
+
+                if (user == null)
+                {
+                    user = await _userService.CreateUser(new Domain.Entities.User
+                    {
+                        PhoneNumber = phoneNumber,
+                        DateCreated = DateTime.UtcNow,
+                        DateUpdated = DateTime.UtcNow,
+                        PhoneNumberConfirmed = true,
+                        UserName = phoneNumber,
+                        Id = Guid.NewGuid()
+                    });
+                }
+
+                (string firebaseAuthToken, DateTime expiredDateToken) = await _tokenHandler.CreateAuthenFirebaseToken(user,idToken);
+
+                return Ok(new 
+                {
+                    firebaseAuthToken = firebaseAuthToken,
+                    expiredDateToken = expiredDateToken,
+                });
+            }
+            catch (FirebaseAuthException ex)
+            {
+                if (ex.AuthErrorCode == AuthErrorCode.InvalidIdToken)
+                {
+                    return BadRequest("Token không hợp lệ.");
+                }
+                else
+                {
+                    return StatusCode(500, "Lỗi xác thực token.");
+                }
+            }
+        }
+
     }
 }

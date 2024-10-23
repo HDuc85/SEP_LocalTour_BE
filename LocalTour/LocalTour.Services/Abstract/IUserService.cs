@@ -1,4 +1,6 @@
 ﻿using LocalTour.Domain.Entities;
+using LocalTour.Services.Model;
+using LocalTour.WebApi.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +15,10 @@ namespace LocalTour.Services.Abstract
         Task<User> CheckLogin(string phonenumber, string password);
         Task<User> FindByPhoneNumber(string phonenumber);
         Task<bool> BanUser(string phonenumber, DateTime timeEnd);
+        Task<User> CreateUser(User user);
+        Task<List<User>> GetAll();
+        Task<bool> SetPassword(string phonenumber, string password);
+        Task<ServiceResponseModel<User>?> UpdateUser(string phonenumber, UpdateUserRequest updateUserRequest, string requestUrl);
+        Task<bool> ChangePassword(string phoneNumber, string oldPassword, string newPassword);
     }
 }

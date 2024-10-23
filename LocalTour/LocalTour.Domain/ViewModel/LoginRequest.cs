@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace LocalTour.WebApi.ViewModel
+namespace LocalTour.Domain.ViewModel
 {
     public class LoginRequest
     {

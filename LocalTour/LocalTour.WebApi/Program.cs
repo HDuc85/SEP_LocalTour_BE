@@ -1,3 +1,5 @@
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using LocalTour.Infrastructure.Configuration;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
@@ -9,7 +11,7 @@ builder.Services.RegesterContextDb(builder.Configuration);
 builder.Services.RegesterDI(builder.Configuration);
 builder.Services.RegesterIdentity(builder.Configuration);
 builder.Services.AddControllers();
-
+builder.Services.AddMemoryCache();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins",
@@ -50,6 +52,11 @@ builder.Services.AddSwaggerGen(options =>
  /*   var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));*/
 
+});
+
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile("firebaseServiceAccount.json"),
 });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

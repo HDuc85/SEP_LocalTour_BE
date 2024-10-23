@@ -7,7 +7,6 @@ namespace LocalTour.Domain.Entities;
 public partial class User : IdentityUser<Guid>
 {
    
-
     public string? FullName { get; set; }
 
     public DateTime? DateOfBirth { get; set; }
