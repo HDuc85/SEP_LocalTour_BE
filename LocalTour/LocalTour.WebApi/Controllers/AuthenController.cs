@@ -1,4 +1,5 @@
 ﻿using LocalTour.Domain;
+using LocalTour.Domain.Common;
 using LocalTour.Services.Abstract;
 using LocalTour.WebApi.ViewModel;
 using Microsoft.AspNetCore.Authorization;

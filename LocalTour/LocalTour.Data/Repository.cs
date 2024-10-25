@@ -13,7 +13,7 @@ namespace LocalTour.Data
     public class Repository<T> : IRepository<T> where T : class
     {
         LocalTourDbContext _context;
-        public Repository(LocalTourDbContext localTourDbContext) 
+        public Repository(LocalTourDbContext localTourDbContext)
         {
             _context = localTourDbContext;
         }
@@ -30,7 +30,7 @@ namespace LocalTour.Data
         {
             return await _context.Set<T>().FindAsync(id);
         }
-      
+
 
         public void Delete(T entity)
         {
@@ -49,12 +49,12 @@ namespace LocalTour.Data
 
         public async Task Insert(T entity)
         {
-           await _context.Set<T>().AddAsync(entity);
+            await _context.Set<T>().AddAsync(entity);
         }
 
         public async Task Insert(IEnumerable<T> entities)
         {
-           await _context.Set<T>().AddRangeAsync(entities);
+            await _context.Set<T>().AddRangeAsync(entities);
         }
 
         public void Update(T entity)
@@ -63,9 +63,13 @@ namespace LocalTour.Data
             entityEntry.State = Microsoft.EntityFrameworkCore.EntityState.Modified;
         }
         public virtual IQueryable<T> Table => _context.Set<T>();
-        public async Task  Commit()
+        public async Task Commit()
         {
             await _context.SaveChangesAsync();
+        }
+        public IQueryable<T> GetAll()
+        {
+            return _context.Set<T>();
         }
     }
 }

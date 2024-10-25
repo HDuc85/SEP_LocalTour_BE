@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Service.Common.Mapping;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -42,6 +43,11 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<IUserService, UserService>();
             service.AddScoped<ITokenHandler, Services.Services.TokenHandler>();
             service.AddScoped<IFileService, FileService>();
+
+            // Registering the PostService
+            service.AddScoped<IPostService, PostService>();
+            service.AddAutoMapper(typeof(MappingProfile));
+
         }
 
         public static void RegesterIdentity(this IServiceCollection service, IConfiguration configuration)
