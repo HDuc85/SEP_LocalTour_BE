@@ -43,7 +43,6 @@ namespace LocalTour.Data.Abstract
         Repository<UserBan> RepositoryUserBan {get;}
         Repository<UserDevice>  RepositoryUserDevice {get;}
         Repository<Ward> RepositoryWard {get;}
-        Repository<Weather>  RepositoryWeather {get;}
         Repository<User> RepositoryUser {get;}
         Repository<Role> RepositoryRole { get; }
         Task CommitAsync();

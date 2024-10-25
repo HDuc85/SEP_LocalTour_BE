@@ -48,7 +48,6 @@ namespace LocalTour.Data
         Repository<UserBan> _repositoryUserBan;
         Repository<UserDevice> _repositoryUserDevice;
         Repository<Ward> _repositoryWard;
-        Repository<Weather> _repositoryWeather;
         Repository<User> _repositoryUser;
         Repository<Role> _repositoryRole;
         public UnitOfWork(LocalTourDbContext db)
@@ -227,11 +226,6 @@ namespace LocalTour.Data
         public Repository<Ward> RepositoryWard {
         get {
             return _repositoryWard ??= new Repository<Ward>(_db);    
-            }
-        }
-        public Repository<Weather> RepositoryWeather {
-        get {
-            return _repositoryWeather ??= new Repository<Weather>(_db);    
             }
         }
         public Repository<User> RepositoryUser {
