@@ -44,9 +44,11 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<ITokenHandler, Services.Services.TokenHandler>();
             service.AddScoped<IFileService, FileService>();
 
+            service.AddAutoMapper(typeof(MappingProfile));
+
             // Registering the PostService
             service.AddScoped<IPostService, PostService>();
-            service.AddAutoMapper(typeof(MappingProfile));
+            service.AddScoped<IPostMediumService, PostMediumService>();
 
         }
 

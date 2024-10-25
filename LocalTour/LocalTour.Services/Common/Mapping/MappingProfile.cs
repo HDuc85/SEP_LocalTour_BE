@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using AutoMapper;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Common.Mapping;
@@ -11,11 +11,16 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<PostRequest, Post>()
-             .ForMember(dest => dest.Id, opt => opt.Ignore())
-             .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => DateTime.UtcNow))
-             .ForMember(dest => dest.UpdateDate, opt => opt.MapFrom(src => DateTime.UtcNow));
+        CreateMap<Post, PostRequest>()
+            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => new List<int>())); // Nếu có Tags trong Post
 
+        CreateMap<PostRequest, Post>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore()) // Bỏ qua Id nếu tự động sinh
+            .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => DateTime.UtcNow)) // Đặt thời gian tạo
+            .ForMember(dest => dest.UpdateDate, opt => opt.MapFrom(src => DateTime.UtcNow)); // Đặt thời gian cập nhật
+
+        CreateMap<PostRequest, Post>();
+        CreateMap<PostMedium, PostMediumRequest>().ReverseMap();
     }
 
     private void ApplyMappingFromAssembly(Assembly assembly)

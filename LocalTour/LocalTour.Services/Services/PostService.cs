@@ -77,13 +77,22 @@ namespace LocalTour.Services.Services
             }
 
             // Mapping, sorting, and pagination
-            return await posts.ListPaginateWithSortAsync<Post, PostRequest>(
+            var result = await posts.ListPaginateWithSortAsync<Post, PostRequest>(
                 request.Page,
                 request.Size,
-                //request.SortBy,
                 request.SortOrder,
                 _mapper.ConfigurationProvider
             );
+
+            return result;
+        }
+
+
+        //thêm mapper
+        public PostRequest MapPostToRequest(Post post)
+        {
+            if (post == null) throw new ArgumentNullException(nameof(post));
+            return _mapper.Map<PostRequest>(post);
         }
     }
 }

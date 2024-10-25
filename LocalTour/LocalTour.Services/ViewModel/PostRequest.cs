@@ -14,13 +14,5 @@ namespace LocalTour.Services.ViewModel
         public string Content { get; set; } = string.Empty;
         public bool Public { get; set; }
         public List<int> Tags { get; set; } = new List<int>();
-
-        public void Mapping(AutoMapper.Profile profile)
-        {
-            profile.CreateMap<PostRequest, Post>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore()) // Ignore Id if it's auto-generated
-                .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => DateTime.UtcNow)) // Set created date
-                .ForMember(dest => dest.UpdateDate, opt => opt.MapFrom(src => DateTime.UtcNow)); // Set update date
-        }
     }
 }

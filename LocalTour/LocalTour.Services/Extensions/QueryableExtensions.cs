@@ -25,7 +25,6 @@ namespace LocalTour.Services.Extensions
             where TEntityDto : IMapFrom<TEntity>
         {
             // Validate and set default sort property
-
             //if (string.IsNullOrEmpty(sortBy) || !IsValidProperty<TEntityDto>(sortBy))
             //{
             //    throw new ArgumentException("Invalid sortBy property.");

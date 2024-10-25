@@ -1,5 +1,6 @@
 using LocalTour.Infrastructure.Configuration;
 using Microsoft.OpenApi.Models;
+using Service.Common.Mapping;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,9 @@ builder.Services.RegesterContextDb(builder.Configuration);
 builder.Services.RegesterDI(builder.Configuration);
 builder.Services.RegesterIdentity(builder.Configuration);
 builder.Services.AddControllers();
+
+//add
+builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
 builder.Services.AddCors(options =>
 {
