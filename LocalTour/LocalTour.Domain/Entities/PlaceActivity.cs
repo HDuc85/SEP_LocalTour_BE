@@ -15,9 +15,7 @@ public partial class PlaceActivity
 
     public virtual Place Place { get; set; } = null!;
 
-    public virtual ICollection<PlaceActivityPhoto> PlaceActivityPhotos { get; set; } = new List<PlaceActivityPhoto>();
+    public virtual ICollection<PlaceActivityMedium> PlaceActivityMedia { get; set; } = new List<PlaceActivityMedium>();
 
     public virtual ICollection<PlaceActivityTranslation> PlaceActivityTranslations { get; set; } = new List<PlaceActivityTranslation>();
-
-    public virtual ICollection<PlaceActivityVideo> PlaceActivityVideos { get; set; } = new List<PlaceActivityVideo>();
 }

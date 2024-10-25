@@ -25,9 +25,7 @@ public partial class ScheduleComment
 
     public virtual ICollection<ScheduleCommentLike> ScheduleCommentLikes { get; set; } = new List<ScheduleCommentLike>();
 
-    public virtual ICollection<ScheduleCommentPhoto> ScheduleCommentPhotos { get; set; } = new List<ScheduleCommentPhoto>();
-
-    public virtual ICollection<ScheduleCommentVideo> ScheduleCommentVideos { get; set; } = new List<ScheduleCommentVideo>();
+    public virtual ICollection<ScheduleCommentMedium> ScheduleCommentMedia { get; set; } = new List<ScheduleCommentMedium>();
 
     public virtual User User { get; set; } = null!;
 }
