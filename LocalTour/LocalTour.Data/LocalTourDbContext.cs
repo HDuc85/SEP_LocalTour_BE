@@ -19,45 +19,76 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
     }
 
     public virtual DbSet<Destination> Destinations { get; set; }
+
     public virtual DbSet<DistrictNcity> DistrictNcities { get; set; }
+
     public virtual DbSet<Event> Events { get; set; }
+
     public virtual DbSet<FollowUser> FollowUsers { get; set; }
+
     public virtual DbSet<MarkPlace> MarkPlaces { get; set; }
+
     public virtual DbSet<Notification> Notifications { get; set; }
+
     public virtual DbSet<Place> Places { get; set; }
+
     public virtual DbSet<PlaceActivity> PlaceActivities { get; set; }
-    public virtual DbSet<PlaceActivityPhoto> PlaceActivityPhotos { get; set; }
+
+    public virtual DbSet<PlaceActivityMedium> PlaceActivityMedia { get; set; }
+
     public virtual DbSet<PlaceActivityTranslation> PlaceActivityTranslations { get; set; }
-    public virtual DbSet<PlaceActivityVideo> PlaceActivityVideos { get; set; }
+
     public virtual DbSet<PlaceFeeedback> PlaceFeeedbacks { get; set; }
+
     public virtual DbSet<PlaceFeeedbackHelpful> PlaceFeeedbackHelpfuls { get; set; }
-    public virtual DbSet<PlaceFeeedbackPhoto> PlaceFeeedbackPhotos { get; set; }
-    public virtual DbSet<PlaceFeeedbackVideo> PlaceFeeedbackVideos { get; set; }
-    public virtual DbSet<PlacePhoto> PlacePhotos { get; set; }
+
+    public virtual DbSet<PlaceFeeedbackMedium> PlaceFeeedbackMedia { get; set; }
+
+    public virtual DbSet<PlaceMedium> PlaceMedia { get; set; }
+
+    public virtual DbSet<PlaceReport> PlaceReports { get; set; }
+
     public virtual DbSet<PlaceSearchHistory> PlaceSearchHistories { get; set; }
+
     public virtual DbSet<PlaceTag> PlaceTags { get; set; }
+
     public virtual DbSet<PlaceTranslation> PlaceTranslations { get; set; }
-    public virtual DbSet<PlaceVideo> PlaceVideos { get; set; }
+
     public virtual DbSet<Post> Posts { get; set; }
+
     public virtual DbSet<PostComment> PostComments { get; set; }
+
     public virtual DbSet<PostCommentLike> PostCommentLikes { get; set; }
+
     public virtual DbSet<PostLike> PostLikes { get; set; }
-    public virtual DbSet<PostPhoto> PostPhotos { get; set; }
-    public virtual DbSet<PostVideo> PostVideos { get; set; }
+
+    public virtual DbSet<PostMedium> PostMedia { get; set; }
+
     public virtual DbSet<ProvinceNcity> ProvinceNcities { get; set; }
+
     public virtual DbSet<Schedule> Schedules { get; set; }
+
     public virtual DbSet<ScheduleComment> ScheduleComments { get; set; }
+
     public virtual DbSet<ScheduleCommentLike> ScheduleCommentLikes { get; set; }
-    public virtual DbSet<ScheduleCommentPhoto> ScheduleCommentPhotos { get; set; }
-    public virtual DbSet<ScheduleCommentVideo> ScheduleCommentVideos { get; set; }
+
+    public virtual DbSet<ScheduleCommentMedium> ScheduleCommentMedia { get; set; }
+
     public virtual DbSet<ScheduleLike> ScheduleLikes { get; set; }
+
     public virtual DbSet<ScheduleUserLike> ScheduleUserLikes { get; set; }
+
     public virtual DbSet<Tag> Tags { get; set; }
+
     public virtual DbSet<TraveledPlace> TraveledPlaces { get; set; }
+
     public virtual DbSet<UserBan> UserBans { get; set; }
+
     public virtual DbSet<UserDevice> UserDevices { get; set; }
+
+    public virtual DbSet<UserReport> UserReports { get; set; }
+
     public virtual DbSet<Ward> Wards { get; set; }
-    public virtual DbSet<Weather> Weathers { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
 
@@ -200,20 +231,6 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
                 .HasConstraintName("FK__PlaceActi__Place__32AB8735");
         });
 
-        modelBuilder.Entity<PlaceActivityPhoto>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__PlaceAct__3214EC079250A7A9");
-
-            entity.ToTable("PlaceActivityPhoto");
-
-            entity.Property(e => e.CreateDate).HasColumnType("datetime");
-
-            entity.HasOne(d => d.PlaceActivity).WithMany(p => p.PlaceActivityPhotos)
-                .HasForeignKey(d => d.PlaceActivityId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PlaceActi__Place__3493CFA7");
-        });
-
         modelBuilder.Entity<PlaceActivityTranslation>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__PlaceAct__3214EC0782C5AAD1");
@@ -229,20 +246,6 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
                 .HasForeignKey(d => d.PlaceActivityId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__PlaceActi__Place__4B7734FF");
-        });
-
-        modelBuilder.Entity<PlaceActivityVideo>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__PlaceAct__3214EC07228A83C5");
-
-            entity.ToTable("PlaceActivityVideo");
-
-            entity.Property(e => e.CreateDate).HasColumnType("datetime");
-
-            entity.HasOne(d => d.PlaceActivity).WithMany(p => p.PlaceActivityVideos)
-                .HasForeignKey(d => d.PlaceActivityId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PlaceActi__Place__339FAB6E");
         });
 
         modelBuilder.Entity<PlaceFeeedback>(entity =>
@@ -282,50 +285,6 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__PlaceFeee__UserI__41EDCAC5");
-        });
-
-        modelBuilder.Entity<PlaceFeeedbackPhoto>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__PlaceFee__3214EC074759D9FC");
-
-            entity.ToTable("PlaceFeeedbackPhoto");
-
-            entity.Property(e => e.CreateDate).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Feedback).WithMany(p => p.PlaceFeeedbackPhotos)
-                .HasForeignKey(d => d.FeedbackId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PlaceFeee__Feedb__1AD3FDA4");
-        });
-
-        modelBuilder.Entity<PlaceFeeedbackVideo>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__PlaceFee__3214EC07C34ADB5E");
-
-            entity.ToTable("PlaceFeeedbackVideo");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            entity.Property(e => e.CreateDate).HasColumnType("datetime");
-
-            entity.HasOne(d => d.IdNavigation).WithOne(p => p.PlaceFeeedbackVideo)
-                .HasForeignKey<PlaceFeeedbackVideo>(d => d.Id)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PlaceFeeedba__Id__1DB06A4F");
-        });
-
-        modelBuilder.Entity<PlacePhoto>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__PlacePho__3214EC073D1D4BD3");
-
-            entity.ToTable("PlacePhoto");
-
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            entity.Property(e => e.CreateDate).HasColumnType("datetime");
-
-            entity.HasOne(d => d.IdNavigation).WithOne(p => p.PlacePhoto)
-                .HasForeignKey<PlacePhoto>(d => d.Id)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PlacePhoto__Id__1CBC4616");
         });
 
         modelBuilder.Entity<PlaceSearchHistory>(entity =>
@@ -379,20 +338,6 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
                 .HasForeignKey(d => d.PlaceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__PlaceTran__Place__4A8310C6");
-        });
-
-        modelBuilder.Entity<PlaceVideo>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__PlaceVid__3214EC0798D9E211");
-
-            entity.ToTable("PlaceVideo");
-
-            entity.Property(e => e.CreateDate).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Place).WithMany(p => p.PlaceVideos)
-                .HasForeignKey(d => d.PlaceId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PlaceVide__Place__1BC821DD");
         });
 
         modelBuilder.Entity<Post>(entity =>
@@ -482,34 +427,6 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
                 .HasConstraintName("FK__PostLike__UserId__43D61337");
         });
 
-        modelBuilder.Entity<PostPhoto>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__PostPhot__3214EC07774C3FF7");
-
-            entity.ToTable("PostPhoto");
-
-            entity.Property(e => e.CreateDate).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Post).WithMany(p => p.PostPhotos)
-                .HasForeignKey(d => d.PostId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PostPhoto__PostI__3A4CA8FD");
-        });
-
-        modelBuilder.Entity<PostVideo>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__PostVide__3214EC07041166FA");
-
-            entity.ToTable("PostVideo");
-
-            entity.Property(e => e.CreateDate).HasColumnType("datetime");
-
-            entity.HasOne(d => d.Post).WithMany(p => p.PostVideos)
-                .HasForeignKey(d => d.PostId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PostVideo__PostI__395884C4");
-        });
-
         modelBuilder.Entity<ProvinceNcity>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Province__3214EC07C5725311");
@@ -562,32 +479,58 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
                 .HasConstraintName("FK__ScheduleC__UserI__489AC854");
         });
 
-        modelBuilder.Entity<ScheduleCommentPhoto>(entity =>
+        modelBuilder.Entity<PlaceActivityMedium>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Schedule__3214EC0709B13D9B");
-
-            entity.ToTable("ScheduleCommentPhoto");
+            entity.HasKey(e => e.Id).HasName("PK__PlaceAct__3214EC07E3B2F567");
 
             entity.Property(e => e.CreateDate).HasColumnType("datetime");
+            entity.Property(e => e.Type).HasMaxLength(10);
 
-            entity.HasOne(d => d.Feedback).WithMany(p => p.ScheduleCommentPhotos)
-                .HasForeignKey(d => d.FeedbackId)
+            entity.HasOne(d => d.PlaceActivity).WithMany(p => p.PlaceActivityMedia)
+                .HasForeignKey(d => d.PlaceActivityId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ScheduleC__Feedb__2645B050");
+                .HasConstraintName("FK__PlaceActi__Place__2B0A656D");
         });
 
-        modelBuilder.Entity<ScheduleCommentVideo>(entity =>
+        modelBuilder.Entity<PlaceFeeedbackMedium>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Schedule__3214EC0786619F4F");
-
-            entity.ToTable("ScheduleCommentVideo");
+            entity.HasKey(e => e.Id).HasName("PK__PlaceFee__3214EC0726D57762");
 
             entity.Property(e => e.CreateDate).HasColumnType("datetime");
+            entity.Property(e => e.Type).HasMaxLength(10);
 
-            entity.HasOne(d => d.Feedback).WithMany(p => p.ScheduleCommentVideos)
+            entity.HasOne(d => d.Feedback).WithMany(p => p.PlaceFeeedbackMedia)
                 .HasForeignKey(d => d.FeedbackId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ScheduleC__Feedb__2739D489");
+                .HasConstraintName("FK__PlaceFeee__Feedb__1332DBDC");
+        });
+
+        modelBuilder.Entity<PlaceMedium>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__PlaceMed__3214EC0786A60259");
+
+            entity.Property(e => e.CreateDate).HasColumnType("datetime");
+            entity.Property(e => e.Type).HasMaxLength(10);
+
+            entity.HasOne(d => d.Place).WithMany(p => p.PlaceMedia)
+                .HasForeignKey(d => d.PlaceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__PlaceMedi__Place__14270015");
+        });
+
+        modelBuilder.Entity<PlaceReport>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__PlaceRep__3214EC079BCAD4C5");
+
+            entity.ToTable("PlaceReport");
+
+            entity.Property(e => e.ReportDate).HasColumnType("datetime");
+            entity.Property(e => e.Status).HasMaxLength(50);
+
+            entity.HasOne(d => d.Place).WithMany(p => p.PlaceReports)
+                .HasForeignKey(d => d.PlaceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__PlaceRepo__Place__22751F6C");
         });
 
         modelBuilder.Entity<ScheduleLike>(entity =>
@@ -607,6 +550,34 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__ScheduleL__UserI__498EEC8D");
+        });
+        
+        modelBuilder.Entity<PostMedium>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__PostMedi__3214EC07E0D0E6CA");
+
+            entity.Property(e => e.CreateDate).HasColumnType("datetime");
+            entity.Property(e => e.Type).HasMaxLength(10);
+
+            entity.HasOne(d => d.Post).WithMany(p => p.PostMedia)
+                .HasForeignKey(d => d.PostId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__PostMedia__PostI__2FCF1A8A");
+        });
+        
+        modelBuilder.Entity<UserReport>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__UserRepo__3214EC0726E3BD62");
+
+            entity.ToTable("UserReport");
+
+            entity.Property(e => e.ReportDate).HasColumnType("datetime");
+            entity.Property(e => e.Status).HasMaxLength(50);
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserReports)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__UserRepor__UserI__208CD6FA");
         });
 
         modelBuilder.Entity<ScheduleUserLike>(entity =>
@@ -718,20 +689,6 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
                 .HasForeignKey(d => d.DistrictNcityId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Ward__DistrictNC__3C34F16F");
-        });
-
-        modelBuilder.Entity<Weather>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Weather__3214EC075618987C");
-
-            entity.ToTable("Weather");
-
-            entity.Property(e => e.Location).HasMaxLength(256);
-
-            entity.HasOne(d => d.User).WithMany(p => p.Weathers)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Weather__UserId__4E53A1AA");
         });
 
         modelBuilder.Entity<User>(entity =>
