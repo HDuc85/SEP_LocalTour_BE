@@ -63,10 +63,8 @@ public partial class User : IdentityUser<Guid>
 
     public virtual ICollection<UserDevice> UserDevices { get; set; } = new List<UserDevice>();
 
- 
 
-
-    public virtual ICollection<Weather> Weathers { get; set; } = new List<Weather>();
+    public virtual ICollection<UserReport> UserReports { get; set; } = new List<UserReport>();
 
     public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
 }

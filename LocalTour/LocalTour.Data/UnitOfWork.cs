@@ -22,30 +22,25 @@ namespace LocalTour.Data
         Repository<Notification> _repositoryNotification;
         Repository<Place> _repositoryPlace;
         Repository<PlaceActivity> _repositoryPlaceActivity;
-        Repository<PlaceActivityPhoto> _repositoryPlaceActivityPhoto;
+        Repository<PlaceActivityMedium> _repositoryPlaceActivityMedium;
+        Repository<PlaceFeeedbackMedium> _repositoryPlaceFeeedbackMedium;
+        Repository<PlaceMedium> _repositoryPlaceMedium;
+        Repository<PlaceReport> _repositoryPlaceReport;
+        Repository<ScheduleLike> _repositoryScheduleLike;
+        Repository<PostMedium> _repositoryPostMedium;
         Repository<PlaceActivityTranslation> _repositoryPlaceActivityTranslation;
-        Repository<PlaceActivityVideo> _repositoryPlaceActivityVideo;
         Repository<PlaceFeeedback> _repositoryPlaceFeeedback;
         Repository<PlaceFeeedbackHelpful> _repositoryPlaceFeeedbackHelpful;
-        Repository<PlaceFeeedbackPhoto> _repositoryPlaceFeeedbackPhoto;
-        Repository<PlaceFeeedbackVideo> _repositoryPlaceFeeedbackVideo;
-        Repository<PlacePhoto> _repositoryPlacePhoto;
         Repository<PlaceSearchHistory> _repositoryPlaceSearchHistory;
         Repository<PlaceTag> _repositoryPlaceTag;
         Repository<PlaceTranslation> _repositoryPlaceTranslation;
-        Repository<PlaceVideo> _repositoryPlaceVideo;
         Repository<Post> _repositoryPost;
         Repository<PostComment> _repositoryPostComment;
         Repository<PostCommentLike> _repositoryPostCommentLike;
         Repository<PostLike> _repositoryPostLike;
-        Repository<PostPhoto> _repositoryPostPhoto;
-        Repository<PostVideo> _repositoryPostVideo;
         Repository<ProvinceNcity> _repositoryProvinceNcity;
         Repository<ScheduleComment> _repositoryScheduleComment;
         Repository<ScheduleCommentLike> _repositoryScheduleCommentLike;
-        Repository<ScheduleCommentPhoto> _repositoryScheduleCommentPhoto;
-        Repository<ScheduleCommentVideo> _repositoryScheduleCommentVideo;
-        Repository<ScheduleLike> _repositoryScheduleLike;
         Repository<ScheduleUserLike> _repositoryScheduleUserLike;
         Repository<Tag> _repositoryTag;
         Repository<TraveledPlace> _repositoryTraveledPlace;
@@ -59,6 +54,33 @@ namespace LocalTour.Data
         public UnitOfWork(LocalTourDbContext db)
         {
             _db = db;
+        }
+
+        public Repository<PlaceActivityMedium> RepositoryPlaceActivityMedium{
+        get {
+            return _repositoryPlaceActivityMedium ??= new Repository<PlaceActivityMedium>(_db);
+            }    
+        }
+        public Repository<PlaceFeeedbackMedium> RepositoryPlaceFeeedbackMedium{
+        get {
+            return _repositoryPlaceFeeedbackMedium ??= new Repository<PlaceFeeedbackMedium>(_db);
+            }    
+        }
+        public Repository<PlaceMedium> RepositoryPlaceMedium{
+        get {
+            return _repositoryPlaceMedium ??= new Repository<PlaceMedium>(_db);
+            }    
+        }
+        public Repository<PlaceReport> RepositoryPlaceReport{
+        get {
+            return _repositoryPlaceReport ??= new Repository<PlaceReport>(_db);
+            }    
+        }
+        public Repository<PostMedium> RepositoryPostMedium
+        {
+            get {
+                return _repositoryPostMedium ??= new Repository<PostMedium>(_db);
+            }
         }
 
         public Repository<Destination> RepositoryDestination
@@ -102,19 +124,9 @@ namespace LocalTour.Data
             return _repositoryPlaceActivity ??= new Repository<PlaceActivity>(_db);    
             }
         }
-        public Repository<PlaceActivityPhoto> RepositoryPlaceActivityPhoto {
-        get {
-            return _repositoryPlaceActivityPhoto ??= new Repository<PlaceActivityPhoto>(_db);    
-            }
-        }
         public Repository<PlaceActivityTranslation> RepositoryPlaceActivityTranslation {
         get {
             return _repositoryPlaceActivityTranslation ??= new Repository<PlaceActivityTranslation>(_db);    
-            }
-        }
-        public Repository<PlaceActivityVideo> RepositoryPlaceActivityVideo {
-        get {
-            return _repositoryPlaceActivityVideo ??= new Repository<PlaceActivityVideo>(_db);    
             }
         }
         public Repository<PlaceFeeedback> RepositoryPlaceFeeedback {
@@ -125,21 +137,6 @@ namespace LocalTour.Data
         public Repository<PlaceFeeedbackHelpful> RepositoryPlaceFeeedbackHelpful {
         get {
             return _repositoryPlaceFeeedbackHelpful ??= new Repository<PlaceFeeedbackHelpful>(_db);    
-            }
-        }
-        public Repository<PlaceFeeedbackPhoto> RepositoryPlaceFeeedbackPhoto {
-        get {
-            return _repositoryPlaceFeeedbackPhoto ??= new Repository<PlaceFeeedbackPhoto>(_db);    
-            }
-        }
-        public Repository<PlaceFeeedbackVideo> RepositoryPlaceFeeedbackVideo {
-        get {
-            return _repositoryPlaceFeeedbackVideo ??= new Repository<PlaceFeeedbackVideo>(_db);    
-            }
-        }
-        public Repository<PlacePhoto> RepositoryPlacePhoto {
-        get {
-            return _repositoryPlacePhoto ??= new Repository<PlacePhoto>(_db);    
             }
         }
         public Repository<PlaceSearchHistory> RepositoryPlaceSearchHistory {
@@ -155,11 +152,6 @@ namespace LocalTour.Data
         public Repository<PlaceTranslation> RepositoryPlaceTranslation {
         get {
             return _repositoryPlaceTranslation ??= new Repository<PlaceTranslation>(_db);    
-            }
-        }
-        public Repository<PlaceVideo> RepositoryPlaceVideo {
-        get {
-            return _repositoryPlaceVideo ??= new Repository<PlaceVideo>(_db);    
             }
         }
         public Repository<Post> RepositoryPost {
@@ -182,16 +174,6 @@ namespace LocalTour.Data
             return _repositoryPostLike ??= new Repository<PostLike>(_db);    
             }
         }
-        public Repository<PostPhoto> RepositoryPostPhoto {
-        get {
-            return _repositoryPostPhoto ??= new Repository<PostPhoto>(_db);    
-            }
-        }
-        public Repository<PostVideo> RepositoryPostVideo {
-        get {
-            return _repositoryPostVideo ??= new Repository<PostVideo>(_db);    
-            }
-        }
         public Repository<ProvinceNcity> RepositoryProvinceNcity {
         get {
             return _repositoryProvinceNcity ??= new Repository<ProvinceNcity>(_db);    
@@ -205,16 +187,6 @@ namespace LocalTour.Data
         public Repository<ScheduleCommentLike> RepositoryScheduleCommentLike {
         get {
             return _repositoryScheduleCommentLike ??= new Repository<ScheduleCommentLike>(_db);    
-            }
-        }
-        public Repository<ScheduleCommentPhoto> RepositoryScheduleCommentPhoto {
-        get {
-            return _repositoryScheduleCommentPhoto ??= new Repository<ScheduleCommentPhoto>(_db);    
-            }
-        }
-        public Repository<ScheduleCommentVideo> RepositoryScheduleCommentVideo {
-        get {
-            return _repositoryScheduleCommentVideo ??= new Repository<ScheduleCommentVideo>(_db);    
             }
         }
         public Repository<ScheduleLike> RepositoryScheduleLike {

@@ -21,9 +21,7 @@ public partial class PlaceFeeedback
 
     public virtual ICollection<PlaceFeeedbackHelpful> PlaceFeeedbackHelpfuls { get; set; } = new List<PlaceFeeedbackHelpful>();
 
-    public virtual ICollection<PlaceFeeedbackPhoto> PlaceFeeedbackPhotos { get; set; } = new List<PlaceFeeedbackPhoto>();
-
-    public virtual PlaceFeeedbackVideo? PlaceFeeedbackVideo { get; set; }
+    public virtual ICollection<PlaceFeeedbackMedium> PlaceFeeedbackMedia { get; set; } = new List<PlaceFeeedbackMedium>();
 
     public virtual User User { get; set; } = null!;
 }
