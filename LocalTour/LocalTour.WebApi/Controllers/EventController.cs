@@ -18,20 +18,20 @@ namespace LocalTour.WebApi.Controllers
             _eventService = eventService;
         }
         [HttpGet("getall")]
-        public async Task<ActionResult<PaginatedList<EventRequest>>> GetAllEventsByPlaceid([FromQuery] int placeid, GetEventRequest request)
+        public async Task<ActionResult<PaginatedList<EventRequest>>> GetAllEventsByPlaceid([FromQuery] int placeid, [FromQuery] GetEventRequest request)
         {
             var events = await _eventService.GetAllEventByPlaceid(placeid, request);
             return Ok(events);
         }
-        [HttpGet("geteventbyid/{placeid}/{eventid}")]
-        public async Task<ActionResult<Event>> GetEventById([FromForm] int placeid, int eventid)
+        [HttpGet("geteventbyid")]
+        public async Task<ActionResult<Event>> GetEventById([FromQuery] int placeid, [FromQuery] int eventid)
         {
                 var eventEntity = await _eventService.GetEventById(placeid, eventid);
                 return Ok(eventEntity);
         }
 
         [HttpPost("create")]
-        public async Task<ActionResult<ServiceResponseModel<EventRequest>>> CreateEvent([FromForm] int placeid, EventRequest request)
+        public async Task<ActionResult<ServiceResponseModel<EventRequest>>> CreateEvent([FromForm] int placeid, [FromForm] EventRequest request)
         {
             if (request == null)
             {
@@ -51,7 +51,7 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpPut("update")]
-        public async Task<ActionResult<ServiceResponseModel<EventRequest>>> UpdateEvent([FromForm] int placeid, int eventid, EventRequest request)
+        public async Task<ActionResult<ServiceResponseModel<EventRequest>>> UpdateEvent([FromForm] int placeid, [FromForm] int eventid, [FromForm] EventRequest request)
         {
             if (request == null)
             {

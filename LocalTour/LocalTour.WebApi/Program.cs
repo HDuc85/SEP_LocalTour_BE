@@ -1,4 +1,5 @@
 using LocalTour.Infrastructure.Configuration;
+using LocalTour.WebApi.Configuration;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 
@@ -9,6 +10,9 @@ builder.Services.RegesterContextDb(builder.Configuration);
 builder.Services.RegesterDI(builder.Configuration);
 builder.Services.RegesterIdentity(builder.Configuration);
 builder.Services.AddControllers();
+builder.Services.AddRepository();
+builder.Services.AddService();
+builder.Services.AddAutoMapper();
 
 builder.Services.AddCors(options =>
 {

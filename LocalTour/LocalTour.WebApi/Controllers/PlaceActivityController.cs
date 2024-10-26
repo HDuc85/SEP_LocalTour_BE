@@ -16,13 +16,13 @@ namespace LocalTour.WebApi.Controllers
             _placeActivityService = placeActivityService;
         }
         [HttpGet("getall")]
-        public async Task<ActionResult<PaginatedList<PlaceActivityRequest>>> GetAllActivityByPlaceid([FromQuery] int placeid, GetPlaceActivityRequest request)
+        public async Task<ActionResult<PaginatedList<PlaceActivityRequest>>> GetAllActivityByPlaceid([FromQuery] int placeid,[FromQuery] GetPlaceActivityRequest request)
         {
             var events = await _placeActivityService.GetAllActivityByPlaceid(placeid, request);
             return Ok(events);
         }
         [HttpPost("create")]
-        public async Task<ActionResult<ServiceResponseModel<PlaceActivityRequest>>> CreatePlaceActivity([FromForm] int placeid, PlaceActivityRequest request)
+        public async Task<ActionResult<ServiceResponseModel<PlaceActivityRequest>>> CreatePlaceActivity([FromForm] int placeid, [FromForm] PlaceActivityRequest request)
         {
             if (request == null)
             {
