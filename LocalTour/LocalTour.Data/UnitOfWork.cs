@@ -1,11 +1,5 @@
 ﻿using LocalTour.Data.Abstract;
 using LocalTour.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace LocalTour.Data
 {
     public class UnitOfWork : IUnitOfWork, IDisposable
@@ -39,23 +33,27 @@ namespace LocalTour.Data
         Repository<PostCommentLike> _repositoryPostCommentLike;
         Repository<PostLike> _repositoryPostLike;
         Repository<ProvinceNcity> _repositoryProvinceNcity;
-        Repository<ScheduleComment> _repositoryScheduleComment;
-        Repository<ScheduleCommentLike> _repositoryScheduleCommentLike;
-        Repository<ScheduleUserLike> _repositoryScheduleUserLike;
         Repository<Tag> _repositoryTag;
         Repository<TraveledPlace> _repositoryTraveledPlace;
         Repository<Schedule> _repositorySchedule;
         Repository<UserBan> _repositoryUserBan;
         Repository<UserDevice> _repositoryUserDevice;
         Repository<Ward> _repositoryWard;
-        Repository<Weather> _repositoryWeather;
         Repository<User> _repositoryUser;
         Repository<Role> _repositoryRole;
+        Repository<UserPreferenceTags> _repositoryUserPreferenceTags;
         public UnitOfWork(LocalTourDbContext db)
         {
             _db = db;
         }
 
+        public Repository<UserPreferenceTags> RepositoryUserPreferenceTags
+        {
+            get
+            {
+                return _repositoryUserPreferenceTags ??= new Repository<UserPreferenceTags>(_db);
+            }
+        }
         public Repository<PlaceActivityMedium> RepositoryPlaceActivityMedium{
         get {
             return _repositoryPlaceActivityMedium ??= new Repository<PlaceActivityMedium>(_db);
@@ -179,24 +177,9 @@ namespace LocalTour.Data
             return _repositoryProvinceNcity ??= new Repository<ProvinceNcity>(_db);    
             }
         }
-        public Repository<ScheduleComment> RepositoryScheduleComment {
-        get {
-            return _repositoryScheduleComment ??= new Repository<ScheduleComment>(_db);    
-            }
-        }
-        public Repository<ScheduleCommentLike> RepositoryScheduleCommentLike {
-        get {
-            return _repositoryScheduleCommentLike ??= new Repository<ScheduleCommentLike>(_db);    
-            }
-        }
         public Repository<ScheduleLike> RepositoryScheduleLike {
         get {
             return _repositoryScheduleLike ??= new Repository<ScheduleLike>(_db);    
-            }
-        }
-        public Repository<ScheduleUserLike> RepositoryScheduleUserLike {
-        get {
-            return _repositoryScheduleUserLike ??= new Repository<ScheduleUserLike>(_db);    
             }
         }
         public Repository<Tag> RepositoryTag {
@@ -227,11 +210,6 @@ namespace LocalTour.Data
         public Repository<Ward> RepositoryWard {
         get {
             return _repositoryWard ??= new Repository<Ward>(_db);    
-            }
-        }
-        public Repository<Weather> RepositoryWeather {
-        get {
-            return _repositoryWeather ??= new Repository<Weather>(_db);    
             }
         }
         public Repository<User> RepositoryUser {

@@ -12,4 +12,6 @@ public partial class Tag
     public string TagPhotoUrl { get; set; } = null!;
 
     public virtual ICollection<PlaceTag> PlaceTags { get; set; } = new List<PlaceTag>();
+    public virtual ICollection<UserPreferenceTags> UserPreferenceTags { get; set; } = new List<UserPreferenceTags>();
+
 }
