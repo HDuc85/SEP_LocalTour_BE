@@ -1,10 +1,4 @@
 ﻿using LocalTour.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace LocalTour.Data.Abstract
 {
     public interface IUnitOfWork : IDisposable
@@ -34,9 +28,6 @@ namespace LocalTour.Data.Abstract
         Repository<PostCommentLike> RepositoryPostCommentLike {get;}
         Repository<PostLike>  RepositoryPostLike {get;}
         Repository<ProvinceNcity> RepositoryProvinceNcity {get;}
-        Repository<ScheduleComment>  RepositoryScheduleComment {get;}
-        Repository<ScheduleCommentLike> RepositoryScheduleCommentLike {get;}
-        Repository<ScheduleUserLike> RepositoryScheduleUserLike {get;}
         Repository<Tag>  RepositoryTag {get;}
         Repository<TraveledPlace> RepositoryTraveledPlace {get;}
         Repository<Schedule>  RepositorySchedule {get;}
@@ -45,6 +36,7 @@ namespace LocalTour.Data.Abstract
         Repository<Ward> RepositoryWard {get;}
         Repository<User> RepositoryUser {get;}
         Repository<Role> RepositoryRole { get; }
+        Repository<UserPreferenceTags> RepositoryUserPreferenceTags {get;}
         Task CommitAsync();
     }
 }

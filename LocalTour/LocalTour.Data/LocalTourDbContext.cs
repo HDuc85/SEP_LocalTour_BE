@@ -68,15 +68,7 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
 
     public virtual DbSet<Schedule> Schedules { get; set; }
 
-    public virtual DbSet<ScheduleComment> ScheduleComments { get; set; }
-
-    public virtual DbSet<ScheduleCommentLike> ScheduleCommentLikes { get; set; }
-
-    public virtual DbSet<ScheduleCommentMedium> ScheduleCommentMedia { get; set; }
-
     public virtual DbSet<ScheduleLike> ScheduleLikes { get; set; }
-
-    public virtual DbSet<ScheduleUserLike> ScheduleUserLikes { get; set; }
 
     public virtual DbSet<Tag> Tags { get; set; }
 
@@ -89,12 +81,26 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
     public virtual DbSet<UserReport> UserReports { get; set; }
 
     public virtual DbSet<Ward> Wards { get; set; }
+    
+    public virtual DbSet<UserPreferenceTags> UserPreferenceTags { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
 
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<UserPreferenceTags>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("UserPreferenceTags");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserPreferenceTags)
+                .HasForeignKey(d => d.UserId);
+
+            entity.HasOne(d => d.Tag).WithMany(p => p.UserPreferenceTags)
+                .HasForeignKey(d => d.TagId);
+        });
         modelBuilder.Entity<Destination>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Destinat__3214EC070081D318");
@@ -104,7 +110,7 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
             entity.Property(e => e.Detail).HasMaxLength(500);
             entity.Property(e => e.EndDate).HasColumnType("datetime");
             entity.Property(e => e.StartDate).HasColumnType("datetime");
-
+            
             entity.HasOne(d => d.Place).WithMany(p => p.Destinations)
                 .HasForeignKey(d => d.PlaceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -436,49 +442,6 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
             entity.Property(e => e.Name).HasMaxLength(256);
         });
 
-        modelBuilder.Entity<ScheduleComment>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Schedule__3214EC07963FA531");
-
-            entity.ToTable("ScheduleComment");
-
-            entity.Property(e => e.Content).HasMaxLength(1000);
-            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
-
-            entity.HasOne(d => d.ParentFeedBack).WithMany(p => p.InverseParentFeedBack)
-                .HasForeignKey(d => d.ParentFeedBackId)
-                .HasConstraintName("FK__ScheduleC__Paren__3587F3E0");
-
-            entity.HasOne(d => d.Schedule).WithMany(p => p.ScheduleComments)
-                .HasForeignKey(d => d.ScheduleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ScheduleC__Sched__245D67DE");
-
-            entity.HasOne(d => d.User).WithMany(p => p.ScheduleComments)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ScheduleC__UserI__25518C17");
-        });
-
-        modelBuilder.Entity<ScheduleCommentLike>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Schedule__3214EC07CE423D8A");
-
-            entity.ToTable("ScheduleCommentLike");
-
-            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
-
-            entity.HasOne(d => d.ScheduleComment).WithMany(p => p.ScheduleCommentLikes)
-                .HasForeignKey(d => d.ScheduleCommentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ScheduleC__Sched__47A6A41B");
-
-            entity.HasOne(d => d.User).WithMany(p => p.ScheduleCommentLikes)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ScheduleC__UserI__489AC854");
-        });
-
         modelBuilder.Entity<PlaceActivityMedium>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__PlaceAct__3214EC07E3B2F567");
@@ -578,25 +541,6 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__UserRepor__UserI__208CD6FA");
-        });
-
-        modelBuilder.Entity<ScheduleUserLike>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Schedule__3214EC0775DECF96");
-
-            entity.ToTable("ScheduleUserLike");
-
-            entity.Property(e => e.IsPublic).HasDefaultValue(false);
-
-            entity.HasOne(d => d.Schedule).WithMany(p => p.ScheduleUserLikes)
-                .HasForeignKey(d => d.ScheduleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ScheduleU__Sched__3F115E1A");
-
-            entity.HasOne(d => d.User).WithMany(p => p.ScheduleUserLikes)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ScheduleU__UserI__40058253");
         });
 
         modelBuilder.Entity<Tag>(entity =>
