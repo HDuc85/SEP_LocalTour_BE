@@ -35,9 +35,7 @@ public partial class Post
 
     public virtual ICollection<PostLike> PostLikes { get; set; } = new List<PostLike>();
 
-    public virtual ICollection<PostPhoto> PostPhotos { get; set; } = new List<PostPhoto>();
-
-    public virtual ICollection<PostVideo> PostVideos { get; set; } = new List<PostVideo>();
+    public virtual ICollection<PostMedium> PostMedia { get; set; } = new List<PostMedium>();
 
     public virtual Schedule? Schedule { get; set; }
 }
