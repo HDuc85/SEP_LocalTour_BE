@@ -18,6 +18,8 @@ namespace LocalTour.Services.Abstract
         Task<User> CreateUser(User user);
         Task<List<User>> GetAll();
         Task<bool> SetPassword(string phonenumber, string password);
+        Task<bool> AddRole(string phoneNumber, string role);
+        Task<bool> RemoveRole(string phoneNumber, string role);
         Task<ServiceResponseModel<User>?> UpdateUser(string phonenumber, UpdateUserRequest updateUserRequest, string requestUrl);
         Task<bool> ChangePassword(string phoneNumber, string oldPassword, string newPassword);
     }

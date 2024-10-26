@@ -62,12 +62,9 @@ namespace LocalTour.WebApi.Controllers
         {
             try
             {
-                FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
-                string phoneNumber = decodedToken.Claims.ContainsKey("phoneNumber")
-                                    ? decodedToken.Claims["phoneNumber"].ToString()
-                                    : "Phone number not available"; ;
-
-
+                UserRecord userRecord = await FirebaseAuth.DefaultInstance.GetUserAsync(idToken);
+                string phoneNumber = userRecord.PhoneNumber;
+        
                 var user = await _userService.FindByPhoneNumber(phoneNumber);
 
                 if (user == null)

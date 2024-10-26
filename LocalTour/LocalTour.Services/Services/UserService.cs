@@ -90,7 +90,7 @@ namespace LocalTour.Services.Services
         public async Task<User> CreateUser(User user)
         {
             var result = await _userManager.CreateAsync(user);
-
+            await _userManager.AddToRoleAsync(user, "Visitor");
             if (result.Succeeded)
             {
                 return user;
@@ -99,6 +99,27 @@ namespace LocalTour.Services.Services
             {
                 return null;
             }
+        }
+
+        public async Task<bool> RemoveRole(string phoneNumber, string role)
+        {
+            var user = await FindByPhoneNumber(phoneNumber);
+            var result = await _userManager.RemoveFromRoleAsync(user, role);
+            if (result.Succeeded)
+            {
+                return true;
+            }
+            return false;
+        }
+        public async Task<bool> AddRole(string phoneNumber, string role)
+        {
+            var user = await FindByPhoneNumber(phoneNumber);
+            var result = await _userManager.AddToRoleAsync(user, role);
+            if (result.Succeeded)
+            {
+                return true;
+            }
+            return false;
         }
         public async Task<bool> SetPassword(string phoneNumber, string password)
         {

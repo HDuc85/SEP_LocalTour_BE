@@ -4,9 +4,8 @@ using LocalTour.Services.Abstract;
 using LocalTour.WebApi.Helper;
 using LocalTour.WebApi.ViewModel;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace LocalTour.WebApi.Controllers
 {
@@ -14,7 +13,7 @@ namespace LocalTour.WebApi.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private IUserService _userService;
+        private readonly IUserService _userService;
 
         public UserController(IUserService userService)
         {
@@ -28,7 +27,7 @@ namespace LocalTour.WebApi.Controllers
 
             var users = await _userService.GetAll();
 
-            if (users == null)
+            if (users.IsNullOrEmpty())
             {
                 return NotFound();
             }
@@ -40,7 +39,7 @@ namespace LocalTour.WebApi.Controllers
         public async Task<ActionResult<IEnumerable<User>>> GetPageSize(int pageIndex, int pageSize)
         {
             var users = await _userService.GetAll();
-            if (users == null)
+            if (users.IsNullOrEmpty())
             {
                 return NotFound();
             }
@@ -51,11 +50,9 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> SetPassword(string password)
         {
-            string firebasetoken = User.GetFirebaseToken();
-            FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(firebasetoken);
-            string phoneNumber = decodedToken.Claims.ContainsKey("phoneNumber")
-                                ? decodedToken.Claims["phoneNumber"].ToString()
-                                : null;
+            string firebaseToken= User.GetFirebaseToken();
+            UserRecord userRecord = await FirebaseAuth.DefaultInstance.GetUserAsync(firebaseToken);
+            string phoneNumber = userRecord.PhoneNumber;
             if (phoneNumber == null)
             {
                 return BadRequest("Invalid Token");
@@ -71,11 +68,11 @@ namespace LocalTour.WebApi.Controllers
 
         [HttpPost("changePassword")]
         [Authorize]
-        public async Task<IActionResult> changePassword(string oldPassword, string newPassword)
+        public async Task<IActionResult> ChangePassword(string oldPassword, string newPassword)
         {
             string phoneNumber = User.GetPhoneNumber();
             
-            if (phoneNumber == null)
+            if (phoneNumber.IsNullOrEmpty())
             {
                 return BadRequest("Invalid Token");
             }
@@ -95,14 +92,29 @@ namespace LocalTour.WebApi.Controllers
         public async Task<IActionResult> UpdateUser([FromForm]UpdateUserRequest updateUserRequest)
         {
             var requestUrl = $"{Request.Scheme}://{Request.Host}";
-            string phonenumber = User.GetPhoneNumber();
-            var result = await _userService.UpdateUser(phonenumber, updateUserRequest, requestUrl);
-            if (result.Success)
+            string phoneNumber = User.GetPhoneNumber();
+            var result = await _userService.UpdateUser(phoneNumber, updateUserRequest, requestUrl);
+            if (!result.Success)
+            {
+                return BadRequest();
+            }
+            else
             {
                 return Accepted(result.Data);
+
+            }
+        } 
+        [HttpPost("addRole")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> AddRole(string phoneNumber, string role)
+        {
+
+            var result = await _userService.AddRole(phoneNumber, role);
+            if (result)
+            {
+                return Ok("Success");
             }
             return BadRequest();
-        }
-
+        } 
     }
 }
