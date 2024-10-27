@@ -49,6 +49,10 @@ namespace LocalTour.Infrastructure.Configuration
             // Registering the PostService
             service.AddScoped<IPostService, PostService>();
             service.AddScoped<IPostMediumService, PostMediumService>();
+            service.AddScoped<IPostCommentService, PostCommentService>();
+            service.AddScoped<IPostCommentLikeService, PostCommentLikeService>();
+            service.AddScoped<IPostLikeService, PostLikeService>();
+
 
         }
 

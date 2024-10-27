@@ -51,6 +51,7 @@ namespace LocalTour.Data
         Repository<Weather> _repositoryWeather;
         Repository<User> _repositoryUser;
         Repository<Role> _repositoryRole;
+
         public UnitOfWork(LocalTourDbContext db)
         {
             _db = db;

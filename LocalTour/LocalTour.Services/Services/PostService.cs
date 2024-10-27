@@ -4,6 +4,7 @@ using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.Extensions;
 using LocalTour.Services.ViewModel;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -86,7 +87,6 @@ namespace LocalTour.Services.Services
 
             return result;
         }
-
 
         //thêm mapper
         public PostRequest MapPostToRequest(Post post)

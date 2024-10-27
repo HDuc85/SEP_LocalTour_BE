@@ -47,5 +47,6 @@ namespace LocalTour.Data.Abstract
         Repository<User> RepositoryUser {get;}
         Repository<Role> RepositoryRole { get; }
         Task CommitAsync();
+
     }
 }

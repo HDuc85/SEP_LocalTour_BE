@@ -26,11 +26,11 @@ namespace LocalTour.Data
             }
             return await _context.Set<T>().Where(expression).ToListAsync();
         }
+
         public async Task<T> GetById(object id)
         {
             return await _context.Set<T>().FindAsync(id);
         }
-
 
         public void Delete(T entity)
         {
