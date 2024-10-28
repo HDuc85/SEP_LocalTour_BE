@@ -15,47 +15,104 @@ namespace LocalTour.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IPostCommentLikeService _postCommentLikeService; 
 
-        public PostCommentService(IUnitOfWork unitOfWork, IMapper mapper)
+        public PostCommentService(IUnitOfWork unitOfWork, IMapper mapper, IPostCommentLikeService postCommentLikeService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _postCommentLikeService = postCommentLikeService; // Initialize service
         }
 
-        public async Task<PostCommentRequest> CreateCommentAsync(PostCommentRequest request)
+        public async Task<PostComment> CreateCommentAsync(CreatePostCommentRequest request)
         {
-            if (request == null) throw new ArgumentNullException(nameof(request));
+            // Treat ParentId as null if it's not provided or is 0, making it a top-level comment
+            int? parentId = request.ParentId.HasValue && request.ParentId > 0 ? request.ParentId : null;
 
-            var commentEntity = _mapper.Map<PostComment>(request);
-            commentEntity.CreatedDate = DateTime.UtcNow; // Set created date
+            if (parentId.HasValue)
+            {
+                var parentComment = await _unitOfWork.RepositoryPostComment.GetById(parentId.Value);
+                if (parentComment == null)
+                {
+                    throw new InvalidOperationException("Parent comment does not exist.");
+                }
+            }
 
-            await _unitOfWork.RepositoryPostComment.Insert(commentEntity);
+            var newComment = new PostComment
+            {
+                PostId = request.PostId,
+                ParentId = parentId,
+                UserId = request.UserId,
+                Content = request.Content,
+                CreatedDate = DateTime.UtcNow
+            };
+
+            _unitOfWork.RepositoryPostComment.Insert(newComment);
             await _unitOfWork.CommitAsync();
 
-            return _mapper.Map<PostCommentRequest>(commentEntity);
+            return newComment;
         }
 
-        public async Task<PostCommentRequest?> GetCommentByIdAsync(int id, Guid userId)
+        public async Task<List<PostCommentRequest>> GetCommentsByPostIdAsync(int postId, int? parentId, Guid userId)
         {
+            var comments = await _unitOfWork.RepositoryPostComment
+                .GetAll()
+                .Where(c => c.PostId == postId)
+                .Include(c => c.InverseParent)
+                .OrderBy(c => c.CreatedDate)
+                .ToListAsync();
+
+            // Filter comments based on parentId if provided
+            var filteredComments = parentId.HasValue
+                ? comments.Where(c => c.ParentId == parentId.Value).ToList()
+                : comments.Where(c => c.ParentId == null).ToList(); // No parentId provided, get top-level comments
+
+            var tasks = comments
+                .Where(c => c.ParentId == null)
+                .Select(parent => MapToRequestWithChildren(parent, comments, userId)); // Await the tasks
+
+            var result = await Task.WhenAll(tasks); // Await the collection of tasks
+
+            return result.ToList();
+        }
+
+        private async Task<PostCommentRequest> MapToRequestWithChildren(PostComment parent, List<PostComment> comments, Guid userId)
+        {
+            var parentRequest = _mapper.Map<PostCommentRequest>(parent);
+            parentRequest.ChildComments = comments
+                .Where(c => c.ParentId == parent.Id)
+                .OrderBy(c => c.CreatedDate)
+                .Select(child => MapToRequestWithChildren(child, comments, userId).Result) // Use .Result here or await the next call
+                .ToList();
+
+            // Fetch total likes and whether the user has liked this comment
+            parentRequest.TotalLikes = await _postCommentLikeService.GetTotalLikesByCommentIdAsync(parent.Id);
+            parentRequest.LikedByUser = (await _postCommentLikeService.GetUserLikesByCommentIdAsync(parent.Id)).Contains(userId);
+
+            return parentRequest;
+        }
+
+        public async Task<PostCommentRequest?> UpdateCommentAsync(int id, UpdatePostCommentRequest request)
+        {
+            // Retrieve the existing comment entity
             var commentEntity = await _unitOfWork.RepositoryPostComment.GetById(id);
             if (commentEntity == null) return null;
 
-            var commentRequest = _mapper.Map<PostCommentRequest>(commentEntity);
-            // Add like status and total likes
-            commentRequest.TotalLikes = commentEntity.PostCommentLikes.Count;
-            commentRequest.LikedByUser = commentEntity.PostCommentLikes.Any(like => like.UserId == userId);
+            // Treat ParentId as null if it's not provided or is 0, making it a top-level comment
+            //int? parentId = request.ParentId.HasValue && request.ParentId > 0 ? request.ParentId : null;
 
-            return commentRequest;
-        }
+            //if (parentId.HasValue)
+            //{
+            //    var parentComment = await _unitOfWork.RepositoryPostComment.GetById(parentId.Value);
+            //    if (parentComment == null)
+            //    {
+            //        throw new InvalidOperationException("Parent comment does not exist.");
+            //    }
+            //}
 
-        public async Task<PostCommentRequest?> UpdateCommentAsync(int id, PostCommentRequest request)
-        {
-            var commentEntity = await _unitOfWork.RepositoryPostComment.GetById(id);
-            if (commentEntity == null) return null;
-
-            // Update only content
+            // Update properties of the existing comment
             commentEntity.Content = request.Content;
-            // No UpdateDate property available, so skip it
+            //commentEntity.ParentId = parentId; // Update the ParentId if provided
 
             _unitOfWork.RepositoryPostComment.Update(commentEntity);
             await _unitOfWork.CommitAsync();
@@ -72,53 +129,6 @@ namespace LocalTour.Services.Services
             await _unitOfWork.CommitAsync();
 
             return true;
-        }
-
-        public async Task<List<PostCommentRequest>> GetCommentsByPostIdAsync(int postId, Guid userId)
-        {
-            var comments = await _unitOfWork.RepositoryPostComment
-                .GetAll()
-                .Where(c => c.PostId == postId)
-                .OrderBy(c => c.ParentId) // Order by ParentId for parent-child relationship
-                .ToListAsync();
-
-            var commentRequests = _mapper.Map<List<PostCommentRequest>>(comments);
-
-            // Populate likes count and user like status
-            foreach (var commentRequest in commentRequests)
-            {
-                var commentEntity = comments.First(c => c.Id == commentRequest.Id);
-                commentRequest.TotalLikes = commentEntity.PostCommentLikes.Count;
-                commentRequest.LikedByUser = commentEntity.PostCommentLikes.Any(like => like.UserId == userId);
-            }
-
-            return commentRequests;
-        }
-
-        //List ra tất cả comment và medium dựa theo comment cha -> con 
-        public async Task<List<PostMediumRequest>> GetAllMediaByPostId(int postId, PaginatedQueryParams queryParams)
-        {
-            // Fetch media related to the specific post ID
-            var query = _unitOfWork.RepositoryPostMedium.GetAll()
-                .Where(m => m.PostId == postId);
-
-            // Sorting logic
-            if (!string.IsNullOrEmpty(queryParams.SortBy))
-            {
-                query = queryParams.SortOrder?.ToLower() == "desc"
-                    ? query.OrderByDescending(e => EF.Property<object>(e, queryParams.SortBy))
-                    : query.OrderBy(e => EF.Property<object>(e, queryParams.SortBy));
-            }
-
-            // Paging logic
-            var page = queryParams.Page ?? 1;
-            var size = queryParams.Size ?? 10;
-            var mediaEntities = await query
-                .Skip((page - 1) * size)
-                .Take(size)
-                .ToListAsync();
-
-            return _mapper.Map<List<PostMediumRequest>>(mediaEntities);
         }
     }
 }

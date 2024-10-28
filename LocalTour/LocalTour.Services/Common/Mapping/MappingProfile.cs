@@ -22,7 +22,11 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.UpdateDate, opt => opt.MapFrom(src => DateTime.UtcNow)); // Set update time
 
         // Reverse mapping for PostMedium
-        CreateMap<PostMedium, PostMediumRequest>().ReverseMap();
+        CreateMap<PostMediumRequest, PostMedium>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore()); // Ignore Id during mapping
+
+        // Map from PostMedium to PostMediumRequest
+        CreateMap<PostMedium, PostMediumRequest>();
 
         // Map from PostComment to PostCommentRequest
         CreateMap<PostComment, PostCommentRequest>()

@@ -45,13 +45,20 @@ namespace LocalTour.Services.Services
             var mediaEntity = await _unitOfWork.RepositoryPostMedium.GetById(mediaId);
             if (mediaEntity == null) return null;
 
-            _mapper.Map(mediaRequest, mediaEntity);
+            // Update only the fields you want to change
+            mediaEntity.PostId = mediaRequest.PostId ?? mediaEntity.PostId; 
+            mediaEntity.Type = mediaRequest.Type;
+            mediaEntity.Url = mediaRequest.Url;
+
+            // Ensure CreateDate remains unchanged or update as per your requirement
+            // mediaEntity.CreateDate = mediaRequest.CreateDate; // Uncomment if you want to update it
 
             _unitOfWork.RepositoryPostMedium.Update(mediaEntity);
             await _unitOfWork.CommitAsync();
 
             return _mapper.Map<PostMediumRequest>(mediaEntity);
         }
+
 
         public async Task<bool> DeleteMedia(int mediaId)
         {

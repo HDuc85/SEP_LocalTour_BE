@@ -1,15 +1,14 @@
-﻿using LocalTour.Services.Abstract;
-using LocalTour.Services.Services;
-using LocalTour.Services.ViewModel;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using LocalTour.Services.Abstract;
+using LocalTour.Services.ViewModel;
 
 namespace LocalTour.WebApi.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class PostCommentController : ControllerBase
     {
         private readonly IPostCommentService _postCommentService;
@@ -19,48 +18,50 @@ namespace LocalTour.WebApi.Controllers
             _postCommentService = postCommentService;
         }
 
-        [HttpPost("create")]
-        public async Task<ActionResult<PostCommentRequest>> CreateComment([FromBody] PostCommentRequest request)
+        [HttpPost]
+        public async Task<IActionResult> CreateComment([FromBody] CreatePostCommentRequest request)
         {
-            var createdComment = await _postCommentService.CreateCommentAsync(request);
-            return Ok(createdComment);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var createdComment = await _postCommentService.CreateCommentAsync(request);
+                return CreatedAtAction(nameof(GetCommentsByPostId), new { postId = createdComment.PostId }, createdComment);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<PostCommentRequest>> GetCommentById(int id, Guid userId)
+        [HttpGet("{postId}")]
+        public async Task<IActionResult> GetCommentsByPostId(int postId, int parentId, [FromQuery] Guid userId)
         {
-            var comment = await _postCommentService.GetCommentByIdAsync(id, userId);
-            if (comment == null) return NotFound();
-            return Ok(comment);
-        }
-
-        [HttpGet("by-post/{postId}")]
-        public async Task<ActionResult<List<PostCommentRequest>>> GetCommentsByPostId(int postId, Guid userId)
-        {
-            var comments = await _postCommentService.GetCommentsByPostIdAsync(postId, userId);
+            var comments = await _postCommentService.GetCommentsByPostIdAsync(postId,parentId, userId);
             return Ok(comments);
         }
 
-        [HttpPut("update/{id}")]
-        public async Task<ActionResult<PostCommentRequest>> UpdateComment(int id, [FromBody] PostCommentRequest request)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateComment(int id, [FromBody] UpdatePostCommentRequest request)
         {
             var updatedComment = await _postCommentService.UpdateCommentAsync(id, request);
-            if (updatedComment == null) return NotFound();
+            if (updatedComment == null)
+                return NotFound();
+
             return Ok(updatedComment);
         }
 
-        [HttpDelete("delete/{id}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteComment(int id)
         {
-            var deleted = await _postCommentService.DeleteCommentAsync(id);
-            return deleted ? NoContent() : NotFound();
-        }
+            var success = await _postCommentService.DeleteCommentAsync(id);
+            if (!success)
+                return NotFound();
 
-        [HttpGet("media/by-post/{postId}")]
-        public async Task<ActionResult<List<PostMediumRequest>>> GetAllMediaByPostId(int postId, [FromQuery] PaginatedQueryParams queryParams)
-        {
-            var media = await _postCommentService.GetAllMediaByPostId(postId, queryParams);
-            return Ok(media);
+            return NoContent();
         }
     }
 }
