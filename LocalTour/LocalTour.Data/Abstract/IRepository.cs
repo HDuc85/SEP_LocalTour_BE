@@ -10,7 +10,7 @@ namespace LocalTour.Data.Abstract
     public interface IRepository<T> where T : class
     {
         IQueryable<T> Table { get; }
-
+        IQueryable<T> GetDataQueryable(Expression<Func<T, bool>> expression = null);
         void Update(T entity);
         void Delete(T entity);
         void Delete(Expression<Func<T, bool>> expression);

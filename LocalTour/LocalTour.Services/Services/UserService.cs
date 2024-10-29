@@ -1,33 +1,21 @@
-﻿using LocalTour.Data;
-using LocalTour.Data.Abstract;
+﻿using LocalTour.Data.Abstract;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
 using LocalTour.WebApi.ViewModel;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Management;
-using System.Net;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LocalTour.Services.Services
 {
     public class UserService : IUserService
     {
         private readonly UserManager<User> _userManager;
-        private readonly RoleManager<Role> _roleManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFileService _fileService;
-        public UserService(UserManager<User> userManager,RoleManager<Role> roleManager, IUnitOfWork unitOfWork, IFileService fileService)
+        public UserService(UserManager<User> userManager, IUnitOfWork unitOfWork, IFileService fileService)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
-            _roleManager = roleManager;
             _fileService = fileService;
         }
         public async Task<List<User>> GetAll()
@@ -77,7 +65,6 @@ namespace LocalTour.Services.Services
             });
             try
             {
-
                await _unitOfWork.CommitAsync();
                return true;
             }
@@ -100,7 +87,6 @@ namespace LocalTour.Services.Services
                 return null;
             }
         }
-
         public async Task<bool> RemoveRole(string phoneNumber, string role)
         {
             var user = await FindByPhoneNumber(phoneNumber);
@@ -186,6 +172,20 @@ namespace LocalTour.Services.Services
             var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
 
             return result.Succeeded;
+        }
+        public async Task<bool> IsUserBanned(string phoneNumber)
+        {
+            var user = await FindByPhoneNumber(phoneNumber);
+            if (user == null)
+            {
+                return false;
+            }
+            var result = await _unitOfWork.RepositoryUserBan.GetData(x => x.UserId == user.Id);
+            if (!result.Any())
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

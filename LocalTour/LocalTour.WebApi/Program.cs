@@ -3,6 +3,7 @@ using Google.Apis.Auth.OAuth2;
 using LocalTour.Infrastructure.Configuration;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using LocalTour.WebApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +73,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseCors("AllowSpecificOrigins");
+//Middleware
+app.UseMiddleware<CheckUserBanMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

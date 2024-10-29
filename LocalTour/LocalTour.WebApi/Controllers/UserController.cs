@@ -108,7 +108,6 @@ namespace LocalTour.WebApi.Controllers
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> AddRole(string phoneNumber, string role)
         {
-
             var result = await _userService.AddRole(phoneNumber, role);
             if (result)
             {
@@ -116,5 +115,28 @@ namespace LocalTour.WebApi.Controllers
             }
             return BadRequest();
         } 
+        [HttpPost("removeRole")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> RemoveRole(string phoneNumber, string role)
+        {
+            var result = await _userService.RemoveRole(phoneNumber, role);
+            if (result)
+            {
+                return Ok("Success");   
+            }
+            return BadRequest();
+        }
+
+        [HttpPut("BanUser")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> BanUser(string phoneNumber, DateTime endDate)
+        {
+            var result = await _userService.BanUser(phoneNumber, endDate);
+            if (result)
+            {
+                return Ok("Success");
+            }
+            return BadRequest();    
+        }
     }
 }

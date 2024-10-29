@@ -32,8 +32,11 @@ public partial class User : IdentityUser<Guid>
     public virtual ICollection<UserBan> UserBans { get; set; } = new List<UserBan>();
     public virtual ICollection<UserDevice> UserDevices { get; set; } = new List<UserDevice>();
     public virtual ICollection<UserReport> UserReports { get; set; } = new List<UserReport>();
+    
 
     public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
     
+    public virtual ICollection<PlaceReport> UserReportPlaces { get; set; } = new List<PlaceReport>();
+
     public virtual ICollection<UserPreferenceTags> UserPreferenceTags { get; set; } = new List<UserPreferenceTags>();
 }

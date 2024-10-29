@@ -17,7 +17,14 @@ namespace LocalTour.Data
         {
             _context = localTourDbContext;
         }
-
+        public IQueryable<T> GetDataQueryable(Expression<Func<T, bool>> expression = null)
+        {
+            if (expression == null)
+            {
+                return _context.Set<T>();
+            }
+            return _context.Set<T>().Where(expression);
+        }
         public async Task<IEnumerable<T>> GetData(Expression<Func<T, bool>> expression = null)
         {
             if (expression == null)

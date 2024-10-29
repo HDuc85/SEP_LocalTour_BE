@@ -42,7 +42,9 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<IUserService, UserService>();
             service.AddScoped<ITokenHandler, Services.Services.TokenHandler>();
             service.AddScoped<IFileService, FileService>();
-
+            service.AddScoped<IFollowUserService, FollowUserService>();
+            service.AddScoped<ITravelPlaceService, TravelPlaceService>();
+            service.AddScoped<IMarkPlaceService, MarkPlaceService>();
         }
 
         public static void RegesterIdentity(this IServiceCollection service, IConfiguration configuration)
