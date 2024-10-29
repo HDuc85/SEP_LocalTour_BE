@@ -43,7 +43,7 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<ITokenHandler, Services.Services.TokenHandler>();
             service.AddScoped<IFileService, FileService>();
             service.AddScoped<IFollowUserService, FollowUserService>();
-            service.AddScoped<ITravelPlaceService, TravelPlaceService>();
+            service.AddScoped<ITraveledPlaceService, TraveledPlaceService>();
             service.AddScoped<IMarkPlaceService, MarkPlaceService>();
         }
 

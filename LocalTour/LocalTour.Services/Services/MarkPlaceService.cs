@@ -11,10 +11,12 @@ public class MarkPlaceService : IMarkPlaceService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUserService _userService;
-    public MarkPlaceService(IUnitOfWork unitOfWork, IUserService userService)
+    private readonly ITraveledPlaceService _traveledPlaceService;
+    public MarkPlaceService(IUnitOfWork unitOfWork, IUserService userService, ITraveledPlaceService traveledPlaceService)
     {
         _unitOfWork = unitOfWork;
         _userService = userService;
+        _traveledPlaceService = traveledPlaceService;
     }
 
     public async Task<bool> CreateMarkPlace(string phoneNumber, int placeId)
@@ -52,17 +54,10 @@ public class MarkPlaceService : IMarkPlaceService
         var listMarkPlaces = _unitOfWork.RepositoryMarkPlace.GetDataQueryable(x => x.UserId == user.Id)
             .Include(y => y.Place)
             .Include(z => z.Place.PlaceTranslations).ToList();
-        var visitPlaces =  _unitOfWork.
-                            RepositoryTraveledPlace.
-                            GetDataQueryable(x => x.UserId == user.Id)
-                            .GroupBy(x => x.PlaceId)
-                            .Select(y => new
-                            {
-                                PlaceId = y.Key,
-                                VisitTimes = y.Count(),
-                            });
-        
-        
+        var listPlaceId = listMarkPlaces.Select(x => x.PlaceId).ToList();
+        var visitPlaces = await _traveledPlaceService.
+                CountTraveledPlaces(phoneNumber, listPlaceId);
+            
         var results = new List<MarkPlaceVM>();
         foreach (var markPlace in listMarkPlaces)
         {
@@ -74,7 +69,7 @@ public class MarkPlaceService : IMarkPlaceService
                 Id = markPlace.Id,
                 PhotoDisplay = markPlace.Place.PhotoDisplay,
                 PlaceName = markPlace.Place.PlaceTranslations.Single(z => z.LanguageCode == languageCode).Name,
-                VisitTime = visitPlaces.SingleOrDefault(x => x.PlaceId == markPlace.PlaceId).VisitTimes,
+                VisitTime = visitPlaces.SingleOrDefault(x => x.Item1 == markPlace.PlaceId).Item2,
             });
         }
         
