@@ -15,8 +15,7 @@ namespace LocalTour.Services.ViewModel
         public int DisplayNumber { get; set; }
 
         public string? PhotoDisplay { get; set; }
-        public List<IFormFile> PlaceActivityPhotos { get; set; }
-        public List<IFormFile> PlaceActivityVideos { get; set; }
+        public List<IFormFile> PlaceActivityMedium { get; set; }
         public List<PlaceActivityTranslationRequest> PlaceActivityTranslations { get; set; }
 
     }

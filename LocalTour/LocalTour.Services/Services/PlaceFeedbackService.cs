@@ -3,6 +3,7 @@ using LocalTour.Data.Abstract;
 using LocalTour.Domain.Common;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
+using LocalTour.Services.Extensions;
 using LocalTour.Services.Model;
 using LocalTour.Services.ViewModel;
 using Microsoft.AspNetCore.Http;
@@ -56,7 +57,7 @@ namespace LocalTour.Services.Services
                 CreatedDate = DateTime.UtcNow,
             };
             await _unitOfWork.RepositoryPlaceFeeedback.Insert(feedback);
-            var mediaSaveResult = await SaveStaticFiles(request.PlaceFeedbackMedia, "PlaceFeedback");
+            var mediaSaveResult = await SaveStaticFiles(request.PlaceFeedbackMedia, "PlaceFeedbackMedia");
             if (!mediaSaveResult.Success)
             {
                 throw new Exception(mediaSaveResult.Message);
@@ -64,23 +65,25 @@ namespace LocalTour.Services.Services
 
             foreach (var photoUrl in mediaSaveResult.Data.imageUrls)
             {
-                var photo = new PlaceFeeedbackPhoto
+                var photo = new PlaceFeeedbackMedium
                 {
                     FeedbackId = feedback.Id,
+                    Type = "Image",
                     CreateDate = DateTime.Now,
                     Url = photoUrl
                 };
-                await _unitOfWork.RepositoryPlaceFeeedbackPhoto.Insert(photo);
+                await _unitOfWork.RepositoryPlaceFeeedbackMedium.Insert(photo);
             }
-            foreach (var videoUrl in mediaSaveResult.Data.videoUrls)
+            foreach (var mediaUrl in mediaSaveResult.Data.videoUrls)
             {
-                var video = new PlaceFeeedbackVideo
+                var media = new PlaceFeeedbackMedium
                 {
                     FeedbackId = feedback.Id,
+                    Type = "Video",
                     CreateDate = DateTime.Now,
-                    Url = videoUrl
+                    Url = mediaUrl
                 };
-                await _unitOfWork.RepositoryPlaceFeeedbackVideo.Insert(video);
+                await _unitOfWork.RepositoryPlaceFeeedbackMedium.Insert(media);
             }
             await _unitOfWork.CommitAsync();
             return request;
@@ -194,5 +197,31 @@ namespace LocalTour.Services.Services
         {
             throw new NotImplementedException();
         }
+
+        public async Task<PaginatedList<PlaceFeedbackRequest>> GetAllFeedbackByPlace(int placeid, GetPlaceFeedbackRequest request)
+        {
+                var feedbacks = _unitOfWork.RepositoryPlaceFeeedback.GetAll()
+                                                        .Where(e => e.PlaceId == placeid)
+                                                        .AsQueryable();
+
+                if (request.SearchTerm is not null)
+                {
+                    feedbacks = feedbacks.Where(e => e.Content.Contains(request.SearchTerm));
+                }
+
+                if (!string.IsNullOrEmpty(request.SortBy))
+                {
+                    feedbacks = feedbacks.OrderByCustom(request.SortBy, request.SortOrder);
+                }
+
+                return await feedbacks
+                    .ListPaginateWithSortAsync<PlaceFeeedback, PlaceFeedbackRequest>(
+                    request.Page,
+                    request.Size,
+                    request.SortBy,
+                    request.SortOrder,
+                    _mapper.ConfigurationProvider);
+            }
+        
     }
 }

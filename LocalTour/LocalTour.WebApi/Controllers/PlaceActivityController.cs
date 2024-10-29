@@ -1,4 +1,5 @@
-﻿using LocalTour.Services.Abstract;
+﻿using LocalTour.Domain.Entities;
+using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
 using LocalTour.Services.Services;
 using LocalTour.Services.ViewModel;
@@ -40,6 +41,32 @@ namespace LocalTour.WebApi.Controllers
             {
                 return StatusCode(500, new ServiceResponseModel<PlaceActivityRequest>(false, $"An error occurred: {ex.Message}"));
             }
+        }
+        [HttpPut("update")]
+        public async Task<ActionResult<ServiceResponseModel<PlaceActivityRequest>>> UpdateActivity([FromForm] int placeid, [FromForm] int activityid, [FromForm] PlaceActivityRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new ServiceResponseModel<PlaceActivityRequest>(false, "Request cannot be null"));
+            }
+            try
+            {
+                var activity = await _placeActivityService.UpdateActivity(placeid, activityid, request);
+                return Ok(new ServiceResponseModel<PlaceActivityRequest>(activity)
+                {
+                    Message = "PlaceActivity updated successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ServiceResponseModel<PlaceActivityRequest>(false, $"An error occurred: {ex.Message}"));
+            }
+        }
+        [HttpGet("getactivitybyid")]
+        public async Task<ActionResult<PlaceActivity>> GetActivityById([FromQuery] int placeid, [FromQuery] int activityid)
+        {
+            var activityEntity = await _placeActivityService.GetActivityById(placeid, activityid);
+            return Ok(activityEntity);
         }
     }
 }

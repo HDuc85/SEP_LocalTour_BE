@@ -62,7 +62,7 @@ namespace LocalTour.WebApi.Controllers
                 var events = await _eventService.UpdateEvent(placeid,eventid, request);
                 return Ok(new ServiceResponseModel<EventRequest>(events)
                 {
-                    Message = "Place updated successfully"
+                    Message = "Event updated successfully"
                 });
             }
             catch (Exception ex)

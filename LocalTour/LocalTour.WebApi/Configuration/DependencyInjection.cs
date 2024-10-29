@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<IEventService, EventService>();
         services.AddScoped<IPlaceActivityService, PlaceActivityService>();
         services.AddScoped<IPlaceService, PlaceService>();
+        services.AddScoped<IPlaceFeedbackService, PlaceFeedbackService>();
         return services;
     }
 }

@@ -1,4 +1,5 @@
-﻿using LocalTour.Services.ViewModel;
+﻿using LocalTour.Domain.Entities;
+using LocalTour.Services.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,5 +12,7 @@ namespace LocalTour.Services.Abstract
     {
         Task<PlaceActivityRequest> CreatePlaceActivity(int placeid, PlaceActivityRequest request);
         Task<PaginatedList<PlaceActivityRequest>> GetAllActivityByPlaceid(int placeid, GetPlaceActivityRequest request);
+        Task<PlaceActivity> GetActivityById(int placeid, int activityid);
+        Task<PlaceActivityRequest> UpdateActivity(int placeid, int activityid, PlaceActivityRequest request);
     }
 }

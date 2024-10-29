@@ -7,7 +7,9 @@ using LocalTour.Services.Extensions;
 using LocalTour.Services.Model;
 using LocalTour.Services.ViewModel;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +49,7 @@ namespace LocalTour.Services.Services
                 PlaceId = placeid,
             };
             await _unitOfWork.RepositoryPlaceActivity.Insert(placeActivity);
-            var photoSaveResult = await SaveStaticFiles(request.PlaceActivityPhotos, "PlaceActivityPhoto");
+            var photoSaveResult = await SaveStaticFiles(request.PlaceActivityMedium, "PlaceActivityMedia");
             if (!photoSaveResult.Success)
             {
                 throw new Exception(photoSaveResult.Message);
@@ -55,30 +57,25 @@ namespace LocalTour.Services.Services
 
             foreach (var photoUrl in photoSaveResult.Data.imageUrls)
             {
-                var photo = new PlaceActivityPhoto
+                var photo = new PlaceActivityMedium
                 {
                     PlaceActivityId = placeActivity.Id,
                     CreateDate = DateTime.Now,
+                    Type = "Image",
                     Url = photoUrl
                 };
-                await _unitOfWork.RepositoryPlaceActivityPhoto.Insert(photo);
+                await _unitOfWork.RepositoryPlaceActivityMedium.Insert(photo);
             }
-
-            var videoSaveResult = await SaveStaticFiles(request.PlaceActivityVideos, "PlaceActivityVideo");
-            if (!videoSaveResult.Success)
+            foreach (var mediaUrl in photoSaveResult.Data.videoUrls)
             {
-                throw new Exception(videoSaveResult.Message);
-            }
-
-            foreach (var videoUrl in videoSaveResult.Data.videoUrls)
-            {
-                var video = new PlaceActivityVideo
+                var media = new PlaceActivityMedium
                 {
                     PlaceActivityId = placeActivity.Id,
                     CreateDate = DateTime.Now,
-                    Url = videoUrl
+                    Type = "Video",
+                    Url = mediaUrl
                 };
-                await _unitOfWork.RepositoryPlaceActivityVideo.Insert(video);
+                await _unitOfWork.RepositoryPlaceActivityMedium.Insert(media);
             }
             foreach (var translation in request.PlaceActivityTranslations)
             {
@@ -222,6 +219,112 @@ namespace LocalTour.Services.Services
                 request.SortBy,
                 request.SortOrder,
                 _mapper.ConfigurationProvider);
+        }
+
+        public async Task<PlaceActivity> GetActivityById(int placeid, int activityid)
+        {
+            var place = await _unitOfWork.RepositoryPlace.GetById(placeid);
+            if (place == null)
+            {
+                throw new KeyNotFoundException($"Place with ID {placeid} not found.");
+            }
+
+            var activityEntity = await _unitOfWork.RepositoryPlaceActivity.GetAll()
+                .FirstOrDefaultAsync(e => e.Id == activityid && e.PlaceId == placeid);
+
+            if (activityEntity == null)
+            {
+                throw new KeyNotFoundException($"Event with ID {activityid} for Place ID {placeid} not found.");
+            }
+
+            return activityEntity;
+        }
+
+        public async Task<PlaceActivityRequest> UpdateActivity(int placeid, int activityid, PlaceActivityRequest request)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var place = await _unitOfWork.RepositoryPlace.GetById(placeid);
+            if (place == null)
+            {
+                throw new ArgumentException($"Place with id {placeid} not found.");
+            }
+            var existingActivity = await _unitOfWork.RepositoryPlaceActivity.GetById(activityid);
+            if (existingActivity == null)
+            {
+                throw new ArgumentException($"Event with id {activityid} not found.");
+            }
+            if (existingActivity.PlaceId != placeid)
+            {
+                throw new InvalidOperationException($"Activity with id {activityid} does not belong to place with id {placeid}.");
+            }
+            existingActivity.DisplayNumber = request.DisplayNumber;
+            existingActivity.PhotoDisplay = request.PhotoDisplay;
+            existingActivity.PlaceId = placeid;
+
+            var existingMedia = await _unitOfWork.RepositoryPlaceActivityMedium.GetAll()
+                                                                       .Where(e => e.PlaceActivityId == activityid)
+                                                                       .ToListAsync();
+            foreach (var media in existingMedia)
+            {
+                 _unitOfWork.RepositoryPlaceActivityMedium.Delete(media);
+            }
+
+            var existingTranslations = await _unitOfWork.RepositoryPlaceActivityTranslation.GetAll()
+                                                                       .Where(e => e.PlaceActivityId == activityid)
+                                                                       .ToListAsync();
+            foreach (var translation in existingTranslations)
+            {
+                 _unitOfWork.RepositoryPlaceActivityTranslation.Delete(translation);
+            }
+            var photoSaveResult = await SaveStaticFiles(request.PlaceActivityMedium, "PlaceActivityMedia");
+            if (!photoSaveResult.Success)
+            {
+                throw new Exception(photoSaveResult.Message);
+            }
+
+            foreach (var photoUrl in photoSaveResult.Data.imageUrls)
+            {
+                var photo = new PlaceActivityMedium
+                {
+                    PlaceActivityId = existingActivity.Id,
+                    CreateDate = DateTime.Now,
+                    Type = "Image",
+                    Url = photoUrl
+                };
+                await _unitOfWork.RepositoryPlaceActivityMedium.Insert(photo);
+            }
+            foreach (var mediaUrl in photoSaveResult.Data.videoUrls)
+            {
+                var media = new PlaceActivityMedium
+                {
+                    PlaceActivityId = existingActivity.Id,
+                    CreateDate = DateTime.Now,
+                    Type = "Video",
+                    Url = mediaUrl
+                };
+                await _unitOfWork.RepositoryPlaceActivityMedium.Insert(media);
+            }
+            foreach (var translation in request.PlaceActivityTranslations)
+            {
+                var translationEntity = new PlaceActivityTranslation
+                {
+                    PlaceActivityId = existingActivity.Id,
+                    LanguageCode = translation.LanguageCode,
+                    ActivityName = translation.ActivityName,
+                    Price = translation.Price,
+                    Description = translation.Description,
+                    PriceType = translation.PriceType,
+                    Discount = translation.Discount,
+
+                };
+                await _unitOfWork.RepositoryPlaceActivityTranslation.Insert(translationEntity);
+            }
+            _unitOfWork.RepositoryPlaceActivity.Update(existingActivity);
+            await _unitOfWork.CommitAsync();
+            return request;
         }
     }
 }

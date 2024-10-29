@@ -18,7 +18,7 @@ public class PlaceRequest : IMapFrom<Place>
 
     public double Latitude { get; set; }
     public List<int> Tags { get; set; }
-    public List<IFormFile> PlacePhotos { get; set; }
+    public List<IFormFile> PlaceMedia { get; set; }
     public List<PlaceTranslationRequest> PlaceTranslation { get; set; }
 
 }
