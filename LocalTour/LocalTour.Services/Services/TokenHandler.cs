@@ -67,10 +67,47 @@ namespace LocalTour.Services.Services
             return await Task.FromResult((accessToken, expiredToken));
         }
 
-        public async Task<(string, DateTime, string)> CreateRefreshToken(User user)
+        public async Task<(string, DateTime)> CreateAuthenFirebaseToken(User user, string firebaseToken)
+        {
+            DateTime expiredToken = DateTime.Now.AddMinutes(double.Parse(_configuration["JWT:AuthenFirebaseTokenExiredByMinutes"]));
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var claims = new Claim[]
+            {
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString(),ClaimValueTypes.String,_configuration["JWT:Issuer"]),
+                new Claim(JwtRegisteredClaimNames.Iss, _configuration["JWT:Issuer"],ClaimValueTypes.String,_configuration["JWT:Issuer"]),
+                new Claim(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(DateTime.Now).ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
+                new Claim(JwtRegisteredClaimNames.Aud, _configuration["JWT:Audience"],ClaimValueTypes.String,_configuration["JWT:Issuer"]),
+                new Claim(JwtRegisteredClaimNames.Exp, DateTime.Now.AddMinutes(double.Parse(_configuration["JWT:AccessTokenExiredByMinutes"])).ToString("dd/MM/yyyy hh:mm:ss"),ClaimValueTypes.String,_configuration["JWT:Issuer"]),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(),ClaimValueTypes.String,_configuration["JWT:Issuer"]),
+                new Claim(ClaimTypes.MobilePhone,user.PhoneNumber, ClaimValueTypes.String, _configuration["JWT:Issuer"]),
+                new Claim("FirebaseToken", firebaseToken,_configuration["JWT:Issuer"])
+
+            }.Union(roles.Select(x => new Claim(ClaimTypes.Role, x)));
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"]));
+            var credential = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var tokenInfo = new JwtSecurityToken(
+                issuer: _configuration["JWT:Issuer"],
+                audience: _configuration["JWT:Audience"],
+                claims: claims,
+                notBefore: DateTime.Now,
+                expires: DateTime.Now.AddMinutes(double.Parse(_configuration["JWT:AccessTokenExiredByMinutes"])),
+                signingCredentials: credential
+                );
+
+            string firebaseAuthToken = new JwtSecurityTokenHandler().WriteToken(tokenInfo);
+
+            await _userManager.SetAuthenticationTokenAsync(user, "FirebaseAuthTokenProvider", "FirebaseAuthToken", firebaseAuthToken);
+
+            return await Task.FromResult((firebaseAuthToken, expiredToken));
+        }
+
+        public async Task<(string, DateTime)> CreateRefreshToken(User user)
         {
             DateTime expiredToken = DateTime.Now.AddDays(double.Parse(_configuration["JWT:RefreshTokenExiredByDay"]));
-            string code = Guid.NewGuid().ToString();
             var claims = new Claim[]
             {
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString(),ClaimValueTypes.String,_configuration["JWT:Issuer"]),
@@ -78,7 +115,7 @@ namespace LocalTour.Services.Services
                 new Claim(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(DateTime.Now).ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
                 new Claim(JwtRegisteredClaimNames.Aud, _configuration["JWT:Audience"],ClaimValueTypes.String,_configuration["JWT:Issuer"]),
                 new Claim(JwtRegisteredClaimNames.Exp, DateTime.Now.AddDays(double.Parse(_configuration["JWT:RefreshTokenExiredByDay"])).ToString("dd/MM/yyyy hh:mm:ss"),ClaimValueTypes.String,_configuration["JWT:Issuer"]),
-                new Claim(ClaimTypes.SerialNumber,code,ClaimValueTypes.String, _configuration["JWT:Issuer"]),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(),ClaimValueTypes.String,_configuration["JWT:Issuer"]),
                 new Claim(ClaimTypes.MobilePhone,user.PhoneNumber, ClaimValueTypes.String, _configuration["JWT:Issuer"])
             };
 
@@ -99,9 +136,9 @@ namespace LocalTour.Services.Services
 
             await _userManager.SetAuthenticationTokenAsync(user, "RefreshTokenProvider", "RefreshToken", refreshToken);
 
-            return await Task.FromResult((refreshToken, expiredToken, code));
+            return await Task.FromResult((refreshToken, expiredToken));
         }
-
+        
         public async Task ValidateToken(TokenValidatedContext context)
         {
             var claims = context.Principal.Claims.ToList();
@@ -196,7 +233,7 @@ namespace LocalTour.Services.Services
 
 
             (string newAccessToken, DateTime createdDateAccessToken) = await CreateAccessToken(user);
-            (string newRefreshToken, DateTime createdDateRefreshToken, string newCode) = await CreateRefreshToken(user);
+            (string newRefreshToken, DateTime createdDateRefreshToken) = await CreateRefreshToken(user);
 
             return new JwtModel
             {
