@@ -9,5 +9,6 @@ namespace LocalTour.Services.ViewModel
     public class GetPostRequest : PaginatedQueryParams
     {
         public string? FilterBy { get; set; }  // Optional: filter by PlaceId, ScheduleId, etc.
+
     }
 }
