@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Service.Common.Mapping;
 using System.Security.Cryptography;
 using System.Text;
+using PlaceSearchHistory = LocalTour.Domain.Entities.PlaceSearchHistory;
 
 namespace LocalTour.Infrastructure.Configuration
 {
@@ -43,6 +44,11 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<IUserService, UserService>();
             service.AddScoped<ITokenHandler, Services.Services.TokenHandler>();
             service.AddScoped<IFileService, FileService>();
+            service.AddScoped<IFollowUserService, FollowUserService>();
+            service.AddScoped<ITraveledPlaceService, TraveledPlaceService>();
+            service.AddScoped<IMarkPlaceService, MarkPlaceService>();
+            service.AddScoped<IPlaceSearchHistoryService, PlaceSearchHistoryService>();
+            service.AddScoped<INotificationService, NotificaitonService>();
 
             service.AddAutoMapper(typeof(MappingProfile));
 
@@ -53,15 +59,21 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<IPostCommentLikeService, PostCommentLikeService>();
             service.AddScoped<IPostLikeService, PostLikeService>();
 
-
+            service.AddScoped<IEventService, EventService>();
+            service.AddScoped<IPlaceActivityService, PlaceActivityService>();
+            service.AddScoped<IPlaceService, PlaceService>();
+            service.AddScoped<IPlaceFeedbackService, PlaceFeedbackService>();
         }
 
         public static void RegesterIdentity(this IServiceCollection service, IConfiguration configuration)
         {
             service.AddIdentityCore<User>(options =>
             {
-               // options.SignIn.RequireConfirmedPhoneNumber = true;
+                // options.SignIn.RequireConfirmedPhoneNumber = true;
             }).AddEntityFrameworkStores<LocalTourDbContext>();
+            
+            service.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            service.AddHttpContextAccessor();
         }
 
         public static void RegesterTokenBearer(this IServiceCollection service, IConfiguration configuration)

@@ -78,14 +78,15 @@ namespace LocalTour.Services.Services
             }
 
             // Mapping, sorting, and pagination
-            var result = await posts.ListPaginateWithSortPostAsync<Post, PostRequest>(
+            /*var result = await posts.ListPaginateWithSortAsync<Post, PostRequest>(
                 request.Page,
                 request.Size,
                 request.SortOrder,
-                _mapper.ConfigurationProvider
-            );
+                _mapper.ConfigurationProvider.ToString()
+                
+            );*/
 
-            return result;
+            return null;
         }
 
         //thêm mapper
