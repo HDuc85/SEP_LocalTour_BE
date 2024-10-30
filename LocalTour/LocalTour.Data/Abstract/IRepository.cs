@@ -19,5 +19,6 @@ namespace LocalTour.Data.Abstract
         Task<IEnumerable<T>> GetData(Expression<Func<T, bool>> expression);
         Task Insert(IEnumerable<T> entities);
         Task Insert(T entity);
+        IQueryable<T> GetAll();
     }
 }
