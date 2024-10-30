@@ -1,7 +1,6 @@
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using LocalTour.Infrastructure.Configuration;
-using LocalTour.WebApi.Configuration;
 using Microsoft.OpenApi.Models;
 using Service.Common.Mapping;
 using System.Reflection;
@@ -24,9 +23,6 @@ builder.Services.AddControllers()
 
 //add
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
-builder.Services.AddRepository();
-builder.Services.AddService();
-builder.Services.AddAutoMapper();
 
 builder.Services.AddCors(options =>
 {

@@ -59,7 +59,10 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<IPostCommentLikeService, PostCommentLikeService>();
             service.AddScoped<IPostLikeService, PostLikeService>();
 
-
+            service.AddScoped<IEventService, EventService>();
+            service.AddScoped<IPlaceActivityService, PlaceActivityService>();
+            service.AddScoped<IPlaceService, PlaceService>();
+            service.AddScoped<IPlaceFeedbackService, PlaceFeedbackService>();
         }
 
         public static void RegesterIdentity(this IServiceCollection service, IConfiguration configuration)
@@ -68,6 +71,9 @@ namespace LocalTour.Infrastructure.Configuration
             {
                 // options.SignIn.RequireConfirmedPhoneNumber = true;
             }).AddEntityFrameworkStores<LocalTourDbContext>();
+            
+            service.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            service.AddHttpContextAccessor();
         }
 
         public static void RegesterTokenBearer(this IServiceCollection service, IConfiguration configuration)

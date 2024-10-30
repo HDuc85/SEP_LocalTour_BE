@@ -1,4 +1,4 @@
-﻿using LocalTour.Domain.ViewModel;
+﻿using LocalTour.Services.ViewModel;
 
 namespace LocalTour.Services.Abstract;
 

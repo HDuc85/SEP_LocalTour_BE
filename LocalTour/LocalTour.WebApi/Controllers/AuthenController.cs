@@ -1,9 +1,8 @@
 ﻿using FirebaseAdmin.Auth;
 using LocalTour.Domain;
 using LocalTour.Domain.Common;
-using LocalTour.Domain.ViewModel;
+using LocalTour.Services.ViewModel;
 using LocalTour.Services.Abstract;
-using LocalTour.WebApi.ViewModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

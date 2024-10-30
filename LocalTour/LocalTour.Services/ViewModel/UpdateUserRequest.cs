@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace LocalTour.WebApi.ViewModel
+namespace LocalTour.Services.ViewModel
 {
     public class UpdateUserRequest
     {

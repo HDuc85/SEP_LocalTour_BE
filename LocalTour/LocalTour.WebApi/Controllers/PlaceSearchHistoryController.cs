@@ -1,5 +1,5 @@
 ﻿using LocalTour.Domain.Entities;
-using LocalTour.Domain.ViewModel;
+using LocalTour.Services.ViewModel;
 using LocalTour.Services.Abstract;
 using LocalTour.WebApi.Helper;
 using Microsoft.AspNetCore.Authorization;

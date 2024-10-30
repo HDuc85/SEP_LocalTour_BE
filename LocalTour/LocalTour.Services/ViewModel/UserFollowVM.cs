@@ -1,4 +1,4 @@
-﻿namespace LocalTour.Domain.ViewModel;
+﻿namespace LocalTour.Services.ViewModel;
 
 public class UserFollowVM
 {

@@ -1,6 +1,6 @@
 ﻿using LocalTour.Domain.Entities;
 
-namespace LocalTour.Domain.ViewModel;
+namespace LocalTour.Services.ViewModel;
 
 public class TraveledPlaceVM
 { 

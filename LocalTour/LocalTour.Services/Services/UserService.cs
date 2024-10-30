@@ -2,7 +2,7 @@
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
-using LocalTour.WebApi.ViewModel;
+using LocalTour.Services.ViewModel;
 using Microsoft.AspNetCore.Identity;
 
 namespace LocalTour.Services.Services
