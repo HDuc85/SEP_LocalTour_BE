@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Service.Common.Mapping;
 using System.Security.Cryptography;
 using System.Text;
 using PlaceSearchHistory = LocalTour.Domain.Entities.PlaceSearchHistory;
@@ -48,13 +49,24 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<IMarkPlaceService, MarkPlaceService>();
             service.AddScoped<IPlaceSearchHistoryService, PlaceSearchHistoryService>();
             service.AddScoped<INotificationService, NotificaitonService>();
+
+            service.AddAutoMapper(typeof(MappingProfile));
+
+            // Registering the PostService
+            service.AddScoped<IPostService, PostService>();
+            service.AddScoped<IPostMediumService, PostMediumService>();
+            service.AddScoped<IPostCommentService, PostCommentService>();
+            service.AddScoped<IPostCommentLikeService, PostCommentLikeService>();
+            service.AddScoped<IPostLikeService, PostLikeService>();
+
+
         }
 
         public static void RegesterIdentity(this IServiceCollection service, IConfiguration configuration)
         {
             service.AddIdentityCore<User>(options =>
             {
-               // options.SignIn.RequireConfirmedPhoneNumber = true;
+                // options.SignIn.RequireConfirmedPhoneNumber = true;
             }).AddEntityFrameworkStores<LocalTourDbContext>();
         }
 
@@ -95,6 +107,7 @@ namespace LocalTour.Infrastructure.Configuration
                       },
                       OnMessageReceived = context =>
                       {
+
 
 
                           return Task.CompletedTask;

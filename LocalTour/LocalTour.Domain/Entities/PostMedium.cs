@@ -9,7 +9,8 @@ public partial class PostMedium
 
     public int PostId { get; set; }
 
-    public string Type { get; set; } = null!;
+    // Photo or Video
+    public string Type { get; set; } = null!; 
 
     public string Url { get; set; } = null!;
 

@@ -2,6 +2,7 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using LocalTour.Infrastructure.Configuration;
 using Microsoft.OpenApi.Models;
+using Service.Common.Mapping;
 using System.Reflection;
 using LocalTour.WebApi.Middleware;
 
@@ -14,26 +15,35 @@ builder.Services.RegesterIdentity(builder.Configuration);
 builder.Services.RegesterTokenBearer(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddMemoryCache();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+      options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+    });
+
+//add
+builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigins",
-        builder => builder.AllowAnyOrigin()
-                          .AllowAnyHeader()
-                          .AllowAnyMethod());
+  options.AddPolicy("AllowSpecificOrigins",
+      builder => builder.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
 });
 
 builder.Services.AddSwaggerGen(options =>
 {
-    options.UseDateOnlyTimeOnlyStringConverters();
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Type = SecuritySchemeType.Http,
-        In = ParameterLocation.Header,
-        BearerFormat = "JWT",
-        Scheme = "Bearer",
-        Description = "Input only token"
-    });
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement()
+  options.UseDateOnlyTimeOnlyStringConverters();
+  options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+  {
+    Type = SecuritySchemeType.Http,
+    In = ParameterLocation.Header,
+    BearerFormat = "JWT",
+    Scheme = "Bearer",
+    Description = "Input only token"
+  });
+  options.AddSecurityRequirement(new OpenApiSecurityRequirement()
       {
         {
           new OpenApiSecurityScheme
@@ -51,14 +61,14 @@ builder.Services.AddSwaggerGen(options =>
         });
 
 
- /*   var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));*/
+  /*   var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));*/
 
 });
 
 FirebaseApp.Create(new AppOptions()
 {
-    Credential = GoogleCredential.FromFile("firebaseServiceAccount.json"),
+  Credential = GoogleCredential.FromFile("firebaseServiceAccount.json"),
 });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -70,8 +80,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+  app.UseSwagger();
+  app.UseSwaggerUI();
 }
 app.UseCors("AllowSpecificOrigins");
 //Middleware
