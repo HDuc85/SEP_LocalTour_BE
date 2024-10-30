@@ -138,8 +138,6 @@ namespace LocalTour.Services.Services
 
             return await Task.FromResult((refreshToken, expiredToken));
         }
-
-        
         
         public async Task ValidateToken(TokenValidatedContext context)
         {

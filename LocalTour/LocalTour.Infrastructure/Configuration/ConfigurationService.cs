@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 using System.Text;
+using PlaceSearchHistory = LocalTour.Domain.Entities.PlaceSearchHistory;
 
 namespace LocalTour.Infrastructure.Configuration
 {
@@ -45,6 +46,8 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<IFollowUserService, FollowUserService>();
             service.AddScoped<ITraveledPlaceService, TraveledPlaceService>();
             service.AddScoped<IMarkPlaceService, MarkPlaceService>();
+            service.AddScoped<IPlaceSearchHistoryService, PlaceSearchHistoryService>();
+            service.AddScoped<INotificationService, NotificaitonService>();
         }
 
         public static void RegesterIdentity(this IServiceCollection service, IConfiguration configuration)
