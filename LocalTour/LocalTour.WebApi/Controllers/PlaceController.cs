@@ -3,7 +3,7 @@ using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
 using LocalTour.Services.Services;
 using LocalTour.Services.ViewModel;
-using LocalTour.WebApi.ViewModel;
+using LocalTour.Services.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LocalTour.WebApi.Controllers

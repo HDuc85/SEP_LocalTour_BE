@@ -195,7 +195,57 @@ namespace LocalTour.Services.Services
 
 
         }
-    
-        
+
+        public async Task<ServiceResponseModel<string>> SaveImageFile(IFormFile file, string requestUrl)
+        {
+            string fileExtension = Path.GetExtension(file.FileName).ToLower();
+
+            if (fileExtension == ".mp4" || fileExtension == ".avi" || fileExtension == ".mkv")
+            {
+                var fileName = "video_" + Guid.NewGuid().ToString() + fileExtension;
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Media", fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                return new ServiceResponseModel<string>($"{requestUrl}/Media/{fileName}");
+            }
+            else
+            {
+                return new
+                    (
+                        false,
+                        $"Invalid file type: {file.FileName}. Only video file is allowed."
+                    );
+            }
+        }
+
+        public async Task<ServiceResponseModel<string>> SaveVideoFile(IFormFile file, string requestUrl)
+        {
+            string fileExtension = Path.GetExtension(file.FileName).ToLower();
+
+            if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png" || fileExtension == ".gif")
+            {
+                var fileName = "image_" + Guid.NewGuid().ToString() + fileExtension;
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Media", fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                return new ServiceResponseModel<string>($"{requestUrl}/Media/{fileName}");
+            }
+            else
+            {
+                return new
+                    (
+                        false,
+                        $"Invalid file type: {file.FileName}. Only image file is allowed."
+                    );
+            }
+        }
     }
 }

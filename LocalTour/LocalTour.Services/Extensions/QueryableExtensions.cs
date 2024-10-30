@@ -1,9 +1,8 @@
+
 using System.Linq.Expressions;
 using System.Reflection;
-using AutoMapper;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Common.Mapping;
-using LocalTour.Services.ViewModel;
 using LocalTour.Services.ViewModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -53,6 +52,35 @@ public static class QueryableExtensions
         var result = mapper.Map<List<TEntityDto>>(list);
         return new PaginatedList<TEntityDto>(result, count, pageNumber, sizeNumber);
     }
+
+    public static async Task<PaginatedList<TEntityDto>> ListPaginateWithSortPostAsync<TEntity, TEntityDto>(
+       this IQueryable<TEntity> items,
+       int? page,
+       int? size,
+       string? sortOrder,
+       AutoMapper.IConfigurationProvider mapperConfiguration)
+       where TEntityDto : IMapFrom<TEntity>
+    {
+        sortOrder ??= "asc"; // Default sort order
+        var pageNumber = page.GetValueOrDefault(1);
+        var sizeNumber = size.GetValueOrDefault(10);
+
+        // Count the total items
+        var count = await items.CountAsync();
+
+        // Apply pagination
+        var list = await items
+            .Paginate(pageNumber, sizeNumber)
+            .ToListAsync();
+
+        // Map the items to DTOs
+        var mapper = ((AutoMapper.MapperConfiguration)mapperConfiguration).CreateMapper();
+        var result = mapper.Map<List<TEntityDto>>(list);
+
+        // Create a paginated list that includes the items and pagination metadata
+        return new PaginatedList<TEntityDto>(result, count, pageNumber, sizeNumber);
+    }
+
 
     private static bool IsValidProperty<TEntityDto>(string propertyName)
     {
