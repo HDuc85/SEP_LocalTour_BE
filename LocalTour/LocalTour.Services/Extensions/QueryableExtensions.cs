@@ -15,7 +15,7 @@ namespace LocalTour.Services.Extensions
             return items.Skip((page - 1) * size).Take(size);
         }
 
-        public static async Task<PaginatedList<TEntityDto>> ListPaginateWithSortAsync<TEntity, TEntityDto>(
+        public static async Task<PaginatedList<TEntityDto>> ListPaginateWithSortPostAsync<TEntity, TEntityDto>(
             this IQueryable<TEntity> items,
             int? page,
             int? size,

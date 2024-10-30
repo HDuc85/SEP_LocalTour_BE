@@ -78,7 +78,7 @@ namespace LocalTour.Services.Services
             }
 
             // Mapping, sorting, and pagination
-            var result = await posts.ListPaginateWithSortAsync<Post, PostRequest>(
+            var result = await posts.ListPaginateWithSortPostAsync<Post, PostRequest>(
                 request.Page,
                 request.Size,
                 request.SortOrder,
