@@ -6,6 +6,7 @@ namespace LocalTour.Domain.Entities;
 public partial class Place
 {
     public int Id { get; set; }
+    
     public int WardId { get; set; }
 
     public string PhotoDisplay { get; set; } = null!;
@@ -21,6 +22,12 @@ public partial class Place
     public string Status { get; set; }
     
     public string? ContactLink { get; set; }
+    
+    public Guid ApproverId { get; set; }
+    
+    public DateTime ApprovedTime { get; set; }
+    
+    
     public virtual ICollection<Destination> Destinations { get; set; } = new List<Destination>();
 
     public virtual ICollection<Event> Events { get; set; } = new List<Event>();
@@ -46,4 +53,6 @@ public partial class Place
     public virtual ICollection<TraveledPlace> TraveledPlaces { get; set; } = new List<TraveledPlace>();
 
     public virtual Ward Ward { get; set; } = null!;
+    
+    public virtual User Approver { get; set; } = null!;
 }

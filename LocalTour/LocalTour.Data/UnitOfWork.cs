@@ -42,6 +42,7 @@ namespace LocalTour.Data
         Repository<User> _repositoryUser;
         Repository<Role> _repositoryRole;
         Repository<UserPreferenceTags> _repositoryUserPreferenceTags;
+        Repository<ModTag> _repositoryModTag;
         public UnitOfWork(LocalTourDbContext db)
         {
             _db = db;
@@ -54,6 +55,15 @@ namespace LocalTour.Data
                 return _repositoryUserPreferenceTags ??= new Repository<UserPreferenceTags>(_db);
             }
         }
+
+        public Repository<ModTag> RepositoryModTag
+        {
+            get
+            {
+                return _repositoryModTag ??= new Repository<ModTag>(_db);
+            }
+        }
+
         public Repository<PlaceActivityMedium> RepositoryPlaceActivityMedium{
         get {
             return _repositoryPlaceActivityMedium ??= new Repository<PlaceActivityMedium>(_db);

@@ -37,6 +37,7 @@ namespace LocalTour.Data.Abstract
         Repository<User> RepositoryUser {get;}
         Repository<Role> RepositoryRole { get; }
         Repository<UserPreferenceTags> RepositoryUserPreferenceTags {get;}
+        Repository<ModTag> RepositoryModTag { get; }
         Task CommitAsync();
     }
 }

@@ -83,6 +83,8 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
     public virtual DbSet<Ward> Wards { get; set; }
     
     public virtual DbSet<UserPreferenceTags> UserPreferenceTags { get; set; }
+    
+    public virtual DbSet<ModTag> ModTags { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
 
@@ -633,6 +635,11 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
                 .HasForeignKey(d => d.DistrictNcityId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Ward__DistrictNC__3C34F16F");
+        });
+        
+        modelBuilder.Entity<ModTag>(entity => { 
+            entity.ToTable("ModTag");
+            entity.HasKey(e => new { e.UserId, e.TagId });
         });
 
         modelBuilder.Entity<User>(entity =>
