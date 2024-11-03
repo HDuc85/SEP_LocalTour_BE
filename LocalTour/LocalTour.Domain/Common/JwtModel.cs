@@ -7,5 +7,6 @@
         public string PhoneNumber { get; set; }
         public string FullName { get; set; }
         public DateTime AccessTokenExpiredDate { get; set; }
+        public DateTime RefeshTokenExpiredDate { get; set; }
     }
 }

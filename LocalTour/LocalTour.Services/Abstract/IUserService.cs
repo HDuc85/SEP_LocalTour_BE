@@ -14,14 +14,16 @@ namespace LocalTour.Services.Abstract
         Task<User> FindById(string userid);
         Task<User> CheckLogin(string phoneNumber, string password);
         Task<User> FindByPhoneNumber(string phoneNumber);
-        Task<bool> BanUser(string phoneNumber, DateTime timeEnd);
+        Task<User> FindByEmail(string email);
+        Task<bool> BanUser(string userId, DateTime timeEnd);
         Task<User> CreateUser(User user);
         Task<List<User>> GetAll();
-        Task<bool> SetPassword(string phoneNumber, string password);
-        Task<bool> AddRole(string phoneNumber, string role);
-        Task<bool> RemoveRole(string phoneNumber, string role);
-        Task<ServiceResponseModel<User>?> UpdateUser(string phoneNumber, UpdateUserRequest updateUserRequest, string requestUrl);
-        Task<bool> ChangePassword(string phoneNumber, string oldPassword, string newPassword);
-        Task<bool> IsUserBanned(string phoneNumber);
+        Task<bool> SetPassword(string userId, string password);
+        Task<bool> AddRole(string userId, string role);
+        Task<bool> RemoveRole(string userId, string role);
+        Task<ServiceResponseModel<User>?> UpdateUser(string userId, UpdateUserRequest updateUserRequest, string requestUrl);
+        Task<bool> ChangePassword(string userId, string oldPassword, string newPassword);
+        Task<bool> IsUserBanned(string userId);
+        Task<User> CreateModerate(CreateUserRequest createUserRequest);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
+using LocalTour.WebApi.Helper;
 
 namespace LocalTour.WebApi.Middleware;
 
@@ -15,10 +16,11 @@ public class CheckUserBanMiddleware
 
     public async Task InvokeAsync(HttpContext context, IUserService userService)
     {
-        string phoneNumber = context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.MobilePhone)?.Value;
-        if (!string.IsNullOrEmpty(phoneNumber))
+        string userId = context.User.GetUserId();
+       
+        if (!string.IsNullOrEmpty(userId))
         {
-            bool banned = await userService.IsUserBanned(phoneNumber);
+            bool banned = await userService.IsUserBanned(userId);
             if (banned)
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
