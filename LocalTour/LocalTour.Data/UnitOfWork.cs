@@ -43,6 +43,8 @@ namespace LocalTour.Data
         Repository<Role> _repositoryRole;
         Repository<UserPreferenceTags> _repositoryUserPreferenceTags;
         Repository<ModTag> _repositoryModTag;
+        Repository<UserReport> _repositoryUserReport;
+
 
         public UnitOfWork(LocalTourDbContext db)
         {
@@ -296,6 +298,14 @@ namespace LocalTour.Data
             get
             {
                 return _repositoryRole ??= new Repository<Role>(_db);
+            }
+        }
+
+        public Repository<UserReport> RepositoryUserReport
+        {
+            get
+            {
+                return _repositoryUserReport ??= new Repository<UserReport>(_db);
             }
         }
 

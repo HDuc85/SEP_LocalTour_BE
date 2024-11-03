@@ -15,6 +15,6 @@ public partial class PlaceReport
 
     public string Status { get; set; } = null!;
 
-    public virtual User User { get; set; } = null!;
+    public virtual User UserReport { get; set; } = null!;
     public virtual Place Place { get; set; } = null!;
 }
