@@ -29,8 +29,14 @@ namespace LocalTour.Services.Services
             var user = await FindByPhoneNumber(phoneNumber);
             if (user == null)
             {
+                user = await FindByEmail(phoneNumber);
+            }
+
+            if (user == null)
+            {
                 return null;
             }
+            
             var result = await _userManager.CheckPasswordAsync(user, password);
 
             if (!result)
@@ -53,11 +59,13 @@ namespace LocalTour.Services.Services
         {
             return await _userManager.FindByIdAsync(userid);
         }
-        public async Task<bool> BanUser(string phoneNumber, DateTime timeEnd)
+        public async Task<User> FindByEmail(string email)
         {
-            var user = await FindByPhoneNumber(phoneNumber);
-           
-
+            return await _userManager.FindByEmailAsync(email);
+        }
+        public async Task<bool> BanUser(string userId, DateTime timeEnd)
+        {
+            var user = await _userManager.FindByIdAsync(userId);            
             await  _unitOfWork.RepositoryUserBan.Insert(new UserBan()
             {
                 EndDate = timeEnd,
@@ -87,9 +95,38 @@ namespace LocalTour.Services.Services
                 return null;
             }
         }
-        public async Task<bool> RemoveRole(string phoneNumber, string role)
+
+        public async Task<User> CreateModerate(CreateUserRequest createUserRequest)
         {
-            var user = await FindByPhoneNumber(phoneNumber);
+            var check = await FindByEmail(createUserRequest.Email);
+            if(check == null)
+                check = await FindByPhoneNumber(createUserRequest.PhoneNumber);
+            if (check == null)
+            {
+                var user = new User()
+                {
+                    Email = createUserRequest.Email,
+                    PhoneNumber = createUserRequest.PhoneNumber,
+                    UserName = createUserRequest.PhoneNumber,
+                    DateCreated = DateTime.Now,
+                    DateUpdated = DateTime.Now,
+                };
+                var result = await _userManager.CreateAsync(user, createUserRequest.Password);
+                await _userManager.AddToRoleAsync(user, "Moderator");
+                if (result.Succeeded)
+                {
+                    return user;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+           return null;
+        }
+        public async Task<bool> RemoveRole(string userId, string role)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
             var result = await _userManager.RemoveFromRoleAsync(user, role);
             if (result.Succeeded)
             {
@@ -97,9 +134,9 @@ namespace LocalTour.Services.Services
             }
             return false;
         }
-        public async Task<bool> AddRole(string phoneNumber, string role)
+        public async Task<bool> AddRole(string userId, string role)
         {
-            var user = await FindByPhoneNumber(phoneNumber);
+            var user = await _userManager.FindByIdAsync(userId);
             var result = await _userManager.AddToRoleAsync(user, role);
             if (result.Succeeded)
             {
@@ -107,10 +144,9 @@ namespace LocalTour.Services.Services
             }
             return false;
         }
-        public async Task<bool> SetPassword(string phoneNumber, string password)
+        public async Task<bool> SetPassword(string userId, string password)
         {
-            var user = await FindByPhoneNumber(phoneNumber);
-
+            var user = await _userManager.FindByIdAsync(userId);
             if(user == null)
             {
                 return false;
@@ -120,9 +156,9 @@ namespace LocalTour.Services.Services
 
             return true;
         }
-        public async Task<ServiceResponseModel<User>?> UpdateUser(string phoneNumber, UpdateUserRequest updateUserRequest, string requestUrl)
+        public async Task<ServiceResponseModel<User>?> UpdateUser(string userId, UpdateUserRequest updateUserRequest, string requestUrl)
         {
-            var user = await FindByPhoneNumber(phoneNumber);
+            var user = await _userManager.FindByIdAsync(userId);
             if(user == null)
             {
                 return   new ( false,"Can not find User" );
@@ -161,9 +197,9 @@ namespace LocalTour.Services.Services
 
             return new ServiceResponseModel<User>(user);
         }
-        public async Task<bool> ChangePassword(string phoneNumber, string oldPassword, string newPassword)
+        public async Task<bool> ChangePassword(string userId, string oldPassword, string newPassword)
         {
-            var user = await FindByPhoneNumber(phoneNumber);
+            var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
                 return false;
@@ -173,9 +209,9 @@ namespace LocalTour.Services.Services
 
             return result.Succeeded;
         }
-        public async Task<bool> IsUserBanned(string phoneNumber)
+        public async Task<bool> IsUserBanned(string userId)
         {
-            var user = await FindByPhoneNumber(phoneNumber);
+            var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
                 return false;

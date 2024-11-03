@@ -1,4 +1,4 @@
-﻿namespace LocalTour.Domain.Common
+﻿namespace LocalTour.Services.ViewModel
 {
     public class MediaFileStaticVM
     {

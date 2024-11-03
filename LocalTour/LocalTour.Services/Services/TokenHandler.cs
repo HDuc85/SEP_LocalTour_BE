@@ -44,8 +44,8 @@ namespace LocalTour.Services.Services
                 new Claim(JwtRegisteredClaimNames.Aud, _configuration["JWT:Audience"],ClaimValueTypes.String,_configuration["JWT:Issuer"]),
                 new Claim(JwtRegisteredClaimNames.Exp, DateTime.Now.AddMinutes(double.Parse(_configuration["JWT:AccessTokenExiredByMinutes"])).ToString("dd/MM/yyyy hh:mm:ss"),ClaimValueTypes.String,_configuration["JWT:Issuer"]),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(),ClaimValueTypes.String,_configuration["JWT:Issuer"]),
-                new Claim(ClaimTypes.MobilePhone,user.PhoneNumber, ClaimValueTypes.String, _configuration["JWT:Issuer"])
-
+                new Claim(ClaimTypes.MobilePhone,user.PhoneNumber, ClaimValueTypes.String, _configuration["JWT:Issuer"]),
+                new Claim(ClaimTypes.Email, user.Email, ClaimValueTypes.String, _configuration["JWT:Issuer"]),
             }.Union(roles.Select(x => new Claim(ClaimTypes.Role, x)));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"]));

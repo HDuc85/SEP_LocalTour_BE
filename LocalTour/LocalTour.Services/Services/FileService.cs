@@ -1,13 +1,8 @@
-﻿using LocalTour.Domain.Common;
-using LocalTour.Services.Abstract;
+﻿using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
+using LocalTour.Services.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LocalTour.Services.Services
 {
@@ -100,7 +95,7 @@ namespace LocalTour.Services.Services
             int maxFileCount = _configuration.GetValue<int>("FileUploadSettings:MaxFileCount");
             int maxImageCount = _configuration.GetValue<int>("FileUploadSettings:MaxImageCount");
             int maxVideoCount = _configuration.GetValue<int>("FileUploadSettings:MaxVideoCount");
-            long maxFileSize = _configuration.GetValue<long>("FileUploadSettings:MaxFileSize");
+            long maxFileSize = _configuration.GetValue<long>("FileUploadSettings:MaxFileSize") * 1024 * 1024;
 
             int imageCount = 0;
             int videoCount = 0;
