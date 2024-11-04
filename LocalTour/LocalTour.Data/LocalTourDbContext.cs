@@ -489,7 +489,7 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
 
             entity.Property(e => e.ReportDate).HasColumnType("datetime");
             entity.Property(e => e.Status).HasMaxLength(50);
-            entity.HasOne(d => d.User).WithMany(p => p.UserReportPlaces);
+            entity.HasOne(d => d.UserReport).WithMany(p => p.UserReportPlaces);
             entity.HasOne(d => d.Place).WithMany(p => p.PlaceReports)
                 .HasForeignKey(d => d.PlaceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
