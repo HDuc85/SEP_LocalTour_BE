@@ -21,7 +21,7 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
         {
 
@@ -35,7 +35,7 @@ namespace LocalTour.WebApi.Controllers
         }
         
         [HttpGet("pageSize")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<IEnumerable<User>>> GetPageSize(int pageIndex, int pageSize)
         {
             var users = await _userService.GetAll();
@@ -53,11 +53,13 @@ namespace LocalTour.WebApi.Controllers
             string firebaseToken= User.GetFirebaseToken();
             UserRecord userRecord = await FirebaseAuth.DefaultInstance.GetUserAsync(firebaseToken);
             string phoneNumber = userRecord.PhoneNumber;
-            if (phoneNumber == null)
+            string email = userRecord.Email;
+            if (phoneNumber.IsNullOrEmpty() && email.IsNullOrEmpty())
             {
                 return BadRequest("Invalid Token");
             }
-            var result = await _userService.SetPassword(phoneNumber,password);
+            var userId = User.GetUserId();
+            var result = await _userService.SetPassword(userId,password);
 
             if (!result)
             {
@@ -70,14 +72,14 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> ChangePassword(string oldPassword, string newPassword)
         {
-            string phoneNumber = User.GetPhoneNumber();
+            string userId = User.GetUserId();
             
-            if (phoneNumber.IsNullOrEmpty())
+            if (userId.IsNullOrEmpty())
             {
                 return BadRequest("Invalid Token");
             }
 
-            var result = await _userService.ChangePassword(phoneNumber, oldPassword, newPassword);
+            var result = await _userService.ChangePassword(userId, oldPassword, newPassword);
 
             if (!result)
             {
@@ -92,8 +94,8 @@ namespace LocalTour.WebApi.Controllers
         public async Task<IActionResult> UpdateUser([FromForm]UpdateUserRequest updateUserRequest)
         {
             var requestUrl = $"{Request.Scheme}://{Request.Host}";
-            string phoneNumber = User.GetPhoneNumber();
-            var result = await _userService.UpdateUser(phoneNumber, updateUserRequest, requestUrl);
+            string userId = User.GetUserId();
+            var result = await _userService.UpdateUser(userId, updateUserRequest, requestUrl);
             if (!result.Success)
             {
                 return BadRequest();
@@ -105,10 +107,10 @@ namespace LocalTour.WebApi.Controllers
             }
         } 
         [HttpPost("addRole")]
-        [Authorize(Roles = "admin")]
-        public async Task<IActionResult> AddRole(string phoneNumber, string role)
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> AddRole(string userId, string role)
         {
-            var result = await _userService.AddRole(phoneNumber, role);
+            var result = await _userService.AddRole(userId, role);
             if (result)
             {
                 return Ok("Success");
@@ -116,10 +118,10 @@ namespace LocalTour.WebApi.Controllers
             return BadRequest();
         } 
         [HttpPost("removeRole")]
-        [Authorize(Roles = "admin")]
-        public async Task<IActionResult> RemoveRole(string phoneNumber, string role)
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> RemoveRole(string userId, string role)
         {
-            var result = await _userService.RemoveRole(phoneNumber, role);
+            var result = await _userService.RemoveRole(userId, role);
             if (result)
             {
                 return Ok("Success");   
@@ -128,15 +130,31 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpPut("BanUser")]
-        [Authorize(Roles = "admin")]
-        public async Task<IActionResult> BanUser(string phoneNumber, DateTime endDate)
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> BanUser(string userId, DateTime endDate)
         {
-            var result = await _userService.BanUser(phoneNumber, endDate);
+            var result = await _userService.BanUser(userId, endDate);
             if (result)
             {
                 return Ok("Success");
             }
             return BadRequest();    
+        }
+
+        [HttpPost("CreateModerate")]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> CreateModerate(CreateUserRequest createUserRequest)
+        {
+            if (createUserRequest.Password != createUserRequest.ConfirmPassword)
+            {
+                return BadRequest("Passwords do not match");
+            }
+            var user = await _userService.CreateModerate(createUserRequest);
+            if (user != null)
+            {
+                return Ok("Success");
+            }
+            return BadRequest();
         }
     }
 }

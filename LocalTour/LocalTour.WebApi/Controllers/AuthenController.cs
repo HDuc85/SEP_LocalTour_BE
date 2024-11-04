@@ -6,6 +6,7 @@ using LocalTour.Services.Abstract;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace LocalTour.WebApi.Controllers
 {
@@ -43,7 +44,8 @@ namespace LocalTour.WebApi.Controllers
                 RefreshToken = refreshToken,
                 FullName = user.FullName,
                 PhoneNumber = user.PhoneNumber,
-                AccessTokenExpiredDate = expiredDateAccessToken
+                AccessTokenExpiredDate = expiredDateAccessToken,
+                RefeshTokenExpiredDate = expiredDateRefreshToken
             });
         }
 
@@ -63,9 +65,13 @@ namespace LocalTour.WebApi.Controllers
             {
                 UserRecord userRecord = await FirebaseAuth.DefaultInstance.GetUserAsync(idToken);
                 string phoneNumber = userRecord.PhoneNumber;
-        
+                string email = userRecord.Email;
+                
                 var user = await _userService.FindByPhoneNumber(phoneNumber);
-
+                if (user == null)
+                {
+                user = await _userService.FindByEmail(email);
+                }
                 if (user == null)
                 {
                     user = await _userService.CreateUser(new Domain.Entities.User
@@ -73,8 +79,10 @@ namespace LocalTour.WebApi.Controllers
                         PhoneNumber = phoneNumber,
                         DateCreated = DateTime.UtcNow,
                         DateUpdated = DateTime.UtcNow,
-                        PhoneNumberConfirmed = true,
-                        UserName = phoneNumber,
+                        PhoneNumberConfirmed = !phoneNumber.IsNullOrEmpty(),
+                        EmailConfirmed = !email.IsNullOrEmpty(),
+                        Email = email,
+                        UserName = phoneNumber.IsNullOrEmpty()?email:phoneNumber,
                         Id = Guid.NewGuid()
                     });
                 }

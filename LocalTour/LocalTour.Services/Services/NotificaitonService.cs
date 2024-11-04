@@ -19,6 +19,7 @@ public class NotificaitonService : INotificationService
     {
         var message = new Message()
         {
+            FcmOptions = new FcmOptions(){},
             Token = deviceToken,
             Notification = new Notification()
             {
@@ -26,7 +27,6 @@ public class NotificaitonService : INotificationService
                 Body = body,
             },
         };
-
         await FirebaseMessaging.DefaultInstance.SendAsync(message);
     }
 }
