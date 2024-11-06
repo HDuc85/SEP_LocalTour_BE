@@ -70,6 +70,10 @@ namespace LocalTour.Infrastructure.Configuration
 
             service.AddScoped<IUserReportService, UserReportService>();
             service.AddScoped<IPlaceReportService, PlaceReportService>();
+            service.AddScoped<IUserPreferenceTagsService, UserPreferenceTagsService>();
+            service.AddScoped<IModTagService, ModTagService>();
+
+
         }
 
         public static void RegesterIdentity(this IServiceCollection service, IConfiguration configuration)

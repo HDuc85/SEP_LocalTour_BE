@@ -52,7 +52,11 @@ namespace LocalTour.Services.Services
             var reportEntity = await _unitOfWork.RepositoryUserReport.GetById(report.Id);
             if (reportEntity == null) return false;
 
-            _mapper.Map(report, reportEntity);
+            reportEntity.Status = report.Status;
+            reportEntity.ReportDate = report.ReportDate;
+            reportEntity.UserId = report.UserId;
+            reportEntity.UserReportId = report.UserReportId;
+
             _unitOfWork.RepositoryUserReport.Update(reportEntity);
             await _unitOfWork.CommitAsync();
 

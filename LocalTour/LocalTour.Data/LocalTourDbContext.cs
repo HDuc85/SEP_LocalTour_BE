@@ -539,7 +539,7 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
             entity.HasOne(d => d.User).WithMany(p => p.UserReports)
                 .HasForeignKey(d => d.UserId);
             entity.HasOne(d => d.UserReport1).WithMany(p => p.UserReporteds)
-                .HasForeignKey(d => d.UserReport1);
+                .HasForeignKey(d => d.UserReportId);
 
         });
 

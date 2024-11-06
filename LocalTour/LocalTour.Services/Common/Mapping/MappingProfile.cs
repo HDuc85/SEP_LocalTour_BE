@@ -56,6 +56,12 @@ public class MappingProfile : Profile
 
         CreateMap<PlaceReport, PlaceReportRequest>().ReverseMap();
 
+        // Add mapping for UserPreferenceTagsRequest to UserPreferenceTags
+        CreateMap<UserPreferenceTagsRequest, UserPreferenceTags>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore()); // If Id should be auto-generated or managed separately
+
+        CreateMap<ModTagRequest, ModTag>().ReverseMap();
+
     }
 
     private void ApplyMappingFromAssembly(Assembly assembly)

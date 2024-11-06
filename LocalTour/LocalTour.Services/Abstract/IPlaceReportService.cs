@@ -6,9 +6,9 @@ namespace LocalTour.Services.Abstract
     {
         Task<PlaceReportRequest> CreateReport(PlaceReportRequest request);
         Task<IEnumerable<PlaceReportRequest>> GetAllReports();
-        Task<PlaceReportRequest?> GetReportById(int id);
+        Task<PlaceReportRequest?> GetPlaceReportById(int id);
+        Task<IEnumerable<PlaceReportRequest>> GetReportsByTag(int tagId);
         Task<PlaceReportRequest?> UpdateReport(int id, PlaceReportRequest request);
         Task<bool> DeleteReport(int id);
-        Task<IEnumerable<PlaceReportRequest>> GetReportsByTag(int tagId);
     }
 }

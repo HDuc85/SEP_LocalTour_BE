@@ -38,11 +38,23 @@ namespace LocalTour.Services.Services
             return _mapper.Map<IEnumerable<PlaceReportRequest>>(reports);
         }
 
-
-        public async Task<PlaceReportRequest?> GetReportById(int id)
+        public async Task<PlaceReportRequest?> GetPlaceReportById(int id)
         {
             var report = await _unitOfWork.RepositoryPlaceReport.GetById(id);
             return _mapper.Map<PlaceReportRequest>(report);
+        }
+
+        // Thêm phương thức để lấy báo cáo theo tag
+        public async Task<IEnumerable<PlaceReportRequest>> GetReportsByTag(int tagId)
+        {
+            var reports = await _unitOfWork.RepositoryPlaceTag.GetAll()
+                .Where(pt => pt.TagId == tagId)
+                .Include(pt => pt.Place)
+                .Include(pt => pt.Place.PlaceReports)
+                .Select(pt => pt.Place.PlaceReports)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<PlaceReportRequest>>(reports);
         }
 
         public async Task<PlaceReportRequest?> UpdateReport(int id, PlaceReportRequest request)
@@ -65,19 +77,6 @@ namespace LocalTour.Services.Services
             _unitOfWork.RepositoryPlaceReport.Delete(reportEntity);
             await _unitOfWork.CommitAsync();
             return true;
-        }
-
-        // Thêm phương thức để lấy báo cáo theo tag
-        public async Task<IEnumerable<PlaceReportRequest>> GetReportsByTag(int tagId)
-        {
-            var reports = await _unitOfWork.RepositoryPlaceTag.GetAll()
-                .Where(pt => pt.TagId == tagId)
-                .Include(pt => pt.Place)
-                .Include(pt => pt.Place.PlaceReports)
-                .Select(pt => pt.Place.PlaceReports)
-                .ToListAsync();
-
-            return _mapper.Map<IEnumerable<PlaceReportRequest>>(reports);
         }
     }
 }

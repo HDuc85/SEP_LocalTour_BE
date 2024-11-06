@@ -22,7 +22,7 @@ namespace LocalTour.WebApi.Controllers
             if (request == null) return BadRequest();
 
             var createdReport = await _placeReportService.CreateReport(request);
-            return CreatedAtAction(nameof(GetReportById), new { id = createdReport.Id }, createdReport);
+            return CreatedAtAction(nameof(GetPlaceReportById), new { id = createdReport.Id }, createdReport);
         }
 
         [HttpGet]
@@ -33,24 +33,34 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<PlaceReportRequest>> GetReportById(int id)
-        {
-            var report = await _placeReportService.GetReportById(id);
-            if (report == null) return NotFound();
-
-            return Ok(report);
-        }
-
-        [HttpGet("report/{id}")]
         public async Task<ActionResult<ServiceResponseModel<PlaceReportRequest>>> GetPlaceReportById(int id)
         {
-            var report = await _placeReportService.GetReportById(id);
+            var report = await _placeReportService.GetPlaceReportById(id);
             if (report == null)
             {
                 return NotFound(new ServiceResponseModel<PlaceReportRequest>(false, "Place report not found"));
             }
 
             return Ok(new ServiceResponseModel<PlaceReportRequest>(report));
+        }
+
+        // Endpoint để lấy báo cáo theo tag
+        [HttpGet("tag/{tagId}")]
+        public async Task<ActionResult<IEnumerable<PlaceReportRequest>>> GetReportsByTag(int tagId)
+        {
+            var reports = await _placeReportService.GetReportsByTag(tagId);
+            return Ok(reports);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<PlaceReportRequest>> UpdateReport(int id, [FromBody] PlaceReportRequest request)
+        {
+            if (request == null) return BadRequest();
+
+            var updatedReport = await _placeReportService.UpdateReport(id, request);
+            if (updatedReport == null) return NotFound();
+
+            return Ok(updatedReport);
         }
 
         [HttpDelete("{id}")]
@@ -60,14 +70,6 @@ namespace LocalTour.WebApi.Controllers
             if (!result) return NotFound();
 
             return NoContent();
-        }
-
-        // Endpoint để lấy báo cáo theo tag
-        [HttpGet("tag/{tagId}")]
-        public async Task<ActionResult<IEnumerable<PlaceReportRequest>>> GetReportsByTag(int tagId)
-        {
-            var reports = await _placeReportService.GetReportsByTag(tagId);
-            return Ok(reports);
         }
     }
 }
