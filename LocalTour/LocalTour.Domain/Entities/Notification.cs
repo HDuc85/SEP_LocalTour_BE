@@ -19,7 +19,7 @@ public partial class Notification
 
     public DateTime DateCreated { get; set; }
 
-    public bool IsRead { get; set; }
-
     public virtual User User { get; set; } = null!;
+    
+    public virtual ICollection<UserNotification> UserNotifications { get; set; } = null!;
 }
