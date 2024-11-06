@@ -20,8 +20,8 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> GetSingleTraveledPlace(int placeId)
         {
-            string phoneNumber = User.GetPhoneNumber();
-            var result = await _traveledPlaceService.CountTraveledPlace(phoneNumber, placeId);
+            string userId = User.GetUserId();
+            var result = await _traveledPlaceService.CountTraveledPlace(userId, placeId);
             if (result < 0)
             {
                 return BadRequest();
@@ -33,8 +33,8 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> GetAllTraveledPlaces()
         {
-            string phoneNumber = User.GetPhoneNumber();
-            var result = await _traveledPlaceService.GetAllTraveledPlaces(phoneNumber);
+            string userId = User.GetUserId();
+            var result = await _traveledPlaceService.GetAllTraveledPlaces(userId);
             if (result.Any())
             {
                 return Ok(result);
@@ -46,8 +46,8 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> GetWithPlaceIds(List<int> placeIds)
         {
-            string phoneNumber = User.GetPhoneNumber();
-            var result = await _traveledPlaceService.CountTraveledPlaces(phoneNumber, placeIds);
+            string userId = User.GetUserId();
+            var result = await _traveledPlaceService.CountTraveledPlaces(userId, placeIds);
 
             if (result.Any())
             {
@@ -61,8 +61,8 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> AddTraveledPlace(int placeId)
         {
-            string phoneNumber = User.GetPhoneNumber();
-            var result = await _traveledPlaceService.AddTraveledPlace(phoneNumber, placeId);
+            string userId = User.GetUserId();
+            var result = await _traveledPlaceService.AddTraveledPlace(userId, placeId);
             if (result)
             {
                 return Ok("Success");

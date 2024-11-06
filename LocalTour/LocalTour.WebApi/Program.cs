@@ -3,8 +3,8 @@ using Google.Apis.Auth.OAuth2;
 using LocalTour.Infrastructure.Configuration;
 using Microsoft.OpenApi.Models;
 using Service.Common.Mapping;
-using System.Reflection;
 using LocalTour.WebApi.Middleware;
+using Quartz;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +13,7 @@ builder.Services.RegesterContextDb(builder.Configuration);
 builder.Services.RegesterDI(builder.Configuration);
 builder.Services.RegesterIdentity(builder.Configuration);
 builder.Services.RegesterTokenBearer(builder.Configuration);
+builder.Services.RegesterQuazrtz();
 builder.Services.AddControllers();
 builder.Services.AddMemoryCache();
 builder.Services.AddControllers()
@@ -93,5 +94,6 @@ app.UseAuthorization();
 
 
 app.MapControllers();
-
+var scheduler = app.Services.GetRequiredService<IScheduler>();
+await scheduler.Start();
 app.Run();

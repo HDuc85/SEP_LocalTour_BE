@@ -10,9 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Service.Common.Mapping;
-using System.Security.Cryptography;
 using System.Text;
-using PlaceSearchHistory = LocalTour.Domain.Entities.PlaceSearchHistory;
+using Quartz;
+using Quartz.Impl;
 
 namespace LocalTour.Infrastructure.Configuration
 {
@@ -48,8 +48,14 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<ITraveledPlaceService, TraveledPlaceService>();
             service.AddScoped<IMarkPlaceService, MarkPlaceService>();
             service.AddScoped<IPlaceSearchHistoryService, PlaceSearchHistoryService>();
+            service.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
+            service.AddSingleton(provider =>
+            {
+                var schedulerFactory = provider.GetRequiredService<ISchedulerFactory>();
+                return schedulerFactory.GetScheduler().Result;
+            });
             service.AddScoped<INotificationService, NotificaitonService>();
-
+            
             service.AddAutoMapper(typeof(MappingProfile));
 
             // Registering the PostService
@@ -63,6 +69,7 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<IPlaceActivityService, PlaceActivityService>();
             service.AddScoped<IPlaceService, PlaceService>();
             service.AddScoped<IPlaceFeedbackService, PlaceFeedbackService>();
+           
         }
 
         public static void RegesterIdentity(this IServiceCollection service, IConfiguration configuration)
@@ -127,6 +134,15 @@ namespace LocalTour.Infrastructure.Configuration
 
         }
 
-
+        public static void RegesterQuazrtz(this IServiceCollection service)
+        {
+            service.AddQuartz(options =>
+            {
+                options.UseMicrosoftDependencyInjectionJobFactory();
+            });
+            service.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
+        }
+        
     }
+   
 }

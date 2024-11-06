@@ -21,8 +21,9 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> GetMarkPlace(string languageCode)
         {
-            string phoneNumber = User.GetPhoneNumber();
-            var result = await _markPlaceService.GetMarkPlaces(phoneNumber, languageCode);
+           string userId = User.GetUserId();
+            
+            var result = await _markPlaceService.GetMarkPlaces(userId, languageCode);
             if (result.Any())
             {
                 return Ok(result);
@@ -34,12 +35,12 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> AddMarkPlace(int placeId)
         {
-            string phoneNumber = User.GetPhoneNumber();
-            if (!string.IsNullOrWhiteSpace(phoneNumber))
+           string userId = User.GetUserId();
+            if (!string.IsNullOrWhiteSpace(userId))
             {
                 return BadRequest();
             }
-            var result = await _markPlaceService.CreateMarkPlace(phoneNumber, placeId);
+            var result = await _markPlaceService.CreateMarkPlace(userId, placeId);
             if (result)
             {
                 return Ok("Success");
@@ -51,8 +52,8 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateMarkPlace(int placeId, bool isVisited)
         {
-            string phoneNumber = User.GetPhoneNumber();
-            var result = await _markPlaceService.UpdateMarkPlace(phoneNumber, placeId, isVisited);
+           string userId = User.GetUserId();
+            var result = await _markPlaceService.UpdateMarkPlace(userId, placeId, isVisited);
             if (result)
             {
                 return Ok("Success");
@@ -64,12 +65,12 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> RemoveMarkPlace(int placeId)
         {
-            string phoneNumber = User.GetPhoneNumber();
-            if (!string.IsNullOrWhiteSpace(phoneNumber))
+           string userId = User.GetUserId();
+            if (!string.IsNullOrWhiteSpace(userId))
             {
                 return BadRequest();    
             }
-            var result = await _markPlaceService.DeleteMarkPlace(phoneNumber, placeId);
+            var result = await _markPlaceService.DeleteMarkPlace(userId, placeId);
 
             if (result)
             {
