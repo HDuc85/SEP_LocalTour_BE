@@ -34,7 +34,7 @@ namespace LocalTour.WebApi.Controllers
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { error = ex.Message });
-            }
+            }   
         }
 
         [HttpGet("{postId}")]
