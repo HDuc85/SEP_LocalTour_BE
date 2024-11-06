@@ -42,6 +42,26 @@ public class MappingProfile : Profile
         CreateMap<Event, EventRequest>();
         CreateMap<PlaceActivity, PlaceActivityRequest>();
 
+        // Map for Schedule and ScheduleRequest
+        CreateMap<Schedule, ScheduleRequest>().ReverseMap();
+
+        // Map for Destination and DestinationRequest
+        CreateMap<Destination, DestinationRequest>().ReverseMap();
+
+        // Map for ScheduleLike and ScheduleLikeRequest
+        CreateMap<ScheduleLike, ScheduleLikeRequest>().ReverseMap();
+
+        // Map for UserReport and UserReportRequest
+        CreateMap<UserReport, UserReportRequest>().ReverseMap();
+
+        CreateMap<PlaceReport, PlaceReportRequest>().ReverseMap();
+
+        // Add mapping for UserPreferenceTagsRequest to UserPreferenceTags
+        CreateMap<UserPreferenceTagsRequest, UserPreferenceTags>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore()); // If Id should be auto-generated or managed separately
+
+        CreateMap<ModTagRequest, ModTag>().ReverseMap();
+
     }
 
     private void ApplyMappingFromAssembly(Assembly assembly)

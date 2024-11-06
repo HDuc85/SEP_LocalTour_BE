@@ -55,10 +55,9 @@ namespace LocalTour.Infrastructure.Configuration
                 return schedulerFactory.GetScheduler().Result;
             });
             service.AddScoped<INotificationService, NotificaitonService>();
-            
+
             service.AddAutoMapper(typeof(MappingProfile));
 
-            // Registering the PostService
             service.AddScoped<IPostService, PostService>();
             service.AddScoped<IPostMediumService, PostMediumService>();
             service.AddScoped<IPostCommentService, PostCommentService>();
@@ -69,7 +68,19 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<IPlaceActivityService, PlaceActivityService>();
             service.AddScoped<IPlaceService, PlaceService>();
             service.AddScoped<IPlaceFeedbackService, PlaceFeedbackService>();
-           
+
+
+            service.AddScoped<IScheduleService, ScheduleService>();
+            service.AddScoped<IDestinationService, DestinationService>();
+
+            service.AddScoped<IScheduleLikeService, ScheduleLikeService>();
+
+            service.AddScoped<IUserReportService, UserReportService>();
+            service.AddScoped<IPlaceReportService, PlaceReportService>();
+            service.AddScoped<IUserPreferenceTagsService, UserPreferenceTagsService>();
+            service.AddScoped<IModTagService, ModTagService>();
+
+
         }
 
         public static void RegesterIdentity(this IServiceCollection service, IConfiguration configuration)
@@ -78,7 +89,7 @@ namespace LocalTour.Infrastructure.Configuration
             {
                 // options.SignIn.RequireConfirmedPhoneNumber = true;
             }).AddEntityFrameworkStores<LocalTourDbContext>();
-            
+
             service.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             service.AddHttpContextAccessor();
         }
@@ -142,7 +153,7 @@ namespace LocalTour.Infrastructure.Configuration
             });
             service.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
         }
-        
+
     }
-   
+
 }
