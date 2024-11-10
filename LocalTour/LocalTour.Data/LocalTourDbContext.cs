@@ -83,6 +83,7 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
     public virtual DbSet<UserPreferenceTags> UserPreferenceTags { get; set; }
     
     public virtual DbSet<ModTag> ModTags { get; set; }
+    public virtual DbSet<UserNotification> UserNotifications { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
 
@@ -550,6 +551,13 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
             entity.ToTable("Tag");
 
             entity.Property(e => e.TagName).HasMaxLength(256);
+        });
+
+        modelBuilder.Entity<UserNotification>(entity =>
+        {
+            entity.ToTable("UserNotification");
+            entity.HasOne(e => e.User).WithMany(p => p.UserNotifications).HasForeignKey(e => e.UserId);
+            entity.HasOne(e => e.Notification).WithMany(p => p.UserNotifications).HasForeignKey(e => e.NotificationId);
         });
 
         modelBuilder.Entity<TraveledPlace>(entity =>

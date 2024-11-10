@@ -19,9 +19,9 @@ public class MarkPlaceService : IMarkPlaceService
         _traveledPlaceService = traveledPlaceService;
     }
 
-    public async Task<bool> CreateMarkPlace(string phoneNumber, int placeId)
+    public async Task<bool> CreateMarkPlace(string userId, int placeId)
     {
-        var user = await _userService.FindByPhoneNumber(phoneNumber);
+        var user = await _userService.FindById(userId);
         if (user == null)
         {
             return false;
@@ -43,9 +43,10 @@ public class MarkPlaceService : IMarkPlaceService
         await _unitOfWork.CommitAsync();
         return true;
     }
-    public async Task<List<MarkPlaceVM>> GetMarkPlaces(string phoneNumber, string languageCode)
+    public async Task<List<MarkPlaceVM>> GetMarkPlaces(string userId, string languageCode)
     {
-        var user = await _userService.FindByPhoneNumber(phoneNumber);
+        var user = await _userService.FindById(userId);
+        _userService.FindById(userId);
         if (user == null)
         {
             return null;
@@ -56,7 +57,7 @@ public class MarkPlaceService : IMarkPlaceService
             .Include(z => z.Place.PlaceTranslations).ToList();
         var listPlaceId = listMarkPlaces.Select(x => x.PlaceId).ToList();
         var visitPlaces = await _traveledPlaceService.
-                CountTraveledPlaces(phoneNumber, listPlaceId);
+                CountTraveledPlaces(userId, listPlaceId);
             
         var results = new List<MarkPlaceVM>();
         foreach (var markPlace in listMarkPlaces)
@@ -76,9 +77,9 @@ public class MarkPlaceService : IMarkPlaceService
         return results;
     }
 
-    public async Task<bool> UpdateMarkPlace(string phoneNumber, int placeId, bool isVisited)
+    public async Task<bool> UpdateMarkPlace(string userId, int placeId, bool isVisited)
     {
-        var user = await _userService.FindByPhoneNumber(phoneNumber);
+        var user = await _userService.FindById(userId);
         if (user == null)
         {
             return false;
@@ -99,9 +100,9 @@ public class MarkPlaceService : IMarkPlaceService
         
     }
 
-    public async Task<bool> DeleteMarkPlace(string phoneNumber, int placeId)
+    public async Task<bool> DeleteMarkPlace(string userId, int placeId)
     {
-        var user = await _userService.FindByPhoneNumber(phoneNumber);
+        var user = await _userService.FindById(userId);
         if (user == null)
         {
             return false;

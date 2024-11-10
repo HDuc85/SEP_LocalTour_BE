@@ -43,6 +43,7 @@ namespace LocalTour.Data
         Repository<Role> _repositoryRole;
         Repository<UserPreferenceTags> _repositoryUserPreferenceTags;
         Repository<ModTag> _repositoryModTag;
+        Repository<UserNotification> _repositoryUserNotification;
         Repository<UserReport> _repositoryUserReport;
 
 
@@ -56,6 +57,14 @@ namespace LocalTour.Data
             get
             {
                 return _repositoryUserPreferenceTags ??= new Repository<UserPreferenceTags>(_db);
+            }
+        }
+
+        public Repository<UserNotification> RepositoryUserNotification
+        {
+            get
+            {
+                return _repositoryUserNotification ??= new Repository<UserNotification>(_db);
             }
         }
 
@@ -236,7 +245,7 @@ namespace LocalTour.Data
                 return _repositoryProvinceNcity ??= new Repository<ProvinceNcity>(_db);
             }
         }
-        
+
         public Repository<ScheduleLike> RepositoryScheduleLike
         {
             get
