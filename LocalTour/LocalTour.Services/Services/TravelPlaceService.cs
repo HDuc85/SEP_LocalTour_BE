@@ -16,9 +16,9 @@ public class TraveledPlaceService : ITraveledPlaceService
         _userService = userService;
     }
 
-    public async Task<bool> AddTraveledPlace(string phoneNumber, int placeId)
+    public async Task<bool> AddTraveledPlace(string userId, int placeId)
     {
-        var user = await _userService.FindByPhoneNumber(phoneNumber);
+        var user = await _userService.FindById(userId);
         if (user == null)
         {
             return false;
@@ -39,9 +39,9 @@ public class TraveledPlaceService : ITraveledPlaceService
         return true;
     }
 
-    public async Task<int> CountTraveledPlace(string phoneNumber,int placeId)
+    public async Task<int> CountTraveledPlace(string userId,int placeId)
     {
-        var user = await _userService.FindByPhoneNumber(phoneNumber);
+        var user = await _userService.FindById(userId);
         if (user == null)
         {
             return -1;
@@ -55,9 +55,9 @@ public class TraveledPlaceService : ITraveledPlaceService
         return count;
     }
 
-    public async Task<List<(int,int)>> CountTraveledPlaces(string phoneNumber, List<int> placeIds)
+    public async Task<List<(int,int)>> CountTraveledPlaces(string userId, List<int> placeIds)
     {
-        var user = await _userService.FindByPhoneNumber(phoneNumber);
+        var user = await _userService.FindById(userId);
         if (user == null)
         {
             return new List<(int, int)>();
@@ -80,9 +80,9 @@ public class TraveledPlaceService : ITraveledPlaceService
         return result;
     }
 
-    public async Task<List<TraveledPlaceVM>> GetAllTraveledPlaces(string phoneNumber)
+    public async Task<List<TraveledPlaceVM>> GetAllTraveledPlaces(string userId)
     {
-        var user = await _userService.FindByPhoneNumber(phoneNumber);
+        var user = await _userService.FindById(userId);
         if (user == null)
         {
             return new List<TraveledPlaceVM>();

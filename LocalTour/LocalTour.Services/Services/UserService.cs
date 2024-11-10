@@ -105,6 +105,7 @@ namespace LocalTour.Services.Services
             {
                 var user = new User()
                 {
+                    Id = Guid.NewGuid(),
                     Email = createUserRequest.Email,
                     PhoneNumber = createUserRequest.PhoneNumber,
                     UserName = createUserRequest.PhoneNumber,
