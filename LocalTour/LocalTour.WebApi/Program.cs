@@ -16,11 +16,11 @@ builder.Services.RegesterTokenBearer(builder.Configuration);
 builder.Services.RegesterQuazrtz();
 builder.Services.AddControllers();
 builder.Services.AddMemoryCache();
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
+builder.Services.AddControllers();
+    /*.AddJsonOptions(options =>
     {
       options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-    });
+    });*/
 
 //add
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);

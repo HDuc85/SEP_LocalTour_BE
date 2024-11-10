@@ -26,7 +26,7 @@ namespace LocalTour.Services.Services
 
         public async Task<IEnumerable<ModTag>> GetAllAsync()
         {
-            return await _unitOfWork.RepositoryModTag.GetData();
+            return  _unitOfWork.RepositoryModTag.GetAll();
         }
 
         public async Task<ModTag?> GetByIdAsync(Guid userId, int tagId)

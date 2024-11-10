@@ -21,22 +21,13 @@ namespace LocalTour.Data
             return _context.Set<T>().Where(expression);
         }
 
-        public async Task<IEnumerable<T>> GetData(Expression<Func<T, bool>> expression = null, string includeProperties = "")
+        public async Task<IEnumerable<T>> GetData(Expression<Func<T, bool>> expression = null)
         {
-            IQueryable<T> query = _context.Set<T>();
-
-            if (expression != null)
+            if (expression == null)
             {
-                query = query.Where(expression);
+                return await _context.Set<T>().ToListAsync();
             }
-
-            // Apply eager loading for the specified properties
-            foreach (var includeProperty in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-            {
-                query = query.Include(includeProperty.Trim());
-            }
-
-            return await query.ToListAsync();
+            return await _context.Set<T>().Where(expression).ToListAsync();
         }
 
         public async Task<T> GetById(object id)

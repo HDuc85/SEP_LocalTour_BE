@@ -17,6 +17,11 @@ public class ModTagController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var modTags = await _modTagService.GetAllAsync();
+        if (modTags == null)
+        {
+            return NotFound();
+        }
+        
         return Ok(modTags);
     }
 

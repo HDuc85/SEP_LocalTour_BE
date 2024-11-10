@@ -16,7 +16,7 @@ namespace LocalTour.Data.Abstract
         void Delete(Expression<Func<T, bool>> expression);
         Task Commit();
         Task<T> GetById(object id);
-        Task<IEnumerable<T>> GetData(Expression<Func<T, bool>> expression = null, string includeProperties = "");
+        Task<IEnumerable<T>> GetData(Expression<Func<T, bool>> expression = null);
         Task Insert(IEnumerable<T> entities);
         Task Insert(T entity);
         IQueryable<T> GetAll();

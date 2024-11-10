@@ -83,6 +83,7 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
     public virtual DbSet<UserPreferenceTags> UserPreferenceTags { get; set; }
     
     public virtual DbSet<ModTag> ModTags { get; set; }
+    
     public virtual DbSet<UserNotification> UserNotifications { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -556,6 +557,7 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
         modelBuilder.Entity<UserNotification>(entity =>
         {
             entity.ToTable("UserNotification");
+            entity.HasKey(e => e.Id);
             entity.HasOne(e => e.User).WithMany(p => p.UserNotifications).HasForeignKey(e => e.UserId);
             entity.HasOne(e => e.Notification).WithMany(p => p.UserNotifications).HasForeignKey(e => e.NotificationId);
         });
@@ -705,6 +707,7 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
         });
 
         OnModelCreatingPartial(modelBuilder);
+        
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
