@@ -28,7 +28,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowSpecificOrigins",
-      builder => builder.AllowAnyOrigin()
+      b => b.AllowAnyOrigin()
                         .AllowAnyHeader()
                         .AllowAnyMethod());
 });
@@ -79,11 +79,10 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-  app.UseSwagger();
-  app.UseSwaggerUI();
-}
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseCors("AllowSpecificOrigins");
 //Middleware
 app.UseMiddleware<CheckUserBanMiddleware>();
