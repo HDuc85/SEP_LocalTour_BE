@@ -191,7 +191,7 @@ namespace LocalTour.Services.Services
 
         }
 
-        public async Task<ServiceResponseModel<string>> SaveImageFile(IFormFile file, string requestUrl)
+        public async Task<ServiceResponseModel<string>> SaveVideoFile(IFormFile file, string requestUrl)
         {
             string fileExtension = Path.GetExtension(file.FileName).ToLower();
 
@@ -217,7 +217,7 @@ namespace LocalTour.Services.Services
             }
         }
 
-        public async Task<ServiceResponseModel<string>> SaveVideoFile(IFormFile file, string requestUrl)
+        public async Task<ServiceResponseModel<string>> SaveImageFile(IFormFile file, string requestUrl)
         {
             string fileExtension = Path.GetExtension(file.FileName).ToLower();
 
