@@ -1,6 +1,7 @@
 ﻿using LocalTour.Data.Abstract;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
+using LocalTour.Services.Model;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,22 +16,22 @@ public class PlaceSearchHistoryService : IPlaceSearchHistoryService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<bool> AddPlaceSearchHistory(string userId, int placeId)
+    public async Task<ServiceResponseModel<bool>> AddPlaceSearchHistory(string userId, int placeId)
     {
         var user = await _userService.FindById(userId);
         if (user == null)
         {
-            return false;
+            return new ServiceResponseModel<bool>(false, "User does not exist");
         }
         var place  = await _unitOfWork.RepositoryPlace.GetById(placeId);
         if (place == null)
         {
-            return false;
+            return new ServiceResponseModel<bool>(false, "Place does not exist");
         }
         var check = await UpdatePlaceSearchHistory(userId, placeId);
         if (check)
         {
-            return true;
+            return new ServiceResponseModel<bool>(true, "Search History Successfully Updated");
         }
         await _unitOfWork.RepositoryPlaceSearchHistory.Insert(new PlaceSearchHistory()
         {
@@ -39,53 +40,54 @@ public class PlaceSearchHistoryService : IPlaceSearchHistoryService
             LastSearch = DateTime.Now,
         });
         await _unitOfWork.CommitAsync();
-        return true;
+        return new ServiceResponseModel<bool>(true, "Search History Successfully Added");
     }
 
-    public async Task<List<PlaceSearchHistory>> GetAllPlaceSearchHistory(string phoneNumber,int? pageNumber, int? pageSize, string languageCode)
+    public async Task<ServiceResponseModel<List<PlaceSearchHistory>>> GetAllPlaceSearchHistory(string userId,int? pageNumber, int? pageSize, string languageCode)
     {
-        var user = await _userService.FindByPhoneNumber(phoneNumber);
+        var user = await _userService.FindById(userId);
         if (user == null)
         {
-            return new List<PlaceSearchHistory>();
+            return new ServiceResponseModel<List<PlaceSearchHistory>>(false,"User is not exists");
         }
 
         if (pageNumber != null && pageSize != null && pageSize > 0 && pageNumber > 0)
         {
-            return _unitOfWork.RepositoryPlaceSearchHistory.GetDataQueryable(x => x.UserId == user.Id)
-                .Include(y => y.Place)
-                .Include(z => z.Place.PlaceTranslations.Where(z => z.LanguageCode == languageCode))
-                .Skip((pageNumber.Value - 1) * pageSize.Value)
-                .Take(pageSize.Value).OrderByDescending(o => o.LastSearch).ToList();
-            
+            return new ServiceResponseModel<List<PlaceSearchHistory>>(true,
+                _unitOfWork.RepositoryPlaceSearchHistory.GetDataQueryable(x => x.UserId == user.Id)
+                    .Include(y => y.Place)
+                    .Include(z => z.Place.PlaceTranslations.Where(z => z.LanguageCode == languageCode))
+                    .Skip((pageNumber.Value - 1) * pageSize.Value)
+                    .Take(pageSize.Value).OrderByDescending(o => o.LastSearch).ToList());
+
         }
-        return _unitOfWork.RepositoryPlaceSearchHistory.GetDataQueryable(x => x.UserId == user.Id)
+        return new ServiceResponseModel<List<PlaceSearchHistory>>(true,_unitOfWork.RepositoryPlaceSearchHistory.GetDataQueryable(x => x.UserId == user.Id)
             .Include(y => y.Place)
             .Include(z => z.Place.PlaceTranslations.Where(z => z.LanguageCode == languageCode))
-            .OrderByDescending(o => o.LastSearch).ToList();
+            .OrderByDescending(o => o.LastSearch).ToList());
     }
 
-    public async Task<bool> DeletePlaceSearchHistory(string userId, int placeId)
+    public async Task<ServiceResponseModel<bool>> DeletePlaceSearchHistory(string userId, int placeId)
     {
         var user = await _userService.FindById(userId);
         if (user == null)
         {
-            return false;
+            return new ServiceResponseModel<bool>(false,"User is not exist");
         }
         _unitOfWork.RepositoryPlaceSearchHistory.Delete(x => x.UserId == user.Id && x.PlaceId == placeId);
-        return true;
+        return new ServiceResponseModel<bool>(true, "Search History Item Successfully Deleted");
     }
 
-    public async Task<bool> DeleteAllPlaceSearchHistory(string userId)
+    public async Task<ServiceResponseModel<bool>> DeleteAllPlaceSearchHistory(string userId)
     {
         var user = await _userService.FindById(userId);
         if (user == null)
         {
-            return false;
+            return new ServiceResponseModel<bool>(false,"User is not exist");
         }
         
         _unitOfWork.RepositoryPlaceSearchHistory.Delete(x => x.UserId == user.Id);
-        return true;
+        return new ServiceResponseModel<bool>(true, "All Search History Successfully Deleted");
     }
     public async Task<bool> UpdatePlaceSearchHistory(string userId, int placeId)
     {

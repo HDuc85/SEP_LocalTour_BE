@@ -1,11 +1,12 @@
-﻿using LocalTour.Services.ViewModel;
+﻿using LocalTour.Services.Model;
+using LocalTour.Services.ViewModel;
 
 namespace LocalTour.Services.Abstract;
 
 public interface IMarkPlaceService
 {
-    Task<bool> CreateMarkPlace(string userId, int placeId);
-    Task<List<MarkPlaceVM>> GetMarkPlaces(string userId,string languageCode);
-    Task<bool> UpdateMarkPlace(string userId, int placeId, bool isVisited);
-    Task<bool> DeleteMarkPlace(string userId, int placeId);
+    Task<ServiceResponseModel<bool>> CreateMarkPlace(string userId, int placeId);
+    Task<ServiceResponseModel<List<MarkPlaceVM>>> GetMarkPlaces(string userId,string languageCode);
+    Task<ServiceResponseModel<bool>> UpdateMarkPlace(string userId, int placeId, bool isVisited);
+    Task<ServiceResponseModel<bool>> DeleteMarkPlace(string userId, int placeId);
 }

@@ -18,18 +18,16 @@ namespace LocalTour.WebApi.Controllers
             _placeSearchHistoryService = placeSearchHistoryService;
         }
 
-        [HttpGet("GetAll")]
+        [HttpGet("getAll")]
         [Authorize]
         public async Task<IActionResult> GetAll(int? pageNumber, int? pageSize, string languageCode)
         {
-            var userId = User.GetUserId();
-            
-            var placesSearch = await _placeSearchHistoryService.GetAllPlaceSearchHistory(userId,pageNumber, pageSize, languageCode);
-            if (!placesSearch.Any())
+            var placesSearch = await _placeSearchHistoryService.GetAllPlaceSearchHistory(User.GetUserId(),pageNumber, pageSize, languageCode);
+            if (!placesSearch.Success)
             {
-                return BadRequest();
+                return BadRequest(placesSearch.Message);
             }
-            var result = placesSearch.Select(x => new PlaceSearchHistoryVM()
+            var result = placesSearch.Data.Select(x => new PlaceSearchHistoryVM()
             {
                 PlaceId = x.PlaceId,
                 PlaceName = x.Place.PlaceTranslations.FirstOrDefault(y => y.LanguageCode == languageCode).Name,
@@ -42,7 +40,7 @@ namespace LocalTour.WebApi.Controllers
             }
             else
             {
-                return NoContent();
+                return NotFound("Empty Search History");
             }
             
         }
@@ -51,52 +49,36 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> Post(int placeId)
         {
-            var userId = User.GetUserId();
-            var result = await _placeSearchHistoryService.AddPlaceSearchHistory(userId, placeId);
-            if (result)
+            var result = await _placeSearchHistoryService.AddPlaceSearchHistory(User.GetUserId(), placeId);
+            if (result.Success)
             {
-                return Ok();
+                return Ok(result.Message);
             }
-            return BadRequest();
-        }
-
-        [HttpPut]
-        [Authorize]
-        public async Task<IActionResult> Put(int placeId)
-        {
-            var userId = User.GetUserId();
-            var result = await _placeSearchHistoryService.UpdatePlaceSearchHistory(userId, placeId);
-            if (result)
-            {
-                return Ok();
-            }
-            return BadRequest();
+            return BadRequest(result.Message);
         }
 
         [HttpDelete]
         [Authorize]
         public async Task<IActionResult> Delete(int placeId)
         {
-            var userId = User.GetUserId();
-            var result = await _placeSearchHistoryService.DeletePlaceSearchHistory(userId, placeId);
-            if (result)
+            var result = await _placeSearchHistoryService.DeletePlaceSearchHistory(User.GetUserId(), placeId);
+            if (result.Success)
             {
-                return Ok();
+                return Ok(result.Message);
             }
-            return BadRequest();
+            return BadRequest(result.Message);
         }
 
-        [HttpDelete("DeleteAll")]
+        [HttpDelete("deleteAll")]
         [Authorize]
         public async Task<IActionResult> DeleteAll()
         {
-            var userId = User.GetUserId();
-            var result = await _placeSearchHistoryService.DeleteAllPlaceSearchHistory(userId);
-            if (result)
+            var result = await _placeSearchHistoryService.DeleteAllPlaceSearchHistory(User.GetUserId());
+            if (result.Success)
             {
-                return Ok();
+                return Ok(result.Message);
             }
-            return BadRequest();
+            return BadRequest(result.Message);
         }
 }
 }

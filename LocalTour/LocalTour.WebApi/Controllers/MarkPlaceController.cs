@@ -21,62 +21,49 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> GetMarkPlace(string languageCode)
         {
-           string userId = User.GetUserId();
-            
-            var result = await _markPlaceService.GetMarkPlaces(userId, languageCode);
-            if (result.Any())
+            var result = await _markPlaceService.GetMarkPlaces(User.GetUserId(), languageCode);
+            if (result.Success)
             {
-                return Ok(result);
+                return Ok(result.Data);
             }
-            return NotFound();
+            return BadRequest(result.Message);
         }
 
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> AddMarkPlace(int placeId)
         {
-           string userId = User.GetUserId();
-            if (!string.IsNullOrWhiteSpace(userId))
+            var result = await _markPlaceService.CreateMarkPlace(User.GetUserId(), placeId);
+            if (result.Success)
             {
-                return BadRequest();
+                return Ok(result.Message);
             }
-            var result = await _markPlaceService.CreateMarkPlace(userId, placeId);
-            if (result)
-            {
-                return Ok("Success");
-            }
-            return BadRequest();
+            return BadRequest(result.Message);
         }
 
         [HttpPut]
         [Authorize]
         public async Task<IActionResult> UpdateMarkPlace(int placeId, bool isVisited)
         {
-           string userId = User.GetUserId();
-            var result = await _markPlaceService.UpdateMarkPlace(userId, placeId, isVisited);
-            if (result)
+            var result = await _markPlaceService.UpdateMarkPlace(User.GetUserId(), placeId, isVisited);
+            if (result.Success)
             {
-                return Ok("Success");
+                return Ok(result.Message);
             }
-            return BadRequest();
+            return BadRequest(result.Message);
         }
         
         [HttpDelete]
         [Authorize]
         public async Task<IActionResult> RemoveMarkPlace(int placeId)
         {
-           string userId = User.GetUserId();
-            if (!string.IsNullOrWhiteSpace(userId))
-            {
-                return BadRequest();    
-            }
-            var result = await _markPlaceService.DeleteMarkPlace(userId, placeId);
+            var result = await _markPlaceService.DeleteMarkPlace(User.GetUserId(), placeId);
 
-            if (result)
+            if (result.Success)
             {
-                return Ok("Success");
+                return Ok(result.Message);
             }
-            return BadRequest();
+            return BadRequest(result.Message);
         }
 
     }

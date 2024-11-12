@@ -12,7 +12,7 @@ namespace LocalTour.Services.Abstract
     public interface IUserService
     {
         Task<User> FindById(string userid);
-        Task<User> CheckLogin(string phoneNumber, string password);
+        Task<ServiceResponseModel<User>> CheckLogin(string phoneNumber, string password);
         Task<User> FindByPhoneNumber(string phoneNumber);
         Task<User> FindByEmail(string email);
         Task<bool> BanUser(string userId, DateTime timeEnd);
@@ -22,8 +22,9 @@ namespace LocalTour.Services.Abstract
         Task<bool> AddRole(string userId, string role);
         Task<bool> RemoveRole(string userId, string role);
         Task<ServiceResponseModel<User>?> UpdateUser(string userId, UpdateUserRequest updateUserRequest, string requestUrl);
-        Task<bool> ChangePassword(string userId, string oldPassword, string newPassword);
+        Task<ServiceResponseModel<bool>> ChangePassword(string userId, string oldPassword, string newPassword);
         Task<bool> IsUserBanned(string userId);
         Task<User> CreateModerate(CreateUserRequest createUserRequest);
+        Task<ServiceResponseModel<UserProfileVM>> GetProfile(string userId);
     }
 }

@@ -28,37 +28,40 @@ namespace LocalTour.WebApi.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
             
-            var user = await _userService.CheckLogin(loginRequest.PhoneNumber,loginRequest.Password);
+            var result = await _userService.CheckLogin(loginRequest.PhoneNumber,loginRequest.Password);
           
-            if (user == null)
+            if (!result.Success)
             {
-                return Unauthorized();
+                return Unauthorized(result.Message);
             }
 
-            (string accessToken, DateTime expiredDateAccessToken) = await _tokenHandler.CreateAccessToken(user);
-            (string refreshToken, DateTime expiredDateRefreshToken) = await _tokenHandler.CreateRefreshToken(user);
-
+            (string accessToken, DateTime expiredDateAccessToken) = await _tokenHandler.CreateAccessToken(result.Data);
+            (string refreshToken, DateTime expiredDateRefreshToken) = await _tokenHandler.CreateRefreshToken(result.Data);
+            
             return Ok(new JwtModel
             {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                FullName = user.FullName,
-                PhoneNumber = user.PhoneNumber,
-                AccessTokenExpiredDate = expiredDateAccessToken,
-                RefeshTokenExpiredDate = expiredDateRefreshToken
+                accessToken = accessToken,
+                refreshToken = refreshToken,
+                userId = result.Data.Id.ToString(),
+                phoneNumber = result.Data.PhoneNumber,
+                accessTokenExpiredDate = expiredDateAccessToken,
+                refeshTokenExpiredDate = expiredDateRefreshToken
             });
         }
 
         [HttpPost("refreshToken")]
+        [AllowAnonymous]
         public async Task<IActionResult> RefreshToken([FromBody]string refreshToken)
         {
             var validate = await _tokenHandler.ValidateRefreshToken(refreshToken);
-            if (validate.PhoneNumber == null)
+            if (validate.phoneNumber == null)
                 return Unauthorized("Invalid RefreshToken");
             return Ok(validate);
+            
         }
 
         [HttpPost("verifyTokenFirebase")]
+        [AllowAnonymous]
         public async Task<IActionResult> VerifyToken(string idToken)
         {
             try

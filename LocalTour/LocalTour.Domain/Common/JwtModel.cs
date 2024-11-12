@@ -2,11 +2,11 @@
 {
     public class JwtModel
     {
-        public string AccessToken { get; set; }
-        public string RefreshToken { get; set; }
-        public string PhoneNumber { get; set; }
-        public string FullName { get; set; }
-        public DateTime AccessTokenExpiredDate { get; set; }
-        public DateTime RefeshTokenExpiredDate { get; set; }
+        public string accessToken { get; set; }
+        public string refreshToken { get; set; }
+        public string phoneNumber { get; set; }
+        public string userId { get; set; }
+        public DateTime accessTokenExpiredDate { get; set; }
+        public DateTime refeshTokenExpiredDate { get; set; }
     }
 }

@@ -11,67 +11,94 @@ namespace LocalTour.WebApi.Controllers
     public class FollowUserController : ControllerBase
     {
         private readonly IFollowUserService _followUserService;
+        private readonly IUserService _userService;
 
-        public FollowUserController(IFollowUserService followUserService)
+        public FollowUserController(IFollowUserService followUserService, IUserService userService)
         {
             _followUserService = followUserService;
+            _userService = userService;
         }
 
-        [HttpGet]
+        [HttpGet("followed")]
         [Authorize]
-        public async Task<IActionResult> GetUserFollow(Guid userId)
+        public async Task<IActionResult> GetUserFollowed(Guid userId)
         {
-            var usersFollow = await _followUserService.GetListUserFollow(userId);
+            var user = await _userService.FindById(userId.ToString());
+            if (user == null)
+            {
+                return BadRequest("User not found");
+            }
+            var usersFollow = await _followUserService.GetListUserFollowed(userId);
             if (usersFollow.Any())
             {
                 var result = new List<UserFollowVM>();
-                foreach (var user in usersFollow)
+                foreach (var item in usersFollow)
                 {
                     result.Add(new UserFollowVM()
                     {
-                        UserId = user.Id,
-                        UserName = user.UserName,
-                        UserProfileUrl = user.ProfilePictureUrl
+                        UserId = item.Id,
+                        UserName = item.UserName,
+                        UserProfileUrl = item.ProfilePictureUrl
                     });
                 }
                 return Ok(result);
             }
-            return NotFound();
+            return NotFound("User does not have any following");
         }
 
+        [HttpGet("follow")]
+        [Authorize]
+        public async Task<IActionResult> GetUserFollow(Guid userId)
+        {
+            var user = await _userService.FindById(userId.ToString());
+            if (user == null)
+            {
+                return BadRequest("User not found");
+            }
+            var usersFollow = await _followUserService.GetListUserFollow(userId);
+            if (usersFollow.Any())
+            {
+                var result = new List<UserFollowVM>();
+                foreach (var item in usersFollow)
+                {
+                    result.Add(new UserFollowVM()
+                    {
+                        UserId = item.Id,
+                        UserName = item.UserName,
+                        UserProfileUrl = item.ProfilePictureUrl
+                    });
+                }
+                return Ok(result);
+            }
+            return NotFound("User does not follow anyone");
+        }
+
+        
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> AddUserFollow(Guid userFollowedId)
         {
-            string phoneNumber = User.GetPhoneNumber();
-            if (!string.IsNullOrWhiteSpace(phoneNumber))
+            var result = await _followUserService.AddFollowUser(userFollowedId, User.GetUserId());
+
+            if (result.Success)
             {
-                return BadRequest();
+                return Ok(result.Message);
             }
-            var result = await _followUserService.AddFollowUser(userFollowedId, phoneNumber);
-            if (result)
-            {
-                return Ok("Success");
-            }
-            return NotFound();
+            
+            return BadRequest(result.Message);
         }
 
         [HttpDelete]
         [Authorize]
         public async Task<IActionResult> RemoveUserFollow(Guid userFollowedId)
         {
-            string phoneNumber = User.GetPhoneNumber();
-            if (!string.IsNullOrWhiteSpace(phoneNumber))
-            {
-                return BadRequest();    
-            }
-            var result = await _followUserService.RemoveFollowUser(userFollowedId, phoneNumber);
+            var result = await _followUserService.RemoveFollowUser(userFollowedId, User.GetUserId());
 
-            if (result)
+            if (result.Success)
             {
-                return Ok("Success");
+                return Ok(result.Message);
             }
-            return NotFound();
+            return BadRequest(result.Message);
         }
         
     }

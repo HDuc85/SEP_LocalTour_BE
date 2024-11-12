@@ -1,6 +1,7 @@
 ﻿using LocalTour.Data.Abstract;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
+using LocalTour.Services.Model;
 
 namespace LocalTour.Services.Services;
 
@@ -17,24 +18,32 @@ public class FollowUserService : IFollowUserService
 
     public async Task<List<User>> GetListUserFollow(Guid userId)
     {
+        var userFollowUsers = await _unitOfWork.RepositoryFollowUser.GetData(x => x.UserFollow == userId);
+        var users = await _unitOfWork.RepositoryUser.GetData();
+
+        var results = userFollowUsers.Select(x => users.Single(y => y.Id == x.UserId)).ToList();
+        return results;
+    }
+    
+    public async Task<List<User>> GetListUserFollowed(Guid userId)
+    {
         var userFollowUsers = await _unitOfWork.RepositoryFollowUser.GetData(x => x.UserId == userId);
         var users = await _unitOfWork.RepositoryUser.GetData();
 
         var results = userFollowUsers.Select(x => users.Single(y => y.Id == x.UserId)).ToList();
         return results;
     }
-
-    public async Task<bool> AddFollowUser(Guid userFollowedId, string phoneNumber)
+    public async Task<ServiceResponseModel<User>> AddFollowUser(Guid userFollowedId, string userId)
     {
-        var user = await _userService.FindByPhoneNumber(phoneNumber);
+        var user = await _userService.FindById(userId);
         if (user == null)
         {
-            return false;
+            return new ServiceResponseModel<User>(false, "User does not exist");
         }
 
         var check = await _unitOfWork.RepositoryFollowUser.GetData(x =>
             x.UserId == userFollowedId && x.UserFollow == user.Id);
-        if (check.Any())
+        if (!check.Any())
         {
             await _unitOfWork.RepositoryFollowUser.Insert(new FollowUser
             {
@@ -43,17 +52,17 @@ public class FollowUserService : IFollowUserService
                 DateCreated = DateTime.Now,
             });
             await _unitOfWork.CommitAsync();
-            return true; 
+            return new ServiceResponseModel<User>(true, "Followed successfully"); 
         }
-        return false;
+        return new ServiceResponseModel<User>(false, "User has followed");
     }
 
-    public async Task<bool> RemoveFollowUser(Guid userFollowedId, string phoneNumber)
+    public async Task<ServiceResponseModel<bool>> RemoveFollowUser(Guid userFollowedId, string userId)
     {
-        var user = await _userService.FindByPhoneNumber(phoneNumber);
+        var user = await _userService.FindById(userId);
         if (user == null)
         {
-            return false;
+            return new ServiceResponseModel<bool>(false, "User does not exist");
         }
 
         var check = await _unitOfWork.RepositoryFollowUser.GetData(x =>
@@ -63,8 +72,8 @@ public class FollowUserService : IFollowUserService
         {
             _unitOfWork.RepositoryFollowUser.Delete(check.FirstOrDefault());
             await _unitOfWork.CommitAsync();
-            return true; 
+            return new ServiceResponseModel<bool>(true, "Unfollow successfully"); 
         }
-        return false;
+        return new ServiceResponseModel<bool>(false, "User has not followed");
     }
 }

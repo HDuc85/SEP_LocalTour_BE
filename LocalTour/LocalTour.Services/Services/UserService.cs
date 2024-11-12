@@ -23,7 +23,7 @@ namespace LocalTour.Services.Services
             var users = await _unitOfWork.RepositoryUser.GetData();
             return users.ToList();
         }
-        public async Task<User> CheckLogin(string phoneNumber, string password)
+        public async Task<ServiceResponseModel<User>> CheckLogin(string phoneNumber, string password)
         {
 
             var user = await FindByPhoneNumber(phoneNumber);
@@ -34,17 +34,17 @@ namespace LocalTour.Services.Services
 
             if (user == null)
             {
-                return null;
+                return new ServiceResponseModel<User>(success: false, message: "Phone number or email address not found");
             }
             
             var result = await _userManager.CheckPasswordAsync(user, password);
 
             if (!result)
             {
-                return null;
+                return new ServiceResponseModel<User>(success: false, message: "Wrong password");
             }
 
-            return user;
+            return new ServiceResponseModel<User>(success: true,user);
         }
         public async Task<User> FindByPhoneNumber(string phoneNumber)
         {
@@ -162,7 +162,7 @@ namespace LocalTour.Services.Services
             var user = await _userManager.FindByIdAsync(userId);
             if(user == null)
             {
-                return   new ( false,"Can not find User" );
+                return   new ( false,"User is not exist" );
             }
             DateTime today = DateTime.Today;
             DateTime minDate = today.AddYears(-60);
@@ -178,6 +178,10 @@ namespace LocalTour.Services.Services
                     user.DateOfBirth = updateUserRequest.DateOfBirth;
                 }
 
+            if (updateUserRequest.FullName != null)
+            {
+                user.FullName = updateUserRequest.FullName;
+            }
             if(updateUserRequest.ProfilePicture != null)
             {
                 var url = await _fileService.SaveImageFile(updateUserRequest.ProfilePicture, requestUrl);
@@ -198,17 +202,31 @@ namespace LocalTour.Services.Services
 
             return new ServiceResponseModel<User>(user);
         }
-        public async Task<bool> ChangePassword(string userId, string oldPassword, string newPassword)
+        public async Task<ServiceResponseModel<bool>> ChangePassword(string userId, string oldPassword, string newPassword)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return false;
+                return new ServiceResponseModel<bool>(false, "User is not exist");
             }
-
+            
+            var checkPassword = await _userManager.CheckPasswordAsync(user, oldPassword);
+            if (!checkPassword)
+            {
+                return new ServiceResponseModel<bool>(false, "Old password is incorrect");
+            }
             var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
-
-            return result.Succeeded;
+            if (result.Succeeded)
+            {
+                return new ServiceResponseModel<bool>(true, "Password changed successfully");
+            }
+            
+            string error = string.Empty;
+            foreach (var errorDescription in result.Errors)
+            {
+                error += errorDescription.Code + "\n";
+            }
+            return new ServiceResponseModel<bool>(false, $"{error}");
         }
         public async Task<bool> IsUserBanned(string userId)
         {
@@ -223,6 +241,37 @@ namespace LocalTour.Services.Services
                 return false;
             }
             return true;
+        }
+
+        public async Task<ServiceResponseModel<UserProfileVM>> GetProfile(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return new ServiceResponseModel<UserProfileVM>(false, "User is not exist");
+            }
+                
+            var totalFollowers = await _unitOfWork.RepositoryFollowUser.GetData(x => x.UserId == user.Id);
+            var totalPosteds = await _unitOfWork.RepositoryPost.GetData(x => x.AuthorId == user.Id);
+            var totalFollowed = await _unitOfWork.RepositoryFollowUser.GetData(x => x.UserFollow == user.Id);
+            var totalReviews = await _unitOfWork.RepositoryPlaceFeeedback.GetData(x => x.UserId == user.Id);
+            var totalSchedules = await _unitOfWork.RepositorySchedule.GetData(x => x.UserId == user.Id);
+            
+            return new ServiceResponseModel<UserProfileVM>(true, new UserProfileVM
+            {
+                totalFollowers = totalFollowers.Count() ,
+                totalPosteds = totalPosteds.Count() ,
+                totalFollowed = totalFollowed.Count() ,
+                totalReviews = totalReviews.Count() ,
+                totalSchedules = totalSchedules.Count() ,
+                userName = user.UserName,
+                phoneNumber = user.PhoneNumber,
+                email = user.Email,
+                address = user.Address,
+                gender = user.Gender,
+                userProfileImage = user.ProfilePictureUrl,
+                dateOfBirth = user.DateOfBirth,
+            });
         }
     }
 }

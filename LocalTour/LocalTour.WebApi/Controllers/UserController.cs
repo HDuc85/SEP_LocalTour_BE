@@ -22,9 +22,8 @@ namespace LocalTour.WebApi.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Administrator")]
-        public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
+        public async Task<ActionResult> GetAllUsers()
         {
-
             var users = await _userService.GetAll();
 
             if (users.IsNullOrEmpty())
@@ -36,7 +35,7 @@ namespace LocalTour.WebApi.Controllers
         
         [HttpGet("pageSize")]
         [Authorize(Roles = "Administrator")]
-        public async Task<ActionResult<IEnumerable<User>>> GetPageSize(int pageIndex, int pageSize)
+        public async Task<ActionResult> GetPageSize(int pageIndex, int pageSize)
         {
             var users = await _userService.GetAll();
             if (users.IsNullOrEmpty())
@@ -72,20 +71,13 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> ChangePassword(string oldPassword, string newPassword)
         {
-            string userId = User.GetUserId();
-            
-            if (userId.IsNullOrEmpty())
-            {
-                return BadRequest("Invalid Token");
-            }
+            var result = await _userService.ChangePassword(User.GetUserId(), oldPassword, newPassword);
 
-            var result = await _userService.ChangePassword(userId, oldPassword, newPassword);
-
-            if (!result)
+            if (result.Success)
             {
-                return BadRequest("Set Password Fail");
+                return Ok(result.Message);
             }
-            return Ok();
+            return BadRequest(result.Message);
         }
 
 
@@ -93,19 +85,39 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateUser([FromForm]UpdateUserRequest updateUserRequest)
         {
-            var requestUrl = $"{Request.Scheme}://{Request.Host}";
-            string userId = User.GetUserId();
-            var result = await _userService.UpdateUser(userId, updateUserRequest, requestUrl);
+            var result = await _userService.UpdateUser(User.GetUserId(), updateUserRequest, $"{Request.Scheme}://{Request.Host}");
             if (!result.Success)
             {
-                return BadRequest();
+                return BadRequest(result.Message);
             }
             else
             {
-                return Accepted(result.Data);
+                return Ok(new UserProfileVM()
+                {
+                    phoneNumber = result.Data.PhoneNumber,
+                    email = result.Data.Email,
+                    address = result.Data.Address,
+                    gender = result.Data.Gender,
+                    userName = result.Data.UserName,
+                    dateOfBirth = result.Data.DateOfBirth,
+                    userProfileImage = result.Data.ProfilePictureUrl
+                });
 
             }
-        } 
+        }
+
+        [HttpGet("getProfile")]
+        [Authorize]
+        public async Task<ActionResult> getProfile(string userId)
+        {
+            var result = await _userService.GetProfile(userId);
+            if (result.Success)
+            {
+                return Ok(result.Data);
+            }
+            return BadRequest(result.Message);
+        }
+        
         [HttpPost("addRole")]
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> AddRole(string userId, string role)

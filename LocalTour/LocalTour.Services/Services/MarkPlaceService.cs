@@ -2,6 +2,7 @@
 using LocalTour.Domain.Entities;
 using LocalTour.Services.ViewModel;
 using LocalTour.Services.Abstract;
+using LocalTour.Services.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 
@@ -19,18 +20,18 @@ public class MarkPlaceService : IMarkPlaceService
         _traveledPlaceService = traveledPlaceService;
     }
 
-    public async Task<bool> CreateMarkPlace(string userId, int placeId)
+    public async Task<ServiceResponseModel<bool>> CreateMarkPlace(string userId, int placeId)
     {
         var user = await _userService.FindById(userId);
         if (user == null)
         {
-            return false;
+            return new ServiceResponseModel<bool>(false, "User does not exist");
         }
         
         var check = await _unitOfWork.RepositoryMarkPlace.GetData(x => x.PlaceId == placeId && x.UserId == user.Id);
         if (check.Any())
         {
-            return false;
+            return new ServiceResponseModel<bool>(false, "Place already marked for this user");
         }
 
         await _unitOfWork.RepositoryMarkPlace.Insert(new MarkPlace
@@ -41,24 +42,24 @@ public class MarkPlaceService : IMarkPlaceService
             IsVisited = false,
         });
         await _unitOfWork.CommitAsync();
-        return true;
+        return new ServiceResponseModel<bool>(true, "Place marked for this user");
     }
-    public async Task<List<MarkPlaceVM>> GetMarkPlaces(string userId, string languageCode)
+    public async Task<ServiceResponseModel<List<MarkPlaceVM>>> GetMarkPlaces(string userId, string languageCode)
     {
         var user = await _userService.FindById(userId);
-        _userService.FindById(userId);
-        if (user == null)
-        {
-            return null;
-        }
 
         var listMarkPlaces = _unitOfWork.RepositoryMarkPlace.GetDataQueryable(x => x.UserId == user.Id)
             .Include(y => y.Place)
             .Include(z => z.Place.PlaceTranslations).ToList();
+        if (!listMarkPlaces.Any())
+        {
+            return new ServiceResponseModel<List<MarkPlaceVM>>(false, "Mark Places is Empty");
+        }
+        
         var listPlaceId = listMarkPlaces.Select(x => x.PlaceId).ToList();
         var visitPlaces = await _traveledPlaceService.
                 CountTraveledPlaces(userId, listPlaceId);
-            
+        
         var results = new List<MarkPlaceVM>();
         foreach (var markPlace in listMarkPlaces)
         {
@@ -74,46 +75,47 @@ public class MarkPlaceService : IMarkPlaceService
             });
         }
         
-        return results;
+        return new ServiceResponseModel<List<MarkPlaceVM>>(true, results);
     }
 
-    public async Task<bool> UpdateMarkPlace(string userId, int placeId, bool isVisited)
+    public async Task<ServiceResponseModel<bool>> UpdateMarkPlace(string userId, int placeId, bool isVisited)
     {
         var user = await _userService.FindById(userId);
         if (user == null)
         {
-            return false;
+            return new ServiceResponseModel<bool>(false, "User does not exist");
         }
         
         var markPlace = await _unitOfWork.RepositoryMarkPlace.GetData(x => x.PlaceId == placeId && x.UserId == user.Id);
+        
         if (markPlace.Any())
         {
             markPlace.First().IsVisited = isVisited;
             _unitOfWork.RepositoryMarkPlace.Update(markPlace.First());
             await _unitOfWork.CommitAsync();
-            return true;
+            return new ServiceResponseModel<bool>(true, "Update marked successfully");
         }
         else
         {
-            return false;
+            return new ServiceResponseModel<bool>(false, "Place is not marked");
         }
         
     }
 
-    public async Task<bool> DeleteMarkPlace(string userId, int placeId)
+    public async Task<ServiceResponseModel<bool>> DeleteMarkPlace(string userId, int placeId)
     {
         var user = await _userService.FindById(userId);
         if (user == null)
         {
-            return false;
+            return new ServiceResponseModel<bool>(false,"User is not exist");
         }
         var markPlace = await _unitOfWork.RepositoryMarkPlace.GetData(x => x.PlaceId == placeId && x.UserId == user.Id);
         if (markPlace.Any())
         {
             _unitOfWork.RepositoryMarkPlace.Delete(markPlace.First());
             _unitOfWork.CommitAsync();
-            return true;
+            return new ServiceResponseModel<bool>(true, "Mark place deleted successfully");
         }
-        return false;
+        return new ServiceResponseModel<bool>(false, "Place is not marked");
     }
 }

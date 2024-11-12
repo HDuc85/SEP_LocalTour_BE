@@ -237,10 +237,10 @@ namespace LocalTour.Services.Services
 
             return new JwtModel
             {
-                AccessToken = newAccessToken,
-                RefreshToken = newRefreshToken,
-                PhoneNumber = user.PhoneNumber,
-                FullName = user.FullName
+                accessToken = newAccessToken,
+                refreshToken = newRefreshToken,
+                phoneNumber = user.PhoneNumber,
+                userId = user.Id.ToString()
             };
 
 

@@ -21,7 +21,12 @@ namespace LocalTour.Services.Model
             Success = success;
             Message = message;
         }
-
-
+        
+        public ServiceResponseModel(bool success, T data)
+        {
+            Success = success;
+            Data = data;
+        }
+        
     }
 }

@@ -4,6 +4,7 @@ using LocalTour.Infrastructure.Configuration;
 using Microsoft.OpenApi.Models;
 using Service.Common.Mapping;
 using LocalTour.WebApi.Middleware;
+using Microsoft.Extensions.FileProviders;
 using Quartz;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -91,7 +92,14 @@ app.UseMiddleware<CheckUserBanMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseStaticFiles(); // Cho phép phục vụ các tệp tĩnh
+app.UseStaticFiles(new StaticFileOptions
+{
+  FileProvider = new PhysicalFileProvider(
+    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Media")),
+  RequestPath
+    = "/Media"
+});
 
 app.MapControllers();
 var scheduler = app.Services.GetRequiredService<IScheduler>();

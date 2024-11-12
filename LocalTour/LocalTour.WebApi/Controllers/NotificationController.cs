@@ -47,8 +47,7 @@ namespace LocalTour.WebApi.Controllers
         [Authorize(Roles = "Administrator,Moderator")]
         public async Task<IActionResult> Delete(int notificationId)
         {
-            string userId = User.GetUserId();
-            var result = await _notificationService.DeleteNotification(notificationId, userId);
+            var result = await _notificationService.DeleteNotification(notificationId, User.GetUserId());
             if (result)
             {
                 return Ok();
@@ -60,8 +59,7 @@ namespace LocalTour.WebApi.Controllers
         [Authorize(Roles = "Administrator,Moderator")]
         public async Task<IActionResult> NotificationEvent([FromForm] int eventId, string title, string body, DateTime timeSend)
         {
-            string userId = User.GetUserId();
-            var result = await _notificationService.SetNotificationForEvent(userId, eventId, title, body, timeSend);
+            var result = await _notificationService.SetNotificationForEvent(User.GetUserId(), eventId, title, body, timeSend);
             if (!result.IsNullOrEmpty())
             {
                 return Ok(result);
@@ -72,8 +70,7 @@ namespace LocalTour.WebApi.Controllers
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> NotificationSystem([FromForm] string title, string body, DateTime timeSend)
         {
-            string userId = User.GetUserId();
-            var result = await _notificationService.SetNotificationForSystem(userId,title, body, timeSend);
+            var result = await _notificationService.SetNotificationForSystem( User.GetUserId(),title, body, timeSend);
             if (!result.IsNullOrEmpty())
             {
                 return Ok(result);
@@ -86,8 +83,7 @@ namespace LocalTour.WebApi.Controllers
         public async Task<IActionResult> SendNotificationNow([FromForm] string deviceToken, string title, string body,
             string notificationType)
         {
-            string userId = User.GetUserId();
-            var result = await _notificationService.SendNotificationNow(userId, deviceToken, title, body, notificationType);
+            var result = await _notificationService.SendNotificationNow(User.GetUserId(), deviceToken, title, body, notificationType);
             if (!result.IsNullOrEmpty())
             {
                 return Ok(result);
