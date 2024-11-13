@@ -100,7 +100,7 @@ namespace LocalTour.Services.Services
             int maxFileCount = _configuration.GetValue<int>("FileUploadSettings:MaxFileCount");
             int maxImageCount = _configuration.GetValue<int>("FileUploadSettings:MaxImageCount");
             int maxVideoCount = _configuration.GetValue<int>("FileUploadSettings:MaxVideoCount");
-            long maxFileSize = _configuration.GetValue<long>("FileUploadSettings:MaxFileSize");
+            long maxFileSize = _configuration.GetValue<long>("FileUploadSettings:MaxFileSize") * 1024 * 1024;
 
             int imageCount = 0;
             int videoCount = 0;
@@ -196,7 +196,7 @@ namespace LocalTour.Services.Services
 
         }
 
-        public async Task<ServiceResponseModel<string>> SaveImageFile(IFormFile file, string requestUrl)
+        public async Task<ServiceResponseModel<string>> SaveVideoFile(IFormFile file, string requestUrl)
         {
             string fileExtension = Path.GetExtension(file.FileName).ToLower();
 
@@ -222,7 +222,7 @@ namespace LocalTour.Services.Services
             }
         }
 
-        public async Task<ServiceResponseModel<string>> SaveVideoFile(IFormFile file, string requestUrl)
+        public async Task<ServiceResponseModel<string>> SaveImageFile(IFormFile file, string requestUrl)
         {
             string fileExtension = Path.GetExtension(file.FileName).ToLower();
 

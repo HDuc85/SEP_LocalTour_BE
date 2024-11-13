@@ -70,5 +70,22 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(500, new ServiceResponseModel<EventRequest>(false, $"An error occurred: {ex.Message}"));
             }
         }
+        [HttpDelete("delete")]
+        public async Task<ActionResult<Event>> DeleteEvent(int placeid, int eventid)
+        {
+            if (placeid == null)
+            {
+                return BadRequest(new ServiceResponseModel<Event>(false, "Request cannot be null"));
+            }
+            try
+            {
+                var eventEntity = await _eventService.DeleteEvent(placeid, eventid);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ServiceResponseModel<Event>(false, $"An error occurred: {ex.Message}"));
+            }
+        }
     }
 }

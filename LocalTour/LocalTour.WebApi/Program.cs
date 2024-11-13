@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using Service.Common.Mapping;
 using System.Reflection;
 using LocalTour.WebApi.Middleware;
+using LocalTour.Services.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,11 +16,7 @@ builder.Services.RegesterIdentity(builder.Configuration);
 builder.Services.RegesterTokenBearer(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddMemoryCache();
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-      options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-    });
+builder.Services.AddControllers();
 
 //add
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);

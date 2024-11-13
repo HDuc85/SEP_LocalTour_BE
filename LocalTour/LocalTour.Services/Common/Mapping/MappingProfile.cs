@@ -1,8 +1,9 @@
-using System.Reflection;
+﻿using System.Reflection;
 using AutoMapper;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Common.Mapping;
 using LocalTour.Services.ViewModel;
+using Microsoft.AspNetCore.Http;
 
 
 namespace Service.Common.Mapping;
@@ -38,11 +39,28 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore()) // Ignore Id for auto-generation
             .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => DateTime.UtcNow)); // Set creation time
         ApplyMappingFromAssembly(Assembly.GetExecutingAssembly());
-        CreateMap<Place, PlaceRequest>();
+        CreateMap<Place, PlaceVM>()
+            .ForMember(dest => dest.PlaceMedia, opt => opt.MapFrom(src => src.PlaceMedia))
+            .ForMember(dest => dest.PlaceActivities, opt => opt.MapFrom(src => src.PlaceActivities));
         CreateMap<Event, EventRequest>();
-        CreateMap<PlaceActivity, PlaceActivityRequest>();
+        CreateMap<PlaceActivity, PlaceActivityRequest>()
+        .ForMember(dest => dest.PhotoDisplay, opt => opt.Ignore());
+        CreateMap<PlaceMedium, PlaceMediumRequest>();
 
     }
+    public static IFormFile ConvertToFormFile(string filePath)
+    {
+        // Kiểm tra nếu tệp tồn tại
+        if (File.Exists(filePath))
+        {
+            var fileBytes = File.ReadAllBytes(filePath);
+            var memoryStream = new MemoryStream(fileBytes);
+            return new FormFile(memoryStream, 0, memoryStream.Length, "file", Path.GetFileName(filePath));
+        }
+
+        return null; // Trả về null nếu không có tệp
+    }
+
 
     private void ApplyMappingFromAssembly(Assembly assembly)
     {
