@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace LocalTour.Domain.Entities;
 
@@ -22,6 +23,7 @@ public partial class Event
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+    [JsonIgnore]
 
     public virtual Place Place { get; set; } = null!;
 }

@@ -9,6 +9,7 @@ using LocalTour.Services.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,6 +71,7 @@ namespace LocalTour.Services.Services
                 CreatedDate = DateTime.UtcNow,
             };
             await _unitOfWork.RepositoryPlaceFeeedback.Insert(feedback);
+            await _unitOfWork.CommitAsync();
             var mediaSaveResult = await _fileService.SaveStaticFiles(request.PlaceFeedbackMedia, "PlaceFeedbackMedia");
             if (!mediaSaveResult.Success)
             {
@@ -101,9 +103,27 @@ namespace LocalTour.Services.Services
             await _unitOfWork.CommitAsync();
             return request;
         }
-        public Task<int> DeleteFeedback(int placeid, int feedbackid)
+        public async Task<bool> DeleteFeedback(int placeid, int feedbackid)
         {
-            throw new NotImplementedException();
+            var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
+            if (places == null)
+            {
+                throw new ArgumentException($"Place with id {placeid} not found.");
+            }
+            var existingMedia = await _unitOfWork.RepositoryPlaceFeeedbackMedium.GetAll()
+                                         .Where(e => e.FeedbackId == feedbackid)
+                                         .ToListAsync();
+            foreach (var media in existingMedia)
+            {
+                _unitOfWork.RepositoryPlaceFeeedbackMedium.Delete(media);
+            }
+            var feedbackEntity = await _unitOfWork.RepositoryPlaceFeeedback.GetById(feedbackid);
+            if (feedbackEntity != null)
+            {
+                _unitOfWork.RepositoryPlaceFeeedback.Delete(feedbackEntity);
+            }
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<PlaceFeedbackRequest> UpdateFeedback(int placeid,int feedbackid, PlaceFeedbackRequest request)
@@ -123,11 +143,46 @@ namespace LocalTour.Services.Services
             {
                 throw new InvalidOperationException("User ID is not a valid GUID.");
             }
+            var existingMedia = await _unitOfWork.RepositoryPlaceFeeedbackMedium.GetAll()
+                                                     .Where(e => e.FeedbackId == feedbackid)
+                                                     .ToListAsync();
+            foreach (var media in existingMedia)
+            {
+                _unitOfWork.RepositoryPlaceFeeedbackMedium.Delete(media);
+            }
             if (userId == feedback.UserId)
             {
                 feedback.Rating = request.Rating;
                 feedback.Content = request.Content;
                 feedback.CreatedDate = DateTime.UtcNow;
+                var mediaSaveResult = await _fileService.SaveStaticFiles(request.PlaceFeedbackMedia, "PlaceFeedbackMedia");
+                if (!mediaSaveResult.Success)
+                {
+                    throw new Exception(mediaSaveResult.Message);
+                }
+
+                foreach (var photoUrl in mediaSaveResult.Data.imageUrls)
+                {
+                    var photo = new PlaceFeeedbackMedium
+                    {
+                        FeedbackId = feedback.Id,
+                        Type = "Image",
+                        CreateDate = DateTime.Now,
+                        Url = photoUrl
+                    };
+                    await _unitOfWork.RepositoryPlaceFeeedbackMedium.Insert(photo);
+                }
+                foreach (var mediaUrl in mediaSaveResult.Data.videoUrls)
+                {
+                    var media = new PlaceFeeedbackMedium
+                    {
+                        FeedbackId = feedback.Id,
+                        Type = "Video",
+                        CreateDate = DateTime.Now,
+                        Url = mediaUrl
+                    };
+                    await _unitOfWork.RepositoryPlaceFeeedbackMedium.Insert(media);
+                }
             } else
             {
                 throw new InvalidOperationException("Wrong user.");

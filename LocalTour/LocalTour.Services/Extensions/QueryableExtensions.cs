@@ -30,7 +30,6 @@ public static class QueryableExtensions
     {
         if (string.IsNullOrEmpty(sortBy) || !IsValidProperty<TEntityDto>(sortBy))
         {
-            // Set a default sorting property if sortBy is null or invalid
             sortBy = typeof(TEntity) == typeof(Place) ? nameof(Place.Id) :
                      typeof(TEntity) == typeof(PlaceTranslation) ? nameof(PlaceTranslation.Id) :
                      typeof(TEntity) == typeof(Event) ? nameof(Event.Id) :
@@ -124,6 +123,7 @@ string? sortOrder,
 double longitude,
 double latitude,
 List<int> userTags,
+Guid? userId,
 AutoMapper.IConfigurationProvider mapperConfiguration
 )
 where TEntityDto : IMapFrom<TEntity>
@@ -146,7 +146,21 @@ where TEntityDto : IMapFrom<TEntity>
         var sizeNumber = size.GetValueOrDefault(10);
 
         var count = await items.CountAsync();
-        if (sortBy.Equals("đề xuất", StringComparison.OrdinalIgnoreCase))
+        if (sortBy.Equals("created by", StringComparison.OrdinalIgnoreCase) && userId.HasValue)
+        {
+            var lists = items
+                .OfType<Place>()
+                .Where(place => place.AuthorId == userId.Value)
+                .AsEnumerable()
+                .Skip((pageNumber - 1) * sizeNumber)
+                .Take(sizeNumber)
+                .ToList();
+
+            var mappers = mapperConfiguration.CreateMapper();
+            var results = mappers.Map<List<TEntityDto>>(lists);
+            return new PaginatedList<TEntityDto>(results, count, pageNumber, sizeNumber);
+        }
+        if (sortBy.Equals("suggested", StringComparison.OrdinalIgnoreCase))
         {
             var lists = items
     .Where(item => (item as Place).PlaceTags.Any(pt => userTags.Contains(pt.TagId)))
@@ -162,7 +176,7 @@ where TEntityDto : IMapFrom<TEntity>
             return new PaginatedList<TEntityDto>(results, count, pageNumber, sizeNumber);
         }
           var places = await items.OfType<Place>().ToListAsync();
-        if (sortBy.Equals("khoảng cách", StringComparison.OrdinalIgnoreCase))
+        if (sortBy.Equals("distance", StringComparison.OrdinalIgnoreCase))
         {
             if (sortOrder.Equals("asc", StringComparison.OrdinalIgnoreCase))
             {
@@ -191,7 +205,6 @@ where TEntityDto : IMapFrom<TEntity>
          .Skip((pageNumber - 1) * sizeNumber)
          .Take(sizeNumber)
          .ToList();
-
             var mappers = mapperConfiguration.CreateMapper();
             var results = mappers.Map<List<TEntityDto>>(paginatedList);
             return new PaginatedList<TEntityDto>(results, count, pageNumber, sizeNumber);

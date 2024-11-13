@@ -11,7 +11,7 @@ namespace LocalTour.Services.Abstract
     {
         Task<PlaceFeedbackRequest> CreateFeedback(int placeid, PlaceFeedbackRequest request);
         Task<PlaceFeedbackRequest> UpdateFeedback(int placeid,int feedbackid, PlaceFeedbackRequest request);
-        Task<int> DeleteFeedback(int placeid, int feedbackid);
+        Task<bool> DeleteFeedback(int placeid, int feedbackid);
         Task<PaginatedList<PlaceFeedbackRequest>> GetAllFeedbackByPlace(int placeid, GetPlaceFeedbackRequest request);
     }
 }

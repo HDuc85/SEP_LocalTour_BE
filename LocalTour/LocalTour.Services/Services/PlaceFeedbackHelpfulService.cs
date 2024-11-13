@@ -4,12 +4,14 @@ using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Localization;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace LocalTour.Services.Services
 {
@@ -22,7 +24,7 @@ namespace LocalTour.Services.Services
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<PlaceFeeedbackHelpful> CreateHelpful(int placeid, int placefeedbackid)
+        public async Task<PlaceFeeedbackHelpful> CreateorDeleteHelpful(int placeid, int placefeedbackid)
         {
             var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
             if (places == null)
@@ -33,43 +35,32 @@ namespace LocalTour.Services.Services
             {
                 throw new ArgumentNullException(nameof(placefeedbackid));
             }
+            
             var user = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(user) || !Guid.TryParse(user, out var userId))
             {
                 throw new UnauthorizedAccessException("User not found or invalid User ID.");
             }
-            var helpful = new PlaceFeeedbackHelpful
+            var reaction = await _unitOfWork.RepositoryPlaceFeeedbackHelpful
+                                                .GetAll()
+                                                .FirstOrDefaultAsync(x => x.UserId == userId && x.PlaceFeedBackId == placefeedbackid);
+            if (reaction == null)
             {
-                UserId = userId,
-                PlaceFeedBackId = placefeedbackid,
-                CreatedDate = DateTime.UtcNow,
-            };
-            await _unitOfWork.RepositoryPlaceFeeedbackHelpful.Insert(helpful);
-            await _unitOfWork.CommitAsync();
-            return helpful;
-        }
+                  var helpful = new PlaceFeeedbackHelpful
+                            {
+                                UserId = userId,
+                                PlaceFeedBackId = placefeedbackid,
+                                CreatedDate = DateTime.UtcNow,
+                            }; 
+                await _unitOfWork.RepositoryPlaceFeeedbackHelpful.Insert(helpful);
+            }
+            else
+            {
+                _unitOfWork.RepositoryPlaceFeeedbackHelpful.Delete(reaction);
 
-        public async Task<bool> DeleteHelpful(int placeid, int placefeedbackid, int helpfulid)
-        {
-            var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
-            if (places == null)
-            {
-                throw new ArgumentException($"Place with id {placeid} not found.");
             }
-            if (placefeedbackid == null)
-            {
-                throw new ArgumentNullException(nameof(placefeedbackid));
-            }
-            var user = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(user) || !Guid.TryParse(user, out var userId))
-            {
-                throw new UnauthorizedAccessException("User not found or invalid User ID.");
-            }
-            var data = await _unitOfWork.RepositoryPlaceFeeedbackHelpful.GetById(helpfulid);
-            _unitOfWork.RepositoryPlaceFeeedbackHelpful.Delete(data);
             await _unitOfWork.CommitAsync();
-            return true;
-
+            return reaction;
         }
     }
 }

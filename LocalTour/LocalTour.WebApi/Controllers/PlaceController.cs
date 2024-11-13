@@ -97,10 +97,7 @@ namespace LocalTour.WebApi.Controllers
             try
             {
                 var placeEntity = await _placeService.ChangeStatusPlace(placeid, status);
-                return Ok(new ApiReponseModel<Place>(placeEntity)
-                {
-                    message = "Change Status Successfully"
-                });
+                return Ok(placeEntity);
             }
             catch (Exception ex)
             {
