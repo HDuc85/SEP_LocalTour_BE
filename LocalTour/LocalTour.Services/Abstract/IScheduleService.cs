@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using LocalTour.Services.Model;
 using LocalTour.Services.ViewModel;
 
 namespace LocalTour.Services.Abstract
@@ -13,5 +14,6 @@ namespace LocalTour.Services.Abstract
         Task<bool> UpdateScheduleAsync(int id, ScheduleRequest request);
         Task<bool> DeleteScheduleAsync(int id);
         Task<ScheduleRequest?> CloneScheduleAsync(int id, Guid userId);
+        Task<ServiceResponseModel<List<DestinationVM>>> GenerateSchedule(SuggestScheduleRequest request, string userId);
     }
 }

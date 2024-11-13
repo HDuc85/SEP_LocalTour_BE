@@ -4,6 +4,7 @@ using LocalTour.Services.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using LocalTour.WebApi.Helper;
 using Microsoft.AspNetCore.Authorization;
 
 namespace LocalTour.WebApi.Controllers
@@ -79,6 +80,19 @@ namespace LocalTour.WebApi.Controllers
             }
 
             return CreatedAtAction(nameof(GetScheduleById), new { id = clonedSchedule.Id }, clonedSchedule); // Return the created schedule
+        }
+
+        [HttpPost("suggestSchedule")]
+        [Authorize]
+        public async Task<IActionResult> SuggestSchedule(SuggestScheduleRequest request )
+        {
+            var result = await _scheduleService.GenerateSchedule(request, User.GetUserId());
+
+            if (result.Success)
+            {
+                return Ok(result);
+            }
+            return BadRequest(result.Message);
         }
     }
 }
