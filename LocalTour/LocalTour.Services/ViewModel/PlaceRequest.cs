@@ -1,14 +1,16 @@
 ﻿using LocalTour.Domain.Entities;
 using LocalTour.Services.Common.Mapping;
+using LocalTour.Services.Extensions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LocalTour.Services.ViewModel;
 
-public class PlaceRequest : IMapFrom<Place>
+public class PlaceRequest 
 {
-    //public int WardId { get; set; }
+    public int WardId { get; set; }
 
-    public string PhotoDisplay { get; set; } = null!;
+    public IFormFile PhotoDisplay { get; set; } = null!;
 
     public TimeOnly TimeOpen { get; set; }
 
@@ -17,8 +19,10 @@ public class PlaceRequest : IMapFrom<Place>
     public double Longitude { get; set; }
 
     public double Latitude { get; set; }
+    public string ContactLink { get; set; }
     public List<int> Tags { get; set; }
-    public List<IFormFile> PlaceMedia { get; set; }
+    public List<IFormFile>? PlaceMedia { get; set; }
+    [ModelBinder(BinderType = typeof(FromJsonBinder))]
     public List<PlaceTranslationRequest> PlaceTranslation { get; set; }
 
 }

@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 namespace LocalTour.Services.ViewModel;
     public class GetPlaceActivityRequest : PaginatedQueryParams
 {
-    public int PlaceId { get; set; }
+    //public int PlaceId { get; set; }
 }
 

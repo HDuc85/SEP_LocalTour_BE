@@ -21,7 +21,7 @@ public partial class Event
 
     public DateTime CreatedAt { get; set; }
 
-    public DateTime UpdatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     public virtual Place Place { get; set; } = null!;
 }

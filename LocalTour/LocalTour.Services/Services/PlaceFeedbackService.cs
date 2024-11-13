@@ -7,6 +7,7 @@ using LocalTour.Services.Extensions;
 using LocalTour.Services.Model;
 using LocalTour.Services.ViewModel;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -23,13 +24,15 @@ namespace LocalTour.Services.Services
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IFileService _fileService;
 
-        public PlaceFeedbackService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+        public PlaceFeedbackService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IFileService fileService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
+            _fileService = fileService;
         }
 
         public async Task<PlaceFeedbackRequest> CreateFeedback(int placeid, PlaceFeedbackRequest request)
@@ -48,6 +51,16 @@ namespace LocalTour.Services.Services
             {
                 throw new InvalidOperationException("User ID is not a valid GUID.");
             }
+            var lastFeedbacks = await _unitOfWork.RepositoryPlaceFeeedback.GetData(f => f.PlaceId == placeid && f.UserId == userId);
+            var lastFeedback = lastFeedbacks.OrderByDescending(f => f.CreatedDate).FirstOrDefault();
+            if (lastFeedback != null)
+            {
+                var daysSinceLastFeedback = (DateTime.UtcNow - lastFeedback.CreatedDate).TotalDays;
+                if (daysSinceLastFeedback < 7)
+                {
+                    throw new InvalidOperationException("You can only provide feedback every 7 days for the same place.");
+                }
+            }
             var feedback = new PlaceFeeedback
             {
                 PlaceId = placeid,
@@ -57,7 +70,7 @@ namespace LocalTour.Services.Services
                 CreatedDate = DateTime.UtcNow,
             };
             await _unitOfWork.RepositoryPlaceFeeedback.Insert(feedback);
-            var mediaSaveResult = await SaveStaticFiles(request.PlaceFeedbackMedia, "PlaceFeedbackMedia");
+            var mediaSaveResult = await _fileService.SaveStaticFiles(request.PlaceFeedbackMedia, "PlaceFeedbackMedia");
             if (!mediaSaveResult.Success)
             {
                 throw new Exception(mediaSaveResult.Message);
@@ -88,114 +101,41 @@ namespace LocalTour.Services.Services
             await _unitOfWork.CommitAsync();
             return request;
         }
-        public async Task<ServiceResponseModel<MediaFileStaticVM>> SaveStaticFiles(List<IFormFile> files, string requestUrl)
-        {
-            int maxFileCount = _configuration.GetValue<int>("FileUploadSettings:MaxFileCount");
-            int maxImageCount = _configuration.GetValue<int>("FileUploadSettings:MaxImageCount");
-            int maxVideoCount = _configuration.GetValue<int>("FileUploadSettings:MaxVideoCount");
-            long maxFileSize = _configuration.GetValue<long>("FileUploadSettings:MaxFileSize");
-
-            int imageCount = 0;
-            int videoCount = 0;
-
-
-            foreach (var file in files)
-            {
-                string fileExtension = Path.GetExtension(file.FileName).ToLower();
-
-                if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png" || fileExtension == ".gif")
-                {
-                    imageCount++;
-                }
-                else if (fileExtension == ".mp4" || fileExtension == ".avi" || fileExtension == ".mkv")
-                {
-                    videoCount++;
-                }
-                else
-                {
-                    return new
-                        (
-                            false,
-                            $"Invalid file type: {file.FileName}. Only image and video files are allowed."
-                        );
-                }
-            }
-
-            if (imageCount > maxImageCount)
-                return new(false, $"You can upload a maximum of {maxImageCount} images.");
-
-            if (videoCount > maxVideoCount)
-                return new
-                    (
-                        false,
-                        $"You can upload a maximum of {maxVideoCount} videos."
-                    );
-
-            imageCount = 0;
-            videoCount = 0;
-
-            var imageUrls = new List<string>();
-            var videoUrls = new List<string>();
-
-            foreach (var file in files)
-            {
-                if (file.Length > maxFileSize)
-                    return new
-                        (
-                            false,
-                            $"File {file.FileName} exceeds the maximum allowed size of {maxFileSize / (1024 * 1024)}MB."
-                        );
-
-                string fileExtension = Path.GetExtension(file.FileName).ToLower();
-                string media;
-
-                if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png" || fileExtension == ".gif")
-                {
-                    imageCount++;
-                    media = "image";
-                }
-                else
-                {
-                    videoCount++;
-                    media = "video";
-                }
-
-                var fileName = media + "_" + Guid.NewGuid().ToString() + fileExtension;
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Media", fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
-
-                var fileUrl = $"{requestUrl}/Media/{fileName}";
-                if (media == "images")
-                {
-                    imageUrls.Add(fileUrl);
-                }
-                else
-                {
-                    videoUrls.Add(fileUrl);
-                }
-            }
-            var uploadedUrls = new MediaFileStaticVM()
-            {
-                videoUrls = videoUrls,
-                imageUrls = imageUrls
-            };
-
-            return new(uploadedUrls);
-
-
-        }
         public Task<int> DeleteFeedback(int placeid, int feedbackid)
         {
             throw new NotImplementedException();
         }
 
-        public Task<PlaceFeedbackRequest> UpdateFeedback(int placeid,int feedbackid, PlaceFeedbackRequest request)
+        public async Task<PlaceFeedbackRequest> UpdateFeedback(int placeid,int feedbackid, PlaceFeedbackRequest request)
         {
-            throw new NotImplementedException();
+            var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
+            if (places == null)
+            {
+                throw new ArgumentException($"Place with id {placeid} not found.");
+            }
+            var feedback = await _unitOfWork.RepositoryPlaceFeeedback.GetById(feedbackid);
+            if (feedback == null)
+            {
+                throw new ArgumentException($"Feedback with id {feedbackid} not found.");
+            }
+            var userid = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userid, out var userId))
+            {
+                throw new InvalidOperationException("User ID is not a valid GUID.");
+            }
+            if (userId == feedback.UserId)
+            {
+                feedback.Rating = request.Rating;
+                feedback.Content = request.Content;
+                feedback.CreatedDate = DateTime.UtcNow;
+            } else
+            {
+                throw new InvalidOperationException("Wrong user.");
+            }
+            _unitOfWork.RepositoryPlaceFeeedback.Update(feedback);
+            await _unitOfWork.CommitAsync();
+
+            return request;
         }
 
         public async Task<PaginatedList<PlaceFeedbackRequest>> GetAllFeedbackByPlace(int placeid, GetPlaceFeedbackRequest request)

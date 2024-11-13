@@ -1,5 +1,6 @@
-
+﻿
 using System.Linq.Expressions;
+using System.Numerics;
 using System.Reflection;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Common.Mapping;
@@ -114,21 +115,106 @@ public static class QueryableExtensions
 
         return items.Provider.CreateQuery<TEntity>(result);
     }
-    public static double GetDistance(double lat1, double lon1, double lat2, double lon2)
+    public static async Task<PaginatedList<TEntityDto>> ListPaginateWithSortPlaceAsync<TEntity, TEntityDto>(
+this IQueryable<TEntity> items,
+int? page,
+int? size,
+string? sortBy,
+string? sortOrder,
+double longitude,
+double latitude,
+List<int> userTags,
+AutoMapper.IConfigurationProvider mapperConfiguration
+)
+where TEntityDto : IMapFrom<TEntity>
     {
-        const double R = 6371; // Radius of the Earth in km
-        var dLat = ToRadians(lat2 - lat1);
-        var dLon = ToRadians(lon2 - lon1);
+        if (string.IsNullOrEmpty(sortBy))
+        {
+            // Set a default sorting property if sortBy is null or invalid
+            sortBy = typeof(TEntity) == typeof(Place) ? nameof(Place.Id) :
+                     typeof(TEntity) == typeof(PlaceTranslation) ? nameof(PlaceTranslation.Id) :
+                     typeof(TEntity) == typeof(Event) ? nameof(Event.Id) :
+                     typeof(TEntity) == typeof(PlaceActivity) ? nameof(PlaceActivity.Id) :
+                     typeof(TEntity) == typeof(PlaceFeeedback) ? nameof(PlaceFeeedback.Id) :
+                     throw new ArgumentException("Invalid sortBy property.");
+        }
+        if(sortOrder == null)
+        {
+        sortOrder ??= "asc";
+        }  
+        var pageNumber = page.GetValueOrDefault(1);
+        var sizeNumber = size.GetValueOrDefault(10);
+
+        var count = await items.CountAsync();
+        if (sortBy.Equals("đề xuất", StringComparison.OrdinalIgnoreCase))
+        {
+            var lists = items
+    .Where(item => (item as Place).PlaceTags.Any(pt => userTags.Contains(pt.TagId)))
+    .AsEnumerable()
+    .OrderBy(item =>
+        CalculateDistance(latitude, longitude, (item as Place).Latitude, (item as Place).Longitude)
+    ).Skip((pageNumber - 1) * sizeNumber)
+         .Take(sizeNumber)
+         .ToList();
+
+            var mappers = mapperConfiguration.CreateMapper();
+            var results = mappers.Map<List<TEntityDto>>(lists);
+            return new PaginatedList<TEntityDto>(results, count, pageNumber, sizeNumber);
+        }
+          var places = await items.OfType<Place>().ToListAsync();
+        if (sortBy.Equals("khoảng cách", StringComparison.OrdinalIgnoreCase))
+        {
+            if (sortOrder.Equals("asc", StringComparison.OrdinalIgnoreCase))
+            {
+                places = places
+          .Select(place => new
+          {
+              Place = place,
+              Distance = CalculateDistance(latitude, longitude, place.Latitude, place.Longitude)
+          })
+          .OrderBy(x => x.Distance)
+          .Select(x => x.Place)
+          .ToList();
+            } else
+            {
+                places = places
+        .Select(place => new
+        {
+            Place = place,
+            Distance = CalculateDistance(latitude, longitude, place.Latitude, place.Longitude)
+        })
+        .OrderByDescending(x => x.Distance)
+        .Select(x => x.Place)
+        .ToList();
+            }
+            var paginatedList = places
+         .Skip((pageNumber - 1) * sizeNumber)
+         .Take(sizeNumber)
+         .ToList();
+
+            var mappers = mapperConfiguration.CreateMapper();
+            var results = mappers.Map<List<TEntityDto>>(paginatedList);
+            return new PaginatedList<TEntityDto>(results, count, pageNumber, sizeNumber);
+        }
+        sortOrder ??= "asc";
+        var list = await items
+            .OrderByCustom(sortBy, sortOrder)
+            .Paginate(pageNumber, sizeNumber)
+            .ToListAsync();
+
+        var mapper = mapperConfiguration.CreateMapper();
+        var result = mapper.Map<List<TEntityDto>>(list);
+        return new PaginatedList<TEntityDto>(result, count, pageNumber, sizeNumber);
+    }
+    public static double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
+    {
+        var R = 6371; // Radius of Earth in kilometers
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLon = (lon2 - lon1) * Math.PI / 180;
         var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
+                Math.Cos(lat1 * Math.PI / 180) * Math.Cos(lat2 * Math.PI / 180) *
                 Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
         var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-        return R * c; // Distance in km
+        return R * c; // Distance in kilometers
     }
-
-    private static double ToRadians(double angle)
-    {
-        return angle * Math.PI / 180;
-    }
-
 }

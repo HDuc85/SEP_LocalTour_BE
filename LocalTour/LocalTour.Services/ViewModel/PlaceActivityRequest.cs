@@ -1,7 +1,9 @@
 ﻿using Azure.Core;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Common.Mapping;
+using LocalTour.Services.Extensions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +16,9 @@ namespace LocalTour.Services.ViewModel
     {
         public int DisplayNumber { get; set; }
 
-        public string? PhotoDisplay { get; set; }
+        public IFormFile? PhotoDisplay { get; set; }
         public List<IFormFile> PlaceActivityMedium { get; set; }
+        [ModelBinder(BinderType = typeof(FromJsonBinder))]
         public List<PlaceActivityTranslationRequest> PlaceActivityTranslations { get; set; }
 
     }

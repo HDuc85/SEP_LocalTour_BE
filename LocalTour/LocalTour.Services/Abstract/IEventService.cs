@@ -14,5 +14,6 @@ namespace LocalTour.Services.Abstract
         Task<Event> GetEventById(int placeid, int eventid);
         Task<EventRequest> CreateEvent(int placeid, EventRequest request);
         Task<EventRequest> UpdateEvent(int placeid, int eventid, EventRequest request);
+        Task<bool> DeleteEvent(int placeid, int eventid);
     }
 }

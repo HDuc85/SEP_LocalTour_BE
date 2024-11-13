@@ -3,8 +3,9 @@ using Google.Apis.Auth.OAuth2;
 using LocalTour.Infrastructure.Configuration;
 using Microsoft.OpenApi.Models;
 using Service.Common.Mapping;
+using System.Reflection;
 using LocalTour.WebApi.Middleware;
-using Quartz;
+using LocalTour.Services.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,14 +14,9 @@ builder.Services.RegesterContextDb(builder.Configuration);
 builder.Services.RegesterDI(builder.Configuration);
 builder.Services.RegesterIdentity(builder.Configuration);
 builder.Services.RegesterTokenBearer(builder.Configuration);
-builder.Services.RegesterQuazrtz();
 builder.Services.AddControllers();
 builder.Services.AddMemoryCache();
 builder.Services.AddControllers();
-    /*.AddJsonOptions(options =>
-    {
-      options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-    });*/
 
 //add
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
@@ -28,7 +24,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowSpecificOrigins",
-      b => b.AllowAnyOrigin()
+      builder => builder.AllowAnyOrigin()
                         .AllowAnyHeader()
                         .AllowAnyMethod());
 });
@@ -79,10 +75,11 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-
-app.UseSwagger();
-app.UseSwaggerUI();
-
+if (app.Environment.IsDevelopment())
+{
+  app.UseSwagger();
+  app.UseSwaggerUI();
+}
 app.UseCors("AllowSpecificOrigins");
 //Middleware
 app.UseMiddleware<CheckUserBanMiddleware>();
@@ -93,6 +90,5 @@ app.UseAuthorization();
 
 
 app.MapControllers();
-var scheduler = app.Services.GetRequiredService<IScheduler>();
-await scheduler.Start();
+
 app.Run();
