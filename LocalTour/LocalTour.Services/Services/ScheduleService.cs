@@ -129,7 +129,7 @@ namespace LocalTour.Services.Services
                 request.userLongitude,
                 place.Latitude,
                 place.Longitude) <= maxRange).ToList();
-            if (places.Count() == null)
+            if (places.Count() == 0)
             {
                 return new ServiceResponseModel<List<DestinationVM>>(false, "No places to suggest for user");
             }
