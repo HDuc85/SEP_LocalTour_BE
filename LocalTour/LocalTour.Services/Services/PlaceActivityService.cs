@@ -24,12 +24,14 @@ namespace LocalTour.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
+        private readonly IFileService _fileService;
 
-        public PlaceActivityService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration)
+        public PlaceActivityService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IFileService fileService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _configuration = configuration;
+            _fileService = fileService;
         }
         public async Task<PlaceActivityRequest> CreatePlaceActivity(int placeid, PlaceActivityRequest request)
         {
@@ -42,14 +44,16 @@ namespace LocalTour.Services.Services
             {
                 throw new ArgumentNullException(nameof(request));
             }
+            var photos = await _fileService.SaveImageFile(request.PhotoDisplay, "PlaceActivityMedia");
             var placeActivity = new PlaceActivity
             {
                 DisplayNumber = request.DisplayNumber,
-                PhotoDisplay =request.PhotoDisplay,
+                PhotoDisplay =photos.Data,
                 PlaceId = placeid,
             };
             await _unitOfWork.RepositoryPlaceActivity.Insert(placeActivity);
-            var photoSaveResult = await SaveStaticFiles(request.PlaceActivityMedium, "PlaceActivityMedia");
+            await _unitOfWork.CommitAsync();
+            var photoSaveResult = await _fileService.SaveStaticFiles(request.PlaceActivityMedium, "PlaceActivityMedia");
             if (!photoSaveResult.Success)
             {
                 throw new Exception(photoSaveResult.Message);
@@ -94,106 +98,6 @@ namespace LocalTour.Services.Services
             }
             await _unitOfWork.CommitAsync();
             return request;
-        }
-        public async Task<ServiceResponseModel<MediaFileStaticVM>> SaveStaticFiles(List<IFormFile> files, string requestUrl)
-        {
-            int maxFileCount = _configuration.GetValue<int>("FileUploadSettings:MaxFileCount");
-            int maxImageCount = _configuration.GetValue<int>("FileUploadSettings:MaxImageCount");
-            int maxVideoCount = _configuration.GetValue<int>("FileUploadSettings:MaxVideoCount");
-            long maxFileSize = _configuration.GetValue<long>("FileUploadSettings:MaxFileSize");
-
-            int imageCount = 0;
-            int videoCount = 0;
-
-
-            foreach (var file in files)
-            {
-                string fileExtension = Path.GetExtension(file.FileName).ToLower();
-
-                if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png" || fileExtension == ".gif")
-                {
-                    imageCount++;
-                }
-                else if (fileExtension == ".mp4" || fileExtension == ".avi" || fileExtension == ".mkv")
-                {
-                    videoCount++;
-                }
-                else
-                {
-                    return new
-                        (
-                            false,
-                            $"Invalid file type: {file.FileName}. Only image and video files are allowed."
-                        );
-                }
-            }
-
-            if (imageCount > maxImageCount)
-                return new(false, $"You can upload a maximum of {maxImageCount} images.");
-
-            if (videoCount > maxVideoCount)
-                return new
-                    (
-                        false,
-                        $"You can upload a maximum of {maxVideoCount} videos."
-                    );
-
-            imageCount = 0;
-            videoCount = 0;
-
-            var imageUrls = new List<string>();
-            var videoUrls = new List<string>();
-
-            foreach (var file in files)
-            {
-                if (file.Length > maxFileSize)
-                    return new
-                        (
-                            false,
-                            $"File {file.FileName} exceeds the maximum allowed size of {maxFileSize / (1024 * 1024)}MB."
-                        );
-
-                string fileExtension = Path.GetExtension(file.FileName).ToLower();
-                string media;
-
-                if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png" || fileExtension == ".gif")
-                {
-                    imageCount++;
-                    media = "image";
-                }
-                else
-                {
-                    videoCount++;
-                    media = "video";
-                }
-
-                var fileName = media + "_" + Guid.NewGuid().ToString() + fileExtension;
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Media", fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
-
-                var fileUrl = $"{requestUrl}/Media/{fileName}";
-                if (media == "images")
-                {
-                    imageUrls.Add(fileUrl);
-                }
-                else
-                {
-                    videoUrls.Add(fileUrl);
-                }
-            }
-            var uploadedUrls = new MediaFileStaticVM()
-            {
-                videoUrls = videoUrls,
-                imageUrls = imageUrls
-            };
-
-            return new(uploadedUrls);
-
-
         }
         public async Task<PaginatedList<PlaceActivityRequest>> GetAllActivityByPlaceid(int placeid,GetPlaceActivityRequest request)
         {
@@ -260,8 +164,13 @@ namespace LocalTour.Services.Services
             {
                 throw new InvalidOperationException($"Activity with id {activityid} does not belong to place with id {placeid}.");
             }
+            if (!string.IsNullOrEmpty(existingActivity.PhotoDisplay))
+            {
+                await _fileService.DeleteFile(existingActivity.PhotoDisplay);
+            }
+            var photos = await _fileService.SaveImageFile(request.PhotoDisplay, "PlaceActivityMedia");
             existingActivity.DisplayNumber = request.DisplayNumber;
-            existingActivity.PhotoDisplay = request.PhotoDisplay;
+            existingActivity.PhotoDisplay = photos.Data;
             existingActivity.PlaceId = placeid;
 
             var existingMedia = await _unitOfWork.RepositoryPlaceActivityMedium.GetAll()
@@ -279,7 +188,8 @@ namespace LocalTour.Services.Services
             {
                  _unitOfWork.RepositoryPlaceActivityTranslation.Delete(translation);
             }
-            var photoSaveResult = await SaveStaticFiles(request.PlaceActivityMedium, "PlaceActivityMedia");
+            await _unitOfWork.CommitAsync();
+            var photoSaveResult = await _fileService.SaveStaticFiles(request.PlaceActivityMedium, "PlaceActivityMedia");
             if (!photoSaveResult.Success)
             {
                 throw new Exception(photoSaveResult.Message);
@@ -325,6 +235,22 @@ namespace LocalTour.Services.Services
             _unitOfWork.RepositoryPlaceActivity.Update(existingActivity);
             await _unitOfWork.CommitAsync();
             return request;
+        }
+        public async Task<bool> DeletePlaceActivity(int placeid, int activityid)
+        {
+            var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
+            if (places == null)
+            {
+                throw new ArgumentException($"Place with id {placeid} not found.");
+            }
+            var activity = await _unitOfWork.RepositoryPlaceActivity.GetById(activityid);
+            if (activity != null)
+            {
+                    _unitOfWork.RepositoryPlaceActivity.Delete(activity);
+            }
+            await _unitOfWork.CommitAsync();
+            return true;
+
         }
     }
 }

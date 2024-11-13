@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -64,9 +65,9 @@ namespace LocalTour.Services.Services
                     Description = request.Description,
                     StartDate = request.StartDate,
                     EndDate = request.EndDate,
-                    EventStatus = request.EventStatus,
+                    EventStatus = "Pending",
                     CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
+                    //UpdatedAt = DateTime.Now,
                     PlaceId = placeid,
                 };
                 await _unitOfWork.RepositoryEvent.Insert(events);
@@ -99,7 +100,7 @@ namespace LocalTour.Services.Services
             existingEvent.Description = request.Description;
             existingEvent.StartDate = request.StartDate;
             existingEvent.EndDate = request.EndDate;
-            existingEvent.EventStatus = request.EventStatus;
+            existingEvent.EventStatus = "Pending";
             existingEvent.UpdatedAt = DateTime.Now;
             _unitOfWork.RepositoryEvent.Update(existingEvent);
             await _unitOfWork.CommitAsync();
@@ -123,6 +124,39 @@ namespace LocalTour.Services.Services
             }
 
             return eventEntity;
+        }
+        public async Task<bool> DeleteEvent(int placeid, int eventid)
+        {
+            var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
+            if (places == null)
+            {
+                throw new ArgumentException($"Place with id {placeid} not found.");
+            }
+            var eventEntity = await _unitOfWork.RepositoryEvent.GetById(eventid);
+            if (eventEntity != null)
+            {
+                _unitOfWork.RepositoryEvent.Delete(eventEntity);
+            }
+            await _unitOfWork.CommitAsync();
+            return true;
+
+        }
+        public async Task<Event> ChangeStatusEvent(int placeid,int eventid, string status)
+        {
+            var existingPlace = await _unitOfWork.RepositoryPlace.GetById(placeid);
+            if (existingPlace == null)
+            {
+                throw new ArgumentException($" {placeid} not found.");
+            }
+            var existingEvent = await _unitOfWork.RepositoryEvent.GetById(eventid);
+            if (existingEvent == null)
+            {
+                throw new ArgumentException($" {eventid} not found.");
+            }
+            existingEvent.EventStatus = status;
+            _unitOfWork.RepositoryEvent.Update(existingEvent);
+            await _unitOfWork.CommitAsync();
+            return existingEvent;
         }
     }
 }

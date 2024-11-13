@@ -3,9 +3,9 @@ using Google.Apis.Auth.OAuth2;
 using LocalTour.Infrastructure.Configuration;
 using Microsoft.OpenApi.Models;
 using Service.Common.Mapping;
+using System.Reflection;
 using LocalTour.WebApi.Middleware;
-using Microsoft.Extensions.FileProviders;
-using Quartz;
+using LocalTour.Services.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,14 +14,9 @@ builder.Services.RegesterContextDb(builder.Configuration);
 builder.Services.RegesterDI(builder.Configuration);
 builder.Services.RegesterIdentity(builder.Configuration);
 builder.Services.RegesterTokenBearer(builder.Configuration);
-builder.Services.RegesterQuazrtz();
 builder.Services.AddControllers();
 builder.Services.AddMemoryCache();
 builder.Services.AddControllers();
-    /*.AddJsonOptions(options =>
-    {
-      options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-    });*/
 
 //add
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
@@ -92,16 +87,8 @@ app.UseMiddleware<CheckUserBanMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseStaticFiles(); // Cho phép phục vụ các tệp tĩnh
-app.UseStaticFiles(new StaticFileOptions
-{
-  FileProvider = new PhysicalFileProvider(
-    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Media")),
-  RequestPath
-    = "/Media"
-});
+
 
 app.MapControllers();
-var scheduler = app.Services.GetRequiredService<IScheduler>();
-await scheduler.Start();
+
 app.Run();

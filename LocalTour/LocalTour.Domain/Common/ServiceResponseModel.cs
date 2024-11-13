@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LocalTour.Services.Model
+namespace LocalTour.Services.Model 
 {
     public class ServiceResponseModel<T>
     {

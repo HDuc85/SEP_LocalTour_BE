@@ -491,6 +491,8 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
 
             entity.Property(e => e.ReportDate).HasColumnType("datetime");
             entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.Content).HasMaxLength(500);
+            
             entity.HasOne(d => d.UserReport).WithMany(p => p.UserReportPlaces);
             entity.HasOne(d => d.Place).WithMany(p => p.PlaceReports)
                 .HasForeignKey(d => d.PlaceId)
@@ -538,6 +540,8 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
 
             entity.Property(e => e.ReportDate).HasColumnType("datetime");
             entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.Content).HasMaxLength(500);
+
             entity.HasOne(d => d.User).WithMany(p => p.UserReports)
                 .HasForeignKey(d => d.UserId);
             entity.HasOne(d => d.UserReport1).WithMany(p => p.UserReporteds)

@@ -18,6 +18,6 @@ namespace LocalTour.Services.ViewModel
 
         public DateTime EndDate { get; set; }
 
-        public string EventStatus { get; set; } = null!;
+        //public string EventStatus { get; set; } = null!;
     }
 }

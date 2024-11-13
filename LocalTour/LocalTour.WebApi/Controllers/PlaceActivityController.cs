@@ -23,7 +23,7 @@ namespace LocalTour.WebApi.Controllers
             return Ok(events);
         }
         [HttpPost("create")]
-        public async Task<ActionResult<ServiceResponseModel<PlaceActivityRequest>>> CreatePlaceActivity([FromForm] int placeid, [FromForm] PlaceActivityRequest request)
+        public async Task<ActionResult<ServiceResponseModel<PlaceActivityRequest>>> CreatePlaceActivity(int placeid, PlaceActivityRequest request)
         {
             if (request == null)
             {
@@ -43,7 +43,7 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpPut("update")]
-        public async Task<ActionResult<ServiceResponseModel<PlaceActivityRequest>>> UpdateActivity([FromForm] int placeid, [FromForm] int activityid, [FromForm] PlaceActivityRequest request)
+        public async Task<ActionResult<ServiceResponseModel<PlaceActivityRequest>>> UpdateActivity( int placeid, int activityid, PlaceActivityRequest request)
         {
             if (request == null)
             {
@@ -67,6 +67,23 @@ namespace LocalTour.WebApi.Controllers
         {
             var activityEntity = await _placeActivityService.GetActivityById(placeid, activityid);
             return Ok(activityEntity);
+        }
+        [HttpDelete("delete")]
+        public async Task<ActionResult<PlaceActivity>> DeletePlaceActivity(int placeid, int activityid)
+        {
+            if (placeid == null)
+            {
+                return BadRequest(new ServiceResponseModel<PlaceActivity>(false, "Request cannot be null"));
+            }
+            try
+            {
+                var activityEntity = await _placeActivityService.DeletePlaceActivity(placeid, activityid);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ServiceResponseModel<PlaceActivity>(false, $"An error occurred: {ex.Message}"));
+            }
         }
     }
 }
