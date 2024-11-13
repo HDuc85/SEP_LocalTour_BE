@@ -205,5 +205,40 @@ namespace LocalTour.Services.Services
             return _mapper.Map<ScheduleRequest>(clonedSchedule);
         }
 
+        public async Task<ScheduleRequest> SaveSuggestedSchedule(ScheduleWithDestinationsRequest request, Guid userId)
+        {
+            // Tạo mới Schedule từ request
+            var newSchedule = new Schedule
+            {
+                UserId = userId, 
+                ScheduleName = request.ScheduleName, 
+                StartDate = request.StartDate,
+                EndDate = request.EndDate, 
+                CreatedDate = DateTime.UtcNow,
+                IsPublic = request.IsPublic 
+            };
+
+            await _unitOfWork.RepositorySchedule.Insert(newSchedule);
+            await _unitOfWork.CommitAsync();
+
+            foreach (var destination in request.Destinations)
+            {
+                var newDestination = new Destination
+                {
+                    ScheduleId = newSchedule.Id, 
+                    PlaceId = destination.PlaceId, 
+                    StartDate = destination.StartDate, 
+                    EndDate = destination.EndDate, 
+                    IsArrived = destination.IsArrived 
+                };
+
+                await _unitOfWork.RepositoryDestination.Insert(newDestination);
+            }
+
+            await _unitOfWork.CommitAsync();
+
+            return _mapper.Map<ScheduleRequest>(newSchedule);
+        }
+
     }
 }

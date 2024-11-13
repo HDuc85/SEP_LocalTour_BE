@@ -16,5 +16,6 @@ namespace LocalTour.Services.Abstract
         Task<bool> UpdateScheduleAsync(int id, CreateScheduleRequest request);
         Task<bool> DeleteScheduleAsync(int id);
         Task<ScheduleRequest?> CloneScheduleFromOtherUserAsync(int scheduleId, Guid newUserId);
+        Task<ScheduleRequest> SaveSuggestedSchedule(ScheduleWithDestinationsRequest request, Guid userId);
     }
 }
