@@ -96,25 +96,20 @@ namespace LocalTour.Services.Services
                 return null;
             }
 
-            // Map the post entity to a PostRequest object
             var postRequest = _mapper.Map<PostRequest>(post);
 
-            // Retrieve media for the post
             postRequest.Media = await GetAllMediaByPostId(postId);
 
-            // Retrieve comments for the post
             var comments = await GetCommentsByPostIdAsync(postId, null, currentUserId);
 
             var user = await _userService.GetUserByIdAsync(postRequest.AuthorId);
 
-            // Include author info for the post
             if (user != null)
             {
                 postRequest.AuthorFullName = user.FullName;
                 postRequest.AuthorProfilePictureUrl = user.ProfilePictureUrl;
             }
 
-            // Map comments to include author info (FullName, ProfilePictureUrl)
             postRequest.Comments = comments.Select(comment =>
             {
                 comment.UserFullName = user.FullName;
@@ -122,7 +117,6 @@ namespace LocalTour.Services.Services
                 return comment;
             }).ToList();
 
-            // Retrieve the total likes for the post
             postRequest.TotalLikes = await GetTotalLikesByPostIdAsync(postId);
 
             return postRequest;
@@ -355,7 +349,6 @@ namespace LocalTour.Services.Services
                 ChildComments = childCommentRequests
             };
         }
-
 
         public async Task<int> GetTotalLikesByPostIdAsync(int postId)
         {

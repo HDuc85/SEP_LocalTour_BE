@@ -1,4 +1,5 @@
 ﻿using LocalTour.Data.Abstract;
+using LocalTour.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Linq.Expressions;
@@ -74,5 +75,19 @@ namespace LocalTour.Data
         {
             return _context.Set<T>();
         }
+
+        public async Task<Schedule?> GetByIdForDestination(int scheduleId, string includeProperties = "")
+        {
+            var query = _context.Schedules.AsQueryable();
+
+            if (includeProperties.Contains("Destinations"))
+            {
+                query = query.Include(s => s.Destinations);
+            }
+
+            return await query.FirstOrDefaultAsync(s => s.Id == scheduleId);
+        }
+
+
     }
 }

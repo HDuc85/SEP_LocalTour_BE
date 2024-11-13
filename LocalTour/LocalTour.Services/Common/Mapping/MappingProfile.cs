@@ -74,6 +74,13 @@ public class MappingProfile : Profile
 
         CreateMap<ModTagRequest, ModTag>().ReverseMap();
 
+        // Create a mapping between CreateScheduleRequest and Schedule
+        CreateMap<CreateScheduleRequest, Schedule>()
+            .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => DateTime.UtcNow))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "Active"))
+            .ForMember(dest => dest.IsPublic, opt => opt.MapFrom(src => src.IsPublic));
+
+
     }
 
     private void ApplyMappingFromAssembly(Assembly assembly)

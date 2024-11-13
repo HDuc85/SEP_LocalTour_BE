@@ -3,6 +3,7 @@ using LocalTour.Data.Abstract;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.ViewModel;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -21,34 +22,115 @@ namespace LocalTour.Services.Services
             _mapper = mapper;
         }
 
+        public async Task<PaginatedList<ScheduleRequest>> GetAllSchedulesAsync(GetScheduleRequest request)
+        {
+            var schedulesQuery = _unitOfWork.RepositorySchedule.GetAll()
+                .Include(s => s.ScheduleLikes)
+                .Include(s => s.Destinations)
+                .AsQueryable();
+
+            if (request.UserId != null)
+            {
+                schedulesQuery = schedulesQuery.Where(s => s.UserId == request.UserId);
+            }
+
+            if (request.SortBy == "like")
+            {
+                schedulesQuery = request.SortOrder == "asc"
+                    ? schedulesQuery.OrderBy(s => s.ScheduleLikes.Count)
+                    : schedulesQuery.OrderByDescending(s => s.ScheduleLikes.Count);
+            }
+            else if (request.SortBy == "date")
+            {
+                schedulesQuery = request.SortOrder == "asc"
+                    ? schedulesQuery.OrderBy(s => s.CreatedDate)
+                    : schedulesQuery.OrderByDescending(s => s.CreatedDate);
+            }
+
+            var totalCount = await schedulesQuery.CountAsync();
+            var items = await schedulesQuery
+                .Skip((request.Page - 1) * request.Size ?? 0)
+                .Take(request.Size ?? 10)
+                .ToListAsync();
+
+            // Map the result to ScheduleRequest DTO
+            var scheduleRequests = _mapper.Map<List<ScheduleRequest>>(items);
+
+            foreach (var scheduleRequest in scheduleRequests)
+            {
+                // Populate additional properties like total likes
+                var totalLikes = await _unitOfWork.RepositoryScheduleLike.GetData(l => l.ScheduleId == scheduleRequest.Id);
+                scheduleRequest.TotalLikes = totalLikes.Count();
+            }
+
+            return new PaginatedList<ScheduleRequest>(scheduleRequests, totalCount, request.Page ?? 1, request.Size ?? 10);
+        }
+
         public async Task<ScheduleRequest?> GetScheduleByIdAsync(int id)
         {
             var schedule = await _unitOfWork.RepositorySchedule.GetById(id);
-            return schedule == null ? null : _mapper.Map<ScheduleRequest>(schedule);
+            if (schedule == null)
+            {
+                return null;
+            }
+
+            var scheduleRequest = _mapper.Map<ScheduleRequest>(schedule);
+
+            var destinations = await _unitOfWork.RepositoryDestination.GetData(d => d.ScheduleId == schedule.Id);
+            scheduleRequest.Destinations = _mapper.Map<List<DestinationRequest>>(destinations);
+
+            var totalLikes = await _unitOfWork.RepositoryScheduleLike.GetData(l => l.ScheduleId == schedule.Id);
+            scheduleRequest.TotalLikes = totalLikes.Count();
+
+            return scheduleRequest;
         }
+
 
         public async Task<List<ScheduleRequest>> GetSchedulesByUserIdAsync(Guid userId)
         {
             Expression<Func<Schedule, bool>> expression = schedule => schedule.UserId == userId;
             var schedules = await _unitOfWork.RepositorySchedule.GetData(expression);
-            return _mapper.Map<List<ScheduleRequest>>(schedules.ToList());
+
+            var scheduleRequests = new List<ScheduleRequest>();
+
+            foreach (var schedule in schedules)
+            {
+                var scheduleRequest = _mapper.Map<ScheduleRequest>(schedule);
+
+                // Fetch destinations associated with the schedule
+                var destinations = await _unitOfWork.RepositoryDestination.GetData(d => d.ScheduleId == schedule.Id);
+                scheduleRequest.Destinations = _mapper.Map<List<DestinationRequest>>(destinations);
+
+                // Fetch total likes for the schedule
+                var totalLikes = await _unitOfWork.RepositoryScheduleLike.GetData(l => l.ScheduleId == schedule.Id);
+                scheduleRequest.TotalLikes = totalLikes.Count();
+
+                scheduleRequests.Add(scheduleRequest);
+            }
+
+            return scheduleRequests;
         }
 
-        public async Task<ScheduleRequest> CreateScheduleAsync(ScheduleRequest request)
+        public async Task<ScheduleRequest> CreateScheduleAsync(CreateScheduleRequest request)
         {
             var schedule = _mapper.Map<Schedule>(request);
+
+            schedule.CreatedDate = DateTime.UtcNow;
             await _unitOfWork.RepositorySchedule.Insert(schedule);
             await _unitOfWork.CommitAsync();
+
             return _mapper.Map<ScheduleRequest>(schedule);
         }
 
-        public async Task<bool> UpdateScheduleAsync(int id, ScheduleRequest request)
+        public async Task<bool> UpdateScheduleAsync(int id, CreateScheduleRequest request)
         {
             var schedule = await _unitOfWork.RepositorySchedule.GetById(id);
             if (schedule == null) return false;
 
             _mapper.Map(request, schedule);
+
             _unitOfWork.RepositorySchedule.Update(schedule);
+            schedule.CreatedDate = DateTime.UtcNow;
             await _unitOfWork.CommitAsync();
             return true;
         }
@@ -63,46 +145,63 @@ namespace LocalTour.Services.Services
             return true;
         }
 
-        public async Task<ScheduleRequest?> CloneScheduleAsync(int id, Guid newUserId)
+        public async Task<ScheduleRequest?> CloneScheduleFromOtherUserAsync(int scheduleId, Guid newUserId)
         {
-            // Fetch the original schedule by its ID
-            var schedule = await _unitOfWork.RepositorySchedule.GetById(id);
-            if (schedule == null) return null; // Return null if the schedule does not exist
+            // Lấy lịch trình gốc cùng với các Destinations
+            var originalSchedule = await _unitOfWork.RepositorySchedule
+                .GetByIdForDestination(scheduleId, includeProperties: "Destinations");
 
-            // Create a cloned schedule object
-            var clonedSchedule = new Schedule
+            if (originalSchedule == null)
             {
-                UserId = newUserId, // Assign the new user ID
-                ScheduleName = $"{schedule.ScheduleName} - Copy", // Modify the schedule name
-                StartDate = schedule.StartDate,
-                EndDate = schedule.EndDate,
-                CreatedDate = DateTime.UtcNow,
-                Status = schedule.Status,
-                IsPublic = schedule.IsPublic
-            };
-
-            // Insert the cloned schedule into the database
-            await _unitOfWork.RepositorySchedule.Insert(clonedSchedule);
-            await _unitOfWork.CommitAsync(); // Commit changes to save the cloned schedule
-
-            // Clone each associated destination
-            foreach (var destination in schedule.Destinations)
-            {
-                var clonedDestination = new Destination
-                {
-                    ScheduleId = clonedSchedule.Id, // Link to the new schedule ID
-                    PlaceId = destination.PlaceId,
-                    StartDate = destination.StartDate,
-                    EndDate = destination.EndDate,
-                    Detail = destination.Detail,
-                    IsArrived = destination.IsArrived
-                };
-                await _unitOfWork.RepositoryDestination.Insert(clonedDestination);
+                return null;  // Nếu không tìm thấy lịch trình gốc, trả về null
             }
 
-            await _unitOfWork.CommitAsync(); // Commit changes to save the cloned destinations
+            // Tạo bản sao của lịch trình với thông tin người dùng mới
+            var clonedSchedule = new Schedule
+            {
+                UserId = newUserId, // Gán UserId của người dùng mới
+                ScheduleName = $"{originalSchedule.ScheduleName} - Copy",  // Thêm "Copy" vào tên lịch trình
+                StartDate = originalSchedule.StartDate,
+                EndDate = originalSchedule.EndDate,
+                CreatedDate = DateTime.UtcNow,  // Thời gian tạo mới
+                Status = originalSchedule.Status,
+                IsPublic = originalSchedule.IsPublic
+            };
 
-            // Map the cloned schedule to ScheduleRequest DTO for return
+            // Lưu bản sao của lịch trình vào cơ sở dữ liệu
+            await _unitOfWork.RepositorySchedule.Insert(clonedSchedule);
+            await _unitOfWork.CommitAsync(); // Lưu thay đổi vào cơ sở dữ liệu
+
+            // Clone các Destinations từ lịch trình gốc sang lịch trình mới
+            if (originalSchedule.Destinations != null && originalSchedule.Destinations.Any())
+            {
+                // Nếu có Destinations, sao chép chúng
+                foreach (var destination in originalSchedule.Destinations)
+                {
+                    var clonedDestination = new Destination
+                    {
+                        ScheduleId = clonedSchedule.Id,  // Gán ScheduleId mới của lịch trình sao chép
+                        PlaceId = destination.PlaceId,
+                        StartDate = destination.StartDate,
+                        EndDate = destination.EndDate,
+                        Detail = destination.Detail,
+                        IsArrived = destination.IsArrived
+                    };
+
+                    // Lưu bản sao của Destination vào cơ sở dữ liệu
+                    await _unitOfWork.RepositoryDestination.Insert(clonedDestination);
+                }
+            }
+            else
+            {
+                // Nếu không có Destinations, tạo một danh sách rỗng
+                clonedSchedule.Destinations = new List<Destination>();
+            }
+
+            // Commit tất cả các thay đổi, bao gồm cả lịch trình và destinations
+            await _unitOfWork.CommitAsync();
+
+            // Map bản sao của lịch trình sang DTO ScheduleRequest và trả về
             return _mapper.Map<ScheduleRequest>(clonedSchedule);
         }
 

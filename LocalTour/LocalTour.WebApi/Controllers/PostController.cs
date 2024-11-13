@@ -23,12 +23,23 @@ namespace LocalTour.WebApi.Controllers
         {
             try
             {
+                if (request == null)
+                {
+                    return BadRequest(new { statusCode = 400, message = "Request data is missing." });
+                }
+
                 var posts = await _postService.GetAllPosts(request);
-                return Ok(posts);
+
+                if (posts == null || !posts.Items.Any())
+                {
+                    return Ok(new { statusCode = 404, message = "No posts found." });
+                }
+
+                return Ok(new { statusCode = 200, data = posts });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
             }
         }
 
@@ -40,10 +51,10 @@ namespace LocalTour.WebApi.Controllers
 
             if (postRequest == null)
             {
-                return NotFound();
+                return Ok(new { statusCode = 404, message = "Post not found." });
             }
 
-            return Ok(postRequest);
+            return Ok(new { statusCode = 200, data = postRequest });
         }
 
         [HttpPost]
@@ -52,35 +63,51 @@ namespace LocalTour.WebApi.Controllers
         {
             if (createPostRequest == null)
             {
-                return BadRequest("Invalid post data.");
+                return BadRequest(new { statusCode = 400, message = "Post data is missing." });
             }
+
+            if (string.IsNullOrEmpty(createPostRequest.Title) || string.IsNullOrEmpty(createPostRequest.Content))
+            {
+                return BadRequest(new { statusCode = 400, message = "Title and Content are required fields." });
+            }
+
             try
             {
                 await _postService.CreatePost(createPostRequest);
-                return Ok("Create success");
+                return StatusCode(201, new { statusCode = 201, message = "Post created successfully." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
             }
         }
 
-        //[Authorize]
         [HttpPut("updatePost/{id}")]
         public async Task<IActionResult> UpdatePost(int id, [FromForm] CreatePostRequest createPostRequest)
         {
+            if (createPostRequest == null)
+            {
+                return BadRequest(new { statusCode = 400, message = "Post data is missing." });
+            }
+
+            if (string.IsNullOrEmpty(createPostRequest.Title) || string.IsNullOrEmpty(createPostRequest.Content))
+            {
+                return BadRequest(new { statusCode = 400, message = "Title and Content are required fields." });
+            }
+
             try
             {
                 var result = await _postService.UpdatePost(id, createPostRequest);
                 if (result == null)
                 {
-                    return BadRequest("Invalid post data.");
+                    return BadRequest(new { statusCode = 400, message = "Failed to update the post. Invalid data or post not found." });
                 }
-                return Ok("Update success");
+
+                return Ok(new { statusCode = 200, message = "Post updated successfully." });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = $"Error updating post: {ex.Message}" });
+                return StatusCode(500, new { statusCode = 500, message = $"Error updating post: {ex.Message}" });
             }
         }
 
@@ -92,17 +119,14 @@ namespace LocalTour.WebApi.Controllers
                 var deleted = await _postService.DeletePost(id);
                 if (!deleted)
                 {
-                    return NotFound(new ServiceResponseModel<bool>(false));
+                    return Ok(new { statusCode = 404, message = "Post not found or already deleted." });
                 }
 
-                return Ok(new ServiceResponseModel<bool>(true)
-                {
-                    Message = "Post deleted successfully"
-                });
+                return Ok(new { statusCode = 200, message = "Post deleted successfully." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ServiceResponseModel<bool>(false));
+                return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
             }
         }
     }

@@ -28,8 +28,17 @@ namespace LocalTour.Services.Services
         public async Task<List<DestinationRequest>> GetDestinationsByScheduleIdAsync(int scheduleId)
         {
             var destinations = await _unitOfWork.RepositoryDestination.GetData(d => d.ScheduleId == scheduleId);
+
+
+            if (destinations == null || !destinations.Any())
+            {
+                Console.WriteLine("No destinations found for scheduleId " + scheduleId);
+            }
+
+
             return _mapper.Map<List<DestinationRequest>>(destinations);
         }
+
 
         public async Task<Destination> CreateDestinationAsync(DestinationRequest request)
         {
