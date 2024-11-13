@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using LocalTour.Domain.Entities;
 using LocalTour.Services.ViewModel;
 
 namespace LocalTour.Services.Abstract
@@ -8,7 +9,7 @@ namespace LocalTour.Services.Abstract
     {
         Task<DestinationRequest?> GetDestinationByIdAsync(int id);
         Task<List<DestinationRequest>> GetDestinationsByScheduleIdAsync(int scheduleId); // Add this line
-        Task<DestinationRequest> CreateDestinationAsync(DestinationRequest request);
+        Task<Destination> CreateDestinationAsync(DestinationRequest request);
         Task<bool> UpdateDestinationAsync(int id, DestinationRequest request);
         Task<bool> DeleteDestinationAsync(int id);
     }

@@ -68,7 +68,7 @@ namespace LocalTour.Services.Services
             var reportEntity = await _unitOfWork.RepositoryUserReport.GetById(reportId);
             if (reportEntity == null)
             {
-                return new ServiceResponseModel<bool>(false, "No reports found");
+                return new ServiceResponseModel<bool>(false);
             }
 
             _unitOfWork.RepositoryUserReport.Delete(reportEntity);

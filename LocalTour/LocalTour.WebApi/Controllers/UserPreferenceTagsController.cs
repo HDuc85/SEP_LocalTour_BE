@@ -1,4 +1,5 @@
 ﻿using LocalTour.Services.Abstract;
+using LocalTour.Services.Services;
 using LocalTour.Services.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -18,11 +19,18 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<UserPreferenceTagsRequest>>> GetAll()
+        public async Task<ActionResult<IEnumerable<GetUserPreferenceTagsRequest>>> GetAllUserPreferenceTagsGroupedByUserAsync()
         {
-            var tags = await _service.GetAllUserPreferenceTags();
-            return Ok(tags);
+            var result = await _service.GetAllUserPreferenceTagsGroupedByUserAsync();
+
+            if (result == null || !result.Any())
+            {
+                return NotFound();
+            }
+
+            return Ok(result);
         }
+
 
         [HttpGet("{id}")]
         public async Task<ActionResult<UserPreferenceTagsRequest>> GetById(int id)
@@ -35,26 +43,29 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<UserPreferenceTagsRequest>> Create(UserPreferenceTagsRequest request)
+        public async Task<ActionResult<UserPreferenceTagsRequest>> Create([FromForm] UserPreferenceTagsRequest request)
         {
             var createdTag = await _service.CreateUserPreferenceTags(request);
-            return CreatedAtAction(nameof(GetById), new { id = createdTag.Id }, createdTag);
+            return CreatedAtAction(nameof(GetById), new { id = createdTag.TagIds }, createdTag);
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult<UserPreferenceTagsRequest>> Update(int id, UserPreferenceTagsRequest request)
+        [HttpPut("{userId}")]
+        public async Task<IActionResult> Update(Guid userId, [FromForm] UpdateTagRequest request)
         {
-            var updatedTag = await _service.UpdateUserPreferenceTags(id, request);
-            if (updatedTag == null)
-                return NotFound();
+            // Call the service to update the user tags
+            var result = await _service.UpdateUserTagsAsync(userId, request.TagIds);
 
-            return Ok(updatedTag);
+            if (!result)
+                return NotFound($"No record found for UserId {userId}.");
+
+            return Ok("User tags updated successfully.");
         }
 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<bool>> Delete(int id)
+
+        [HttpDelete("{userId}")]
+        public async Task<IActionResult> Delete(Guid userId, [FromForm] List<int> tagIds)
         {
-            var deleted = await _service.DeleteUserPreferenceTags(id);
+            var deleted = await _service.DeleteUserPreferenceTags(userId, tagIds);
             if (!deleted)
                 return NotFound();
 

@@ -13,7 +13,16 @@ public class MappingProfile : Profile
     {
         // Map from Post to PostRequest
         CreateMap<Post, PostRequest>()
-            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => new List<int>())); // If Tags exists in Post
+            .ForMember(dest => dest.Media, opt => opt.MapFrom(src => src.PostMedia.Select(pm => new PostMediumRequest
+            {
+                Id = pm.Id,
+                Type = pm.Type,
+                Url = pm.Url,
+                CreateDate = pm.CreateDate
+            }).ToList()))
+            .ForMember(dest => dest.AuthorFullName, opt => opt.MapFrom(src => src.Author.FullName))
+            .ForMember(dest => dest.AuthorProfilePictureUrl, opt => opt.MapFrom(src => src.Author.ProfilePictureUrl));
+
 
         // Map from PostRequest to Post
         CreateMap<PostRequest, Post>()
@@ -31,7 +40,10 @@ public class MappingProfile : Profile
         // Map from PostComment to PostCommentRequest
         CreateMap<PostComment, PostCommentRequest>()
             .ForMember(dest => dest.LikedByUser, opt => opt.Ignore()) // Handle likes logic separately
-            .ForMember(dest => dest.TotalLikes, opt => opt.MapFrom(src => src.PostCommentLikes.Count)); // Assuming you want to count likes
+            .ForMember(dest => dest.TotalLikes, opt => opt.MapFrom(src => src.PostCommentLikes.Count))
+            .ForMember(dest => dest.UserFullName, opt => opt.MapFrom(src => src.User.FullName))
+            .ForMember(dest => dest.UserProfilePictureUrl, opt => opt.MapFrom(src => src.User.ProfilePictureUrl));
+
 
         // Map from PostCommentRequest to PostComment
         CreateMap<PostCommentRequest, PostComment>()

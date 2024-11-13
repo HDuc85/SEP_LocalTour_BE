@@ -25,30 +25,44 @@ namespace LocalTour.Services.Services
             return destination == null ? null : _mapper.Map<DestinationRequest>(destination);
         }
 
-        public async Task<List<DestinationRequest>> GetDestinationsByScheduleIdAsync(int scheduleId) 
+        public async Task<List<DestinationRequest>> GetDestinationsByScheduleIdAsync(int scheduleId)
         {
             var destinations = await _unitOfWork.RepositoryDestination.GetData(d => d.ScheduleId == scheduleId);
             return _mapper.Map<List<DestinationRequest>>(destinations);
         }
 
-        public async Task<DestinationRequest> CreateDestinationAsync(DestinationRequest request)
+        public async Task<Destination> CreateDestinationAsync(DestinationRequest request)
         {
             var destination = _mapper.Map<Destination>(request);
+
+            // Gán StartDay và EndDay tự động từ giờ hệ thống
+            destination.StartDate = DateTime.Now; // Gán thời gian hiện tại
+            destination.EndDate = DateTime.Now.AddDays(1); // Ví dụ: Gán thời gian kết thúc là một ngày sau
+
             await _unitOfWork.RepositoryDestination.Insert(destination);
             await _unitOfWork.CommitAsync();
-            return _mapper.Map<DestinationRequest>(destination);
+
+            return _mapper.Map<Destination>(destination);
         }
+
 
         public async Task<bool> UpdateDestinationAsync(int id, DestinationRequest request)
         {
             var destination = await _unitOfWork.RepositoryDestination.GetById(id);
-            if (destination == null) return false;
+            if (destination == null) return false; 
 
-            _mapper.Map(request, destination);
+            _mapper.Map(request, destination); 
+
+            // Gán giá trị StartDay và EndDay tự động từ giờ hệ thống
+            destination.StartDate = DateTime.Now; // Gán StartDay là thời gian hiện tại
+            destination.EndDate = DateTime.Now.AddDays(1); // Gán EndDay là 1 ngày sau StartDay 
+
             _unitOfWork.RepositoryDestination.Update(destination);
             await _unitOfWork.CommitAsync();
+
             return true;
         }
+
 
         public async Task<bool> DeleteDestinationAsync(int id)
         {

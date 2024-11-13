@@ -4,6 +4,8 @@ using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
 using LocalTour.Services.ViewModel;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace LocalTour.Services.Services
 {
@@ -223,6 +225,20 @@ namespace LocalTour.Services.Services
                 return false;
             }
             return true;
+        }
+
+        public async Task<User> GetUserByIdAsync(Guid userId)
+        {
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            return user;
+        }
+
+        public async Task<User> GetCurrentUserAsync()
+        {
+            var userId = _userManager.GetUserId(ClaimsPrincipal.Current);
+            return await _userManager.FindByIdAsync(userId);
         }
     }
 }

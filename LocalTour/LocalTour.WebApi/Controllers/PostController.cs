@@ -2,6 +2,7 @@
 using LocalTour.Services.Model;
 using LocalTour.Services.Services;
 using LocalTour.Services.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LocalTour.WebApi.Controllers
@@ -17,74 +18,73 @@ namespace LocalTour.WebApi.Controllers
             _postService = postService;
         }
 
-        // Retrieve all posts, with pagination, filtering, and optional schedule/place associations
-        [HttpGet("getall")]
-        public async Task<ActionResult<PaginatedList<PostRequest>>> GetAllPosts([FromQuery] GetPostRequest request)
+        [HttpGet]
+        public async Task<IActionResult> GetAllPosts([FromQuery] GetPostRequest request)
         {
-            var posts = await _postService.GetAllPosts(request);
-            return Ok(posts);
-        }
-
-        // Retrieve a specific post by ID
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ServiceResponseModel<PostRequest>>> GetPostById(int id)
-        {
-            var post = await _postService.GetPostById(id);
-            if (post == null)
-            {
-                return NotFound(new ServiceResponseModel<PostRequest>(false, "Post not found"));
-            }
-            return Ok(new ServiceResponseModel<PostRequest>(post));
-        }
-
-        // Create a new post with optional PlaceId or ScheduleId associations
-        [HttpPost("create")]
-        public async Task<ActionResult<ServiceResponseModel<PostRequest>>> CreatePost([FromForm] PostRequest request)
-        {
-            if (request == null)
-            {
-                return BadRequest(new ServiceResponseModel<PostRequest>(false, "Request cannot be null"));
-            }
-
             try
             {
-                var createdPost = await _postService.CreatePost(request);
-                return Ok(new ServiceResponseModel<PostRequest>(createdPost)
-                {
-                    Message = "Post created successfully"
-                });
+                var posts = await _postService.GetAllPosts(request);
+                return Ok(posts);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ServiceResponseModel<PostRequest>(false, $"An error occurred: {ex.Message}"));
+                return BadRequest(new { message = ex.Message });
             }
         }
 
-        // Update an existing post by ID
-        [HttpPut("update/{id}")]
-        public async Task<ActionResult<ServiceResponseModel<PostRequest>>> UpdatePost(int id, [FromForm] PostRequest request)
+        [HttpGet("getPost/{postId}")]
+        public async Task<IActionResult> GetPost(int postId)
+        {
+            var userId = _postService.GetCurrentUserId();
+            var postRequest = await _postService.GetPostById(postId, userId);
+
+            if (postRequest == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(postRequest);
+        }
+
+        [HttpPost]
+        [HttpPost("createPost")]
+        public async Task<IActionResult> CreatePost([FromForm] CreatePostRequest createPostRequest)
+        {
+            if (createPostRequest == null)
+            {
+                return BadRequest("Invalid post data.");
+            }
+            try
+            {
+                await _postService.CreatePost(createPostRequest);
+                return Ok("Create success");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        //[Authorize]
+        [HttpPut("updatePost/{id}")]
+        public async Task<IActionResult> UpdatePost(int id, [FromForm] CreatePostRequest createPostRequest)
         {
             try
             {
-                var updatedPost = await _postService.UpdatePost(id, request);
-                if (updatedPost == null)
+                var result = await _postService.UpdatePost(id, createPostRequest);
+                if (result == null)
                 {
-                    return NotFound(new ServiceResponseModel<PostRequest>(false, "Post not found"));
+                    return BadRequest("Invalid post data.");
                 }
-
-                return Ok(new ServiceResponseModel<PostRequest>(updatedPost)
-                {
-                    Message = "Post updated successfully"
-                });
+                return Ok("Update success");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ServiceResponseModel<PostRequest>(false, $"An error occurred: {ex.Message}"));
+                return BadRequest(new { message = $"Error updating post: {ex.Message}" });
             }
         }
 
-        // Delete a post by ID
-        [HttpDelete("delete/{id}")]
+        [HttpDelete("deletePost/{id}")]
         public async Task<ActionResult<ServiceResponseModel<bool>>> DeletePost(int id)
         {
             try
@@ -92,7 +92,7 @@ namespace LocalTour.WebApi.Controllers
                 var deleted = await _postService.DeletePost(id);
                 if (!deleted)
                 {
-                    return NotFound(new ServiceResponseModel<bool>(false, "Post not found"));
+                    return NotFound(new ServiceResponseModel<bool>(false));
                 }
 
                 return Ok(new ServiceResponseModel<bool>(true)
@@ -102,7 +102,7 @@ namespace LocalTour.WebApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ServiceResponseModel<bool>(false, $"An error occurred: {ex.Message}"));
+                return StatusCode(500, new ServiceResponseModel<bool>(false));
             }
         }
     }

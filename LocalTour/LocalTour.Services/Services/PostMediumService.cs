@@ -3,6 +3,7 @@ using LocalTour.Data.Abstract;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.ViewModel;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,20 +46,15 @@ namespace LocalTour.Services.Services
             var mediaEntity = await _unitOfWork.RepositoryPostMedium.GetById(mediaId);
             if (mediaEntity == null) return null;
 
-            // Update only the fields you want to change
-            mediaEntity.PostId = mediaRequest.PostId ?? mediaEntity.PostId; 
+            //mediaEntity.PostId = mediaRequest.PostId ?? mediaEntity.PostId; 
             mediaEntity.Type = mediaRequest.Type;
             mediaEntity.Url = mediaRequest.Url;
-
-            // Ensure CreateDate remains unchanged or update as per your requirement
-            // mediaEntity.CreateDate = mediaRequest.CreateDate; // Uncomment if you want to update it
 
             _unitOfWork.RepositoryPostMedium.Update(mediaEntity);
             await _unitOfWork.CommitAsync();
 
             return _mapper.Map<PostMediumRequest>(mediaEntity);
         }
-
 
         public async Task<bool> DeleteMedia(int mediaId)
         {
@@ -73,7 +69,9 @@ namespace LocalTour.Services.Services
 
         public async Task<List<PostMediumRequest>> GetAllMediaByPostId(int postId)
         {
-            var mediaEntities = _unitOfWork.RepositoryPostMedium.GetAll().Where(m => m.PostId == postId).ToList();
+            var mediaEntities = await _unitOfWork.RepositoryPostMedium.GetAll()
+                .Where(m => m.PostId == postId)
+                .ToListAsync();
             return _mapper.Map<List<PostMediumRequest>>(mediaEntities);
         }
     }

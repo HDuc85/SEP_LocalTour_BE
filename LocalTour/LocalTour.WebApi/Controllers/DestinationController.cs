@@ -4,6 +4,7 @@ using LocalTour.Services.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using LocalTour.Domain.Entities;
 
 namespace LocalTour.WebApi.Controllers
 {
@@ -19,11 +20,14 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<DestinationRequest>> CreateDestination(DestinationRequest request)
+        public async Task<ActionResult<Destination>> CreateDestination([FromForm] DestinationRequest request)
         {
             var createdDestination = await _destinationService.CreateDestinationAsync(request);
+
+            // Return the created destination with its auto-generated Id
             return CreatedAtAction(nameof(GetDestinationById), new { id = createdDestination.Id }, createdDestination);
         }
+
 
         [HttpGet("schedule/{scheduleId}")]
         public async Task<ActionResult<List<DestinationRequest>>> GetDestinationsByScheduleId(int scheduleId)
@@ -44,7 +48,7 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateDestination(int id, DestinationRequest request)
+        public async Task<IActionResult> UpdateDestination(int id, [FromForm] DestinationRequest request)
         {
             var result = await _destinationService.UpdateDestinationAsync(id, request);
             if (!result)

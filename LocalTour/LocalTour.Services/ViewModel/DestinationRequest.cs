@@ -10,7 +10,6 @@ namespace LocalTour.Services.ViewModel
 {
     public class DestinationRequest : IMapFrom<Destination>
     {
-        public int? Id { get; set; }
         public int ScheduleId { get; set; }
         public int PlaceId { get; set; }
         public DateTime? StartDate { get; set; }

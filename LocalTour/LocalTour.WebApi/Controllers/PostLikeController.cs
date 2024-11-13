@@ -33,10 +33,10 @@ public class PostLikeController : ControllerBase
         return Ok(users);
     }
 
-    [HttpGet("total-likes/{postId}")]
-    public async Task<IActionResult> GetTotalLikes(int postId)
-    {
-        var totalLikes = await _postLikeService.GetTotalLikesByPostIdAsync(postId);
-        return Ok(totalLikes);
-    }
+    //[HttpGet("total-likes/{postId}")]
+    //public async Task<IActionResult> GetTotalLikes(int postId)
+    //{
+    //    var totalLikes = await _postLikeService.GetTotalLikesByPostIdAsync(postId);
+    //    return Ok(totalLikes);
+    //}
 }

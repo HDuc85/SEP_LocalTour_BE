@@ -25,5 +25,7 @@ namespace LocalTour.Services.Abstract
         Task<bool> ChangePassword(string userId, string oldPassword, string newPassword);
         Task<bool> IsUserBanned(string userId);
         Task<User> CreateModerate(CreateUserRequest createUserRequest);
+        Task<User> GetCurrentUserAsync();
+        Task<User> GetUserByIdAsync(Guid userId);
     }
 }

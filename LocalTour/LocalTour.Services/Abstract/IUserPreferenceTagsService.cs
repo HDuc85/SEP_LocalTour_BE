@@ -9,10 +9,10 @@ namespace LocalTour.Services.Abstract
 {
     public interface IUserPreferenceTagsService
     {
-        Task<List<UserPreferenceTagsRequest>> GetAllUserPreferenceTags();
+        Task<IEnumerable<GetUserPreferenceTagsRequest>> GetAllUserPreferenceTagsGroupedByUserAsync();
         Task<UserPreferenceTagsRequest?> GetUserPreferenceTagsById(int id);
         Task<UserPreferenceTagsRequest> CreateUserPreferenceTags(UserPreferenceTagsRequest request);
-        Task<UserPreferenceTagsRequest?> UpdateUserPreferenceTags(int id, UserPreferenceTagsRequest request);
-        Task<bool> DeleteUserPreferenceTags(int id);
+        Task<bool> UpdateUserTagsAsync(Guid userId, List<int> tagIds);
+        Task<bool> DeleteUserPreferenceTags(Guid userId, List<int> tagIds);
     }
 }
