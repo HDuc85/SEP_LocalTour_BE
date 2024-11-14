@@ -30,7 +30,7 @@ namespace LocalTour.Services.Services
         private readonly IConfiguration _configuration;
         private readonly IFileService _fileService;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public PlaceService (IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IFileService fileService, IHttpContextAccessor httpContextAccessor)
+        public PlaceService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IFileService fileService, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -44,7 +44,12 @@ namespace LocalTour.Services.Services
             {
                 throw new ArgumentNullException(nameof(place));
             }
-            var photos = await _fileService.SaveImageFile(place.PhotoDisplay, "PlaceMedia");
+            var user = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(user) || !Guid.TryParse(user, out var userId))
+            {
+                throw new UnauthorizedAccessException("User not found or invalid User ID.");
+            }
+            var photos = await _fileService.SaveImageFile(place.PhotoDisplay);
             var placeEntity = new Place
             {
                 WardId = place.WardId,
@@ -68,9 +73,9 @@ namespace LocalTour.Services.Services
                         PlaceId = placeEntity.Id,
                         TagId = tags,
                     };
-                   await _unitOfWork.RepositoryPlaceTag.Insert(placetag);
+                    await _unitOfWork.RepositoryPlaceTag.Insert(placetag);
                 };
-                
+
             }
             foreach (var translation in place.PlaceTranslation)
             {
@@ -85,7 +90,7 @@ namespace LocalTour.Services.Services
                 };
                 await _unitOfWork.RepositoryPlaceTranslation.Insert(translationEntity);
             }
-            var photoSaveResult = await _fileService.SaveStaticFiles(place.PlaceMedia, "PlaceMedia");
+            var photoSaveResult = await _fileService.SaveStaticFiles(place.PlaceMedia);
             if (!photoSaveResult.Success)
             {
                 throw new Exception(photoSaveResult.Message);
@@ -198,8 +203,8 @@ namespace LocalTour.Services.Services
             {
                 await _fileService.DeleteFile(existingPlace.PhotoDisplay);
             }
-            var photos = await _fileService.SaveImageFile(request.PhotoDisplay, "PlaceMedia");
-            existingPlace.WardId = request.WardId;  
+            var photos = await _fileService.SaveImageFile(request.PhotoDisplay);
+            existingPlace.WardId = request.WardId;
             existingPlace.TimeOpen = request.TimeOpen;
             existingPlace.TimeClose = request.TimeClose;
             existingPlace.Longitude = request.Longitude;
@@ -257,7 +262,7 @@ namespace LocalTour.Services.Services
                 };
                 await _unitOfWork.RepositoryPlaceTranslation.Insert(translationEntity);
             }
-            var photoSaveResult = await _fileService.SaveStaticFiles(request.PlaceMedia, "PlaceMedia");
+            var photoSaveResult = await _fileService.SaveStaticFiles(request.PlaceMedia);
             if (!photoSaveResult.Success)
             {
                 throw new Exception(photoSaveResult.Message);

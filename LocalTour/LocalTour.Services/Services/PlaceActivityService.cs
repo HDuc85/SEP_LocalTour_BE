@@ -44,7 +44,7 @@ namespace LocalTour.Services.Services
             {
                 throw new ArgumentNullException(nameof(request));
             }
-            var photos = await _fileService.SaveImageFile(request.PhotoDisplay, "PlaceActivityMedia");
+            var photos = await _fileService.SaveImageFile(request.PhotoDisplay);
             var placeActivity = new PlaceActivity
             {
                 DisplayNumber = request.DisplayNumber,
@@ -53,7 +53,7 @@ namespace LocalTour.Services.Services
             };
             await _unitOfWork.RepositoryPlaceActivity.Insert(placeActivity);
             await _unitOfWork.CommitAsync();
-            var photoSaveResult = await _fileService.SaveStaticFiles(request.PlaceActivityMedium, "PlaceActivityMedia");
+            var photoSaveResult = await _fileService.SaveStaticFiles(request.PlaceActivityMedium);
             if (!photoSaveResult.Success)
             {
                 throw new Exception(photoSaveResult.Message);
@@ -168,7 +168,7 @@ namespace LocalTour.Services.Services
             {
                 await _fileService.DeleteFile(existingActivity.PhotoDisplay);
             }
-            var photos = await _fileService.SaveImageFile(request.PhotoDisplay, "PlaceActivityMedia");
+            var photos = await _fileService.SaveImageFile(request.PhotoDisplay);
             existingActivity.DisplayNumber = request.DisplayNumber;
             existingActivity.PhotoDisplay = photos.Data;
             existingActivity.PlaceId = placeid;
@@ -189,7 +189,7 @@ namespace LocalTour.Services.Services
                  _unitOfWork.RepositoryPlaceActivityTranslation.Delete(translation);
             }
             await _unitOfWork.CommitAsync();
-            var photoSaveResult = await _fileService.SaveStaticFiles(request.PlaceActivityMedium, "PlaceActivityMedia");
+            var photoSaveResult = await _fileService.SaveStaticFiles(request.PlaceActivityMedium);
             if (!photoSaveResult.Success)
             {
                 throw new Exception(photoSaveResult.Message);

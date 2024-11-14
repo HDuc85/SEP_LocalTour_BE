@@ -85,7 +85,8 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateUser([FromForm]UpdateUserRequest updateUserRequest)
         {
-            var result = await _userService.UpdateUser(User.GetUserId(), updateUserRequest, $"{Request.Scheme}://{Request.Host}");
+            string userId = User.GetUserId();
+            var result = await _userService.UpdateUser(userId, updateUserRequest);
             if (!result.Success)
             {
                 return BadRequest(result.Message);

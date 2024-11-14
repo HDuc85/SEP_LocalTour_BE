@@ -1,20 +1,12 @@
 ﻿using AutoMapper;
 using LocalTour.Data.Abstract;
-using LocalTour.Domain.Common;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.Extensions;
-using LocalTour.Services.Model;
 using LocalTour.Services.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LocalTour.Services.Services
 {
@@ -22,15 +14,13 @@ namespace LocalTour.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IFileService _fileService;
 
-        public PlaceFeedbackService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IFileService fileService)
+        public PlaceFeedbackService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IFileService fileService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
             _fileService = fileService;
         }
@@ -70,7 +60,8 @@ namespace LocalTour.Services.Services
                 CreatedDate = DateTime.UtcNow,
             };
             await _unitOfWork.RepositoryPlaceFeeedback.Insert(feedback);
-            var mediaSaveResult = await _fileService.SaveStaticFiles(request.PlaceFeedbackMedia, "PlaceFeedbackMedia");
+            await _unitOfWork.CommitAsync();
+            var mediaSaveResult = await _fileService.SaveStaticFiles(request.PlaceFeedbackMedia);
             if (!mediaSaveResult.Success)
             {
                 throw new Exception(mediaSaveResult.Message);
@@ -106,7 +97,7 @@ namespace LocalTour.Services.Services
             throw new NotImplementedException();
         }
 
-        public async Task<PlaceFeedbackRequest> UpdateFeedback(int placeid,int feedbackid, PlaceFeedbackRequest request)
+        public async Task<PlaceFeedbackRequest> UpdateFeedback(int placeid, int feedbackid, PlaceFeedbackRequest request)
         {
             var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
             if (places == null)
@@ -128,7 +119,36 @@ namespace LocalTour.Services.Services
                 feedback.Rating = request.Rating;
                 feedback.Content = request.Content;
                 feedback.CreatedDate = DateTime.UtcNow;
-            } else
+                var mediaSaveResult = await _fileService.SaveStaticFiles(request.PlaceFeedbackMedia);
+                if (!mediaSaveResult.Success)
+                {
+                    throw new Exception(mediaSaveResult.Message);
+                }
+
+                foreach (var photoUrl in mediaSaveResult.Data.imageUrls)
+                {
+                    var photo = new PlaceFeeedbackMedium
+                    {
+                        FeedbackId = feedback.Id,
+                        Type = "Image",
+                        CreateDate = DateTime.Now,
+                        Url = photoUrl
+                    };
+                    await _unitOfWork.RepositoryPlaceFeeedbackMedium.Insert(photo);
+                }
+                foreach (var mediaUrl in mediaSaveResult.Data.videoUrls)
+                {
+                    var media = new PlaceFeeedbackMedium
+                    {
+                        FeedbackId = feedback.Id,
+                        Type = "Video",
+                        CreateDate = DateTime.Now,
+                        Url = mediaUrl
+                    };
+                    await _unitOfWork.RepositoryPlaceFeeedbackMedium.Insert(media);
+                }
+            }
+            else
             {
                 throw new InvalidOperationException("Wrong user.");
             }
@@ -140,28 +160,28 @@ namespace LocalTour.Services.Services
 
         public async Task<PaginatedList<PlaceFeedbackRequest>> GetAllFeedbackByPlace(int placeid, GetPlaceFeedbackRequest request)
         {
-                var feedbacks = _unitOfWork.RepositoryPlaceFeeedback.GetAll()
-                                                        .Where(e => e.PlaceId == placeid)
-                                                        .AsQueryable();
+            var feedbacks = _unitOfWork.RepositoryPlaceFeeedback.GetAll()
+                                                    .Where(e => e.PlaceId == placeid)
+                                                    .AsQueryable();
 
-                if (request.SearchTerm is not null)
-                {
-                    feedbacks = feedbacks.Where(e => e.Content.Contains(request.SearchTerm));
-                }
-
-                if (!string.IsNullOrEmpty(request.SortBy))
-                {
-                    feedbacks = feedbacks.OrderByCustom(request.SortBy, request.SortOrder);
-                }
-
-                return await feedbacks
-                    .ListPaginateWithSortAsync<PlaceFeeedback, PlaceFeedbackRequest>(
-                    request.Page,
-                    request.Size,
-                    request.SortBy,
-                    request.SortOrder,
-                    _mapper.ConfigurationProvider);
+            if (request.SearchTerm is not null)
+            {
+                feedbacks = feedbacks.Where(e => e.Content.Contains(request.SearchTerm));
             }
-        
+
+            if (!string.IsNullOrEmpty(request.SortBy))
+            {
+                feedbacks = feedbacks.OrderByCustom(request.SortBy, request.SortOrder);
+            }
+
+            return await feedbacks
+                .ListPaginateWithSortAsync<PlaceFeeedback, PlaceFeedbackRequest>(
+                request.Page,
+                request.Size,
+                request.SortBy,
+                request.SortOrder,
+                _mapper.ConfigurationProvider);
+        }
+
     }
 }

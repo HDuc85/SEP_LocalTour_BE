@@ -9,12 +9,17 @@ namespace LocalTour.Services.Services
     public class FileService : IFileService
     {
         private readonly IConfiguration _configuration;
-
-        public FileService(IConfiguration configuration)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public FileService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             _configuration = configuration;
+            _httpContextAccessor = httpContextAccessor;
         }
 
+        private string getRequestUrl()
+        {
+           return $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}";
+        }
         public async Task<ServiceResponseModel<bool>> DeleteFile(string fileName)
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Media", fileName);
@@ -90,8 +95,9 @@ namespace LocalTour.Services.Services
             );
         }
 
-        public async Task<ServiceResponseModel<MediaFileStaticVM>> SaveStaticFiles(List<IFormFile> files,string requestUrl)
+        public async Task<ServiceResponseModel<MediaFileStaticVM>> SaveStaticFiles(List<IFormFile> files)
         {
+          
             int maxFileCount = _configuration.GetValue<int>("FileUploadSettings:MaxFileCount");
             int maxImageCount = _configuration.GetValue<int>("FileUploadSettings:MaxImageCount");
             int maxVideoCount = _configuration.GetValue<int>("FileUploadSettings:MaxVideoCount");
@@ -170,7 +176,7 @@ namespace LocalTour.Services.Services
                     await file.CopyToAsync(stream);
                 }
 
-                var fileUrl = $"{requestUrl}/Media/{fileName}";
+                var fileUrl = $"{getRequestUrl()}/Media/{fileName}";
                 if(media == "images")
                 {
                     imageUrls.Add(fileUrl);
@@ -191,7 +197,7 @@ namespace LocalTour.Services.Services
 
         }
 
-        public async Task<ServiceResponseModel<string>> SaveVideoFile(IFormFile file, string requestUrl)
+        public async Task<ServiceResponseModel<string>> SaveVideoFile(IFormFile file)
         {
             string fileExtension = Path.GetExtension(file.FileName).ToLower();
 
@@ -205,7 +211,7 @@ namespace LocalTour.Services.Services
                     await file.CopyToAsync(stream);
                 }
 
-                return new ServiceResponseModel<string>($"{requestUrl}/Media/{fileName}");
+                return new ServiceResponseModel<string>($"{getRequestUrl()}/Media/{fileName}");
             }
             else
             {
@@ -217,10 +223,10 @@ namespace LocalTour.Services.Services
             }
         }
 
-        public async Task<ServiceResponseModel<string>> SaveImageFile(IFormFile file, string requestUrl)
+        public async Task<ServiceResponseModel<string>> SaveImageFile(IFormFile file)
         {
             string fileExtension = Path.GetExtension(file.FileName).ToLower();
-
+          
             if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png" || fileExtension == ".gif")
             {
                 var fileName = "image_" + Guid.NewGuid().ToString() + fileExtension;
@@ -231,7 +237,7 @@ namespace LocalTour.Services.Services
                     await file.CopyToAsync(stream);
                 }
 
-                return new ServiceResponseModel<string>($"{requestUrl}/Media/{fileName}");
+                return new ServiceResponseModel<string>($"{getRequestUrl()}/Media/{fileName}");
             }
             else
             {
