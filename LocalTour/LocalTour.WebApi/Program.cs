@@ -6,6 +6,7 @@ using Service.Common.Mapping;
 using System.Reflection;
 using LocalTour.WebApi.Middleware;
 using LocalTour.Services.Extensions;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -87,7 +88,14 @@ app.UseMiddleware<CheckUserBanMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseStaticFiles(); 
+app.UseStaticFiles(new StaticFileOptions
+{
+  FileProvider = new PhysicalFileProvider(
+    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Media")),
+  RequestPath
+    = "/Meida"
+});
 
 app.MapControllers();
 
