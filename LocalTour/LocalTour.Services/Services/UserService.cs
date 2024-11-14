@@ -207,7 +207,7 @@ namespace LocalTour.Services.Services
 
             return new ServiceResponseModel<User>(user);
         }
-        public async Task<ServiceResponseModel<bool>> ChangePassword(string userId, string oldPassword, string newPassword)
+        public async Task<ServiceResponseModel<bool>> ChangePassword(string userId, ChangePasswordRequest request)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
@@ -215,12 +215,17 @@ namespace LocalTour.Services.Services
                 return new ServiceResponseModel<bool>(false, "User is not exist");
             }
 
-            var checkPassword = await _userManager.CheckPasswordAsync(user, oldPassword);
+            if (request.newPassword != request.confirmPassword)
+            {
+                return new ServiceResponseModel<bool>(false,"Passwords do not match"); 
+            }
+            
+            var checkPassword = await _userManager.CheckPasswordAsync(user, request.oldPassword);
             if (!checkPassword)
             {
                 return new ServiceResponseModel<bool>(false, "Old password is incorrect");
             }
-            var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+            var result = await _userManager.ChangePasswordAsync(user, request.oldPassword, request.newPassword);
             if (result.Succeeded)
             {
                 return new ServiceResponseModel<bool>(true, "Password changed successfully");

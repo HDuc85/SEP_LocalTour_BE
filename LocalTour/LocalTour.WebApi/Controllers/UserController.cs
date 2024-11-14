@@ -69,9 +69,9 @@ namespace LocalTour.WebApi.Controllers
 
         [HttpPost("changePassword")]
         [Authorize]
-        public async Task<IActionResult> ChangePassword(string oldPassword, string newPassword)
+        public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
         {
-            var result = await _userService.ChangePassword(User.GetUserId(), oldPassword, newPassword);
+            var result = await _userService.ChangePassword(User.GetUserId(),request);
 
             if (result.Success)
             {

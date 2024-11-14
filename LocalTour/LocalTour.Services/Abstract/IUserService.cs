@@ -22,7 +22,7 @@ namespace LocalTour.Services.Abstract
                 Task<bool> AddRole(string userId, string role);
                 Task<bool> RemoveRole(string userId, string role);
                 Task<ServiceResponseModel<User>?> UpdateUser(string userId, UpdateUserRequest updateUserRequest);
-                Task<ServiceResponseModel<bool>> ChangePassword(string userId, string oldPassword, string newPassword);
+                Task<ServiceResponseModel<bool>> ChangePassword(string userId, ChangePasswordRequest request);
                 Task<bool> IsUserBanned(string userId);
                 Task<User> CreateModerate(CreateUserRequest createUserRequest);
                 Task<ServiceResponseModel<UserProfileVM>> GetProfile(string userId);
