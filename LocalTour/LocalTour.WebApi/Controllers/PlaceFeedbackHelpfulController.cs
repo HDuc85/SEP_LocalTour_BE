@@ -16,8 +16,8 @@ namespace LocalTour.WebApi.Controllers
         {
             _placeFeedbackHelpfulService = placeFeedbackHelpfulService;
         }
-        [HttpPost("like")]
-        public async Task<ActionResult<ServiceResponseModel<PlaceFeeedbackHelpful>>> LikeFeedback([FromForm] int placeid, [FromForm] int placefeedbackid)
+        [HttpPost("likeOrUnlike")]
+        public async Task<ActionResult<ServiceResponseModel<PlaceFeeedbackHelpful>>> LikeorUnlikeFeedback([FromForm] int placeid, [FromForm] int placefeedbackid)
         {
             if (placefeedbackid == null)
             {
@@ -25,28 +25,11 @@ namespace LocalTour.WebApi.Controllers
             }
             try
             {
-                var feedback = await _placeFeedbackHelpfulService.CreateHelpful(placeid, placefeedbackid);
+                var feedback = await _placeFeedbackHelpfulService.CreateorDeleteHelpful(placeid, placefeedbackid);
                 return Ok(new ServiceResponseModel<PlaceFeeedbackHelpful>(feedback)
                 {
-                    Message = "Feedback created successfully"
+                    Message = "Successfully"
                 });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new ServiceResponseModel<PlaceFeeedbackHelpful>(false, $"An error occurred: {ex.Message}"));
-            }
-        }
-        [HttpDelete("unlike")]
-        public async Task<ActionResult<bool>> UnlikeFeedback([FromForm] int placeid, [FromForm] int placefeedbackid, int helpfulid)
-        {
-            if (placefeedbackid == null)
-            {
-                return BadRequest(new ServiceResponseModel<PlaceFeeedbackHelpful>(false, "Request cannot be null"));
-            }
-            try
-            {
-                var feedback = await _placeFeedbackHelpfulService.DeleteHelpful(placeid, placefeedbackid, helpfulid);
-                return Ok();
             }
             catch (Exception ex)
             {

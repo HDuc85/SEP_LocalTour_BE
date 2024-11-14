@@ -92,9 +92,27 @@ namespace LocalTour.Services.Services
             await _unitOfWork.CommitAsync();
             return request;
         }
-        public Task<int> DeleteFeedback(int placeid, int feedbackid)
+        public async Task<bool> DeleteFeedback(int placeid, int feedbackid)
         {
-            throw new NotImplementedException();
+            var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
+            if (places == null)
+            {
+                throw new ArgumentException($"Place with id {placeid} not found.");
+            }
+            var existingMedia = await _unitOfWork.RepositoryPlaceFeeedbackMedium.GetAll()
+                                         .Where(e => e.FeedbackId == feedbackid)
+                                         .ToListAsync();
+            foreach (var media in existingMedia)
+            {
+                _unitOfWork.RepositoryPlaceFeeedbackMedium.Delete(media);
+            }
+            var feedbackEntity = await _unitOfWork.RepositoryPlaceFeeedback.GetById(feedbackid);
+            if (feedbackEntity != null)
+            {
+                _unitOfWork.RepositoryPlaceFeeedback.Delete(feedbackEntity);
+            }
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<PlaceFeedbackRequest> UpdateFeedback(int placeid, int feedbackid, PlaceFeedbackRequest request)
@@ -113,6 +131,13 @@ namespace LocalTour.Services.Services
             if (!Guid.TryParse(userid, out var userId))
             {
                 throw new InvalidOperationException("User ID is not a valid GUID.");
+            }
+            var existingMedia = await _unitOfWork.RepositoryPlaceFeeedbackMedium.GetAll()
+                                                     .Where(e => e.FeedbackId == feedbackid)
+                                                     .ToListAsync();
+            foreach (var media in existingMedia)
+            {
+                _unitOfWork.RepositoryPlaceFeeedbackMedium.Delete(media);
             }
             if (userId == feedback.UserId)
             {

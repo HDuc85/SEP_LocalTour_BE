@@ -26,10 +26,7 @@ namespace LocalTour.WebApi.Controllers
             try
             {
                 var feedback = await _placeFeedbackService.GetAllFeedbackByPlace(placeid, request);
-                return Ok(new ApiReponseModel<PaginatedList<PlaceFeedbackRequest>>(feedback)
-                {
-                    message = "Successfully"
-                });
+                return Ok(feedback);
             }
             catch (Exception ex)
             {
@@ -37,7 +34,7 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpPost("create")]
-        public async Task<ActionResult<ApiReponseModel<PlaceFeedbackRequest>>> CreateFeedback([FromForm] int placeid, [FromForm] PlaceFeedbackRequest request)
+        public async Task<ActionResult<ApiReponseModel<PlaceFeedbackRequest>>> CreateFeedback( int placeid, PlaceFeedbackRequest request)
         {
             if (request == null)
             {
@@ -46,10 +43,7 @@ namespace LocalTour.WebApi.Controllers
             try
             {
                 var feedback = await _placeFeedbackService.CreateFeedback(placeid, request);
-                return Ok(new ApiReponseModel<PlaceFeedbackRequest>(feedback)
-                {
-                    message = "Feedback created successfully"
-                });
+                return Ok(feedback);
             }
             catch (Exception ex)
             {
@@ -57,7 +51,7 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpPut("update")]
-        public async Task<ActionResult<ApiReponseModel<PlaceFeedbackRequest>>> UpdateEvent([FromForm] int placeid, [FromForm] int feedbackid, [FromForm] PlaceFeedbackRequest request)
+        public async Task<ActionResult<ApiReponseModel<PlaceFeedbackRequest>>> UpdateEvent( int placeid, int feedbackid, PlaceFeedbackRequest request)
         {
             if (request == null)
             {
@@ -66,10 +60,7 @@ namespace LocalTour.WebApi.Controllers
             try
             {
                 var feedback = await _placeFeedbackService.UpdateFeedback(placeid, feedbackid, request);
-                return Ok(new ApiReponseModel<PlaceFeedbackRequest>(feedback)
-                {
-                    message = "Feedback updated successfully"
-                });
+                return Ok(feedback);
             }
             catch (Exception ex)
             {

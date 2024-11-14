@@ -59,6 +59,7 @@ namespace LocalTour.Services.Services
                 Latitude = place.Latitude,
                 PhotoDisplay = photos.Data,
                 ContactLink = place.ContactLink,
+                AuthorId = userId,
                 Status = "0",
             };
             await _unitOfWork.RepositoryPlace.Insert(placeEntity);
@@ -133,14 +134,31 @@ namespace LocalTour.Services.Services
                 .Where(mt => mt.UserId == userId)
                 .Select(mt => mt.TagId)
                 .ToListAsync();
+            var roles = _httpContextAccessor.HttpContext.User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
+            if (!roles.Any())
+            {
+                throw new UnauthorizedAccessException("User has no assigned roles.");
+            }
+            IQueryable<Place> places;
+            if (roles.Contains("Visitor"))
+            {
+                places = _unitOfWork.RepositoryPlace.GetAll().Include(x => x.PlaceTranslations)
+                        .Include(y => y.PlaceTags)
+                        .Include(z => z.PlaceActivities)
+                        .Include(r => r.PlaceMedia)
+                        .Where(r => r.Status == "1")
+                        .AsQueryable();
 
-            var places = _unitOfWork.RepositoryPlace.GetAll().Include(x => x.PlaceTranslations)
-                .Include(y => y.PlaceTags)
-                .Include(z => z.PlaceActivities)
-                .Include(r => r.PlaceMedia)
-                .Where(r => r.Status == "1")
-           .AsQueryable();
+            }
+            else
+            {
+                places = _unitOfWork.RepositoryPlace.GetAll().Include(x => x.PlaceTranslations)
+                           .Include(y => y.PlaceTags)
+                           .Include(z => z.PlaceActivities)
+                           .Include(r => r.PlaceMedia)
+                           .AsQueryable();
 
+            }
             if (request.SearchTerm is not null)
             {
                 places = places.Where(x => x.PlaceTranslations.Any(pt => pt.Name.Contains(request.SearchTerm)) ||
@@ -155,6 +173,7 @@ namespace LocalTour.Services.Services
                     request.CurrentLongitude,
                     request.CurrentLatitude,
                     userTags,
+                    userId,
                     _mapper.ConfigurationProvider);
         }
         private double CalculateDistance(double longitude1, double latitude1, double longitude2, double latitude2)

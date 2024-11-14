@@ -27,8 +27,8 @@ public partial class Place
     public Guid? ApproverId { get; set; }
     
     public DateTime? ApprovedTime { get; set; }
-    
-    
+
+    public Guid AuthorId { get; set; }
     public virtual ICollection<Destination> Destinations { get; set; } = new List<Destination>();
 
     public virtual ICollection<Event> Events { get; set; } = new List<Event>();

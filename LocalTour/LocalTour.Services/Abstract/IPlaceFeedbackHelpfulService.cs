@@ -10,8 +10,7 @@ namespace LocalTour.Services.Abstract
 {
     public interface IPlaceFeedbackHelpfulService
     {
-        Task<PlaceFeeedbackHelpful> CreateHelpful(int placeid, int placefeedbackid);
-        Task<bool> DeleteHelpful(int placeid, int placefeedbackid, int helpfulid);
+        Task<PlaceFeeedbackHelpful> CreateorDeleteHelpful(int placeid, int placefeedbackid);
 
     }
 }
