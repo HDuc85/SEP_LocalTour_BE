@@ -62,7 +62,7 @@ namespace LocalTour.WebApi.Controllers
 
         [HttpPost("verifyTokenFirebase")]
         [AllowAnonymous]
-        public async Task<IActionResult> VerifyToken(string idToken)
+        public async Task<IActionResult> VerifyToken([FromBody]string idToken)
         {
             try
             {
@@ -75,6 +75,8 @@ namespace LocalTour.WebApi.Controllers
                 {
                 user = await _userService.FindByEmail(email);
                 }
+
+                bool firstTime = false;
                 if (user == null)
                 {
                     user = await _userService.CreateUser(new Domain.Entities.User
@@ -88,6 +90,7 @@ namespace LocalTour.WebApi.Controllers
                         UserName = phoneNumber.IsNullOrEmpty()?email:phoneNumber,
                         Id = Guid.NewGuid()
                     });
+                    firstTime = true;
                 }
 
                 (string firebaseAuthToken, DateTime expiredDateToken) = await _tokenHandler.CreateAuthenFirebaseToken(user,idToken);
@@ -96,6 +99,7 @@ namespace LocalTour.WebApi.Controllers
                 {
                     firebaseAuthToken = firebaseAuthToken,
                     expiredDateToken = expiredDateToken,
+                    firstTime = firstTime
                 });
             }
             catch (FirebaseAuthException ex)

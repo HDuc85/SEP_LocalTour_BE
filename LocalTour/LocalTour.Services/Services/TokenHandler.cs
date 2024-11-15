@@ -206,7 +206,6 @@ namespace LocalTour.Services.Services
                     RequireExpirationTime = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"])),
                     ValidateIssuerSigningKey = true,
-
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = false,
@@ -226,10 +225,10 @@ namespace LocalTour.Services.Services
 
             var user = await _userManager.FindByIdAsync(userid);
 
-            var token = await _userManager.GetAuthenticationTokenAsync(user, "AccessTokenProvider", "AccessToken");
+            var token = await _userManager.GetAuthenticationTokenAsync(user, "RefreshTokenProvider", "RefreshToken");
 
             if (string.IsNullOrEmpty(token)) return new();
-
+            if(token != refreshToken) return new();
 
 
             (string newAccessToken, DateTime createdDateAccessToken) = await CreateAccessToken(user);
