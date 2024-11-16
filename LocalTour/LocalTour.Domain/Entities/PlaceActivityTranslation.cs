@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace LocalTour.Domain.Entities;
 
@@ -20,6 +21,6 @@ public partial class PlaceActivityTranslation
     public string PriceType { get; set; } = null!;
 
     public double? Discount { get; set; }
-
+    [JsonIgnore]
     public virtual PlaceActivity PlaceActivity { get; set; } = null!;
 }

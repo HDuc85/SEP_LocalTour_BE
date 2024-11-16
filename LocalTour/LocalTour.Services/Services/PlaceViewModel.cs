@@ -1,18 +1,15 @@
-﻿using LocalTour.Domain.Entities;
-using LocalTour.Services.Common.Mapping;
+﻿using LocalTour.Services.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LocalTour.Services.ViewModel
+namespace LocalTour.Services.Services
 {
-    public class PlaceVM : IMapFrom<Place>
+    public class PlaceViewModel
     {
         public int Id { get; set; }
-        //public int WardId { get; set; }
-        public string WardName { get; set; } = null!;
 
         public string PhotoDisplay { get; set; } = null!;
 
@@ -24,16 +21,14 @@ namespace LocalTour.Services.ViewModel
 
         public double Latitude { get; set; }
 
-        public string Status { get; set; }
-
         public string? ContactLink { get; set; }
-        public double Distance { get; set; }
-        public double Rating { get; set; }
-        public int TotalPlaceFeedback { get; set; }
 
+        public Guid AuthorId { get; set; }
+        public bool isUserFeedbacked { get; set; }
         public virtual ICollection<PlaceActivityRequest> PlaceActivities { get; set; }
 
         public virtual ICollection<PlaceMediumRequest> PlaceMedia { get; set; }
-        public virtual ICollection<PlaceTranslation> PlaceTranslation { get; set; }
+        public virtual ICollection<EventRequest> Event { get; set; }
+        public virtual ICollection<PlaceTranslationRequest> PlaceTranslation { get; set; }
     }
 }

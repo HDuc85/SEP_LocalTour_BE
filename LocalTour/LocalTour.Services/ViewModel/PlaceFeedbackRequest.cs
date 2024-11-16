@@ -13,6 +13,8 @@ namespace LocalTour.Services.ViewModel
     {
         public int Rating { get; set; }
         public string? Content { get; set; }
-        public List<IFormFile> PlaceFeedbackMedia { get; set; }
+        public int? TotalLike { get; set; }
+        public bool isLiked { get; set; }
+        public virtual ICollection<PlaceFeeedbackMedium> PlaceFeeedbackMedia { get; set; } = new List<PlaceFeeedbackMedium>();
     }
 }

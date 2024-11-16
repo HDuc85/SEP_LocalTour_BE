@@ -144,6 +144,16 @@ where TEntityDto : IMapFrom<TEntity>
         }  
         var pageNumber = page.GetValueOrDefault(1);
         var sizeNumber = size.GetValueOrDefault(10);
+        var placesWithDistance = items.OfType<Place>()
+        .Select(place => new
+        {
+        Place = place,
+        Distance = CalculateDistance(latitude, longitude, place.Latitude, place.Longitude),
+        AverageRating = place.PlaceFeeedbacks.Any() ?
+                place.PlaceFeeedbacks.Average(feedback => feedback.Rating) : 0,
+        TotalFeedback = place.PlaceFeeedbacks != null ? place.PlaceFeeedbacks.Count() : 0
+        })
+        .ToList();
 
         var count = await items.CountAsync();
         if (sortBy.Equals("created by", StringComparison.OrdinalIgnoreCase) && userId.HasValue)
@@ -158,6 +168,15 @@ where TEntityDto : IMapFrom<TEntity>
 
             var mappers = mapperConfiguration.CreateMapper();
             var results = mappers.Map<List<TEntityDto>>(lists);
+            for (int i = 0; i < results.Count; i++)
+            {
+                if (results[i] is PlaceVM vm)
+                {
+                    vm.Distance = placesWithDistance[i].Distance;
+                    vm.Rating = placesWithDistance[i].AverageRating;
+                    vm.TotalPlaceFeedback = placesWithDistance[i].TotalFeedback;
+                }
+            }
             return new PaginatedList<TEntityDto>(results, count, pageNumber, sizeNumber);
         }
         if (sortBy.Equals("suggested", StringComparison.OrdinalIgnoreCase))
@@ -173,6 +192,15 @@ where TEntityDto : IMapFrom<TEntity>
 
             var mappers = mapperConfiguration.CreateMapper();
             var results = mappers.Map<List<TEntityDto>>(lists);
+            for (int i = 0; i < results.Count; i++)
+            {
+                if (results[i] is PlaceVM vm)
+                {
+                    vm.Distance = placesWithDistance[i].Distance;
+                    vm.Rating = placesWithDistance[i].AverageRating;
+                    vm.TotalPlaceFeedback = placesWithDistance[i].TotalFeedback;
+                }
+            }
             return new PaginatedList<TEntityDto>(results, count, pageNumber, sizeNumber);
         }
           var places = await items.OfType<Place>().ToListAsync();
@@ -180,33 +208,62 @@ where TEntityDto : IMapFrom<TEntity>
         {
             if (sortOrder.Equals("asc", StringComparison.OrdinalIgnoreCase))
             {
-                places = places
-          .Select(place => new
-          {
-              Place = place,
-              Distance = CalculateDistance(latitude, longitude, place.Latitude, place.Longitude)
-          })
-          .OrderBy(x => x.Distance)
-          .Select(x => x.Place)
-          .ToList();
+                placesWithDistance = placesWithDistance.OrderBy(x => x.Distance).ToList();
             } else
             {
-                places = places
-        .Select(place => new
-        {
-            Place = place,
-            Distance = CalculateDistance(latitude, longitude, place.Latitude, place.Longitude)
-        })
-        .OrderByDescending(x => x.Distance)
-        .Select(x => x.Place)
-        .ToList();
+                  placesWithDistance = placesWithDistance.OrderByDescending(x => x.Distance).ToList();
             }
-            var paginatedList = places
+            var paginatedList = placesWithDistance
          .Skip((pageNumber - 1) * sizeNumber)
          .Take(sizeNumber)
+         .Select(x => x.Place)
          .ToList();
             var mappers = mapperConfiguration.CreateMapper();
             var results = mappers.Map<List<TEntityDto>>(paginatedList);
+            for (int i = 0; i < results.Count; i++)
+            {
+                if (results[i] is PlaceVM vm)
+                {
+                    vm.Distance = placesWithDistance[i].Distance;
+                    vm.Rating = placesWithDistance[i].AverageRating;
+                    vm.TotalPlaceFeedback = placesWithDistance[i].TotalFeedback;
+                }
+            }
+            return new PaginatedList<TEntityDto>(results, count, pageNumber, sizeNumber);
+        }
+        if (sortBy.Equals("rating", StringComparison.OrdinalIgnoreCase))
+        {
+            if (sortOrder.Equals("asc", StringComparison.OrdinalIgnoreCase))
+            {
+                placesWithDistance = placesWithDistance
+                    .OrderByDescending(x => x.AverageRating)
+                    .ToList();
+            }
+            else
+            {
+                placesWithDistance = placesWithDistance
+                    .OrderBy(x => x.AverageRating)
+                    .ToList();
+            }
+            var paginatedList = placesWithDistance
+                .Skip((pageNumber - 1) * sizeNumber)
+                .Take(sizeNumber)
+                .Select(x => x.Place)
+                .ToList();
+
+            var mappers = mapperConfiguration.CreateMapper();
+            var results = mappers.Map<List<TEntityDto>>(paginatedList);
+
+            for (int i = 0; i < results.Count; i++)
+            {
+                if (results[i] is PlaceVM vm)
+                {
+                    vm.Distance = placesWithDistance[i].Distance;
+                    vm.Rating = placesWithDistance[i].AverageRating;
+                    vm.TotalPlaceFeedback = placesWithDistance[i].TotalFeedback;
+                }
+            }
+
             return new PaginatedList<TEntityDto>(results, count, pageNumber, sizeNumber);
         }
         sortOrder ??= "asc";
@@ -217,6 +274,15 @@ where TEntityDto : IMapFrom<TEntity>
 
         var mapper = mapperConfiguration.CreateMapper();
         var result = mapper.Map<List<TEntityDto>>(list);
+        for (int i = 0; i < result.Count; i++)
+        {
+            if (result[i] is PlaceVM vm)
+            {
+                vm.Distance = placesWithDistance[i].Distance;
+                vm.Rating = placesWithDistance[i].AverageRating;
+                vm.TotalPlaceFeedback = placesWithDistance[i].TotalFeedback;
+            }
+        }
         return new PaginatedList<TEntityDto>(result, count, pageNumber, sizeNumber);
     }
     public static double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
@@ -229,5 +295,54 @@ where TEntityDto : IMapFrom<TEntity>
                 Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
         var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
         return R * c; // Distance in kilometers
+    }
+    public static async Task<PaginatedList<TEntityDto>> ListPaginateWithFeedbackAsync<TEntity, TEntityDto>(
+   this IQueryable<TEntity> items,
+   int? page,
+   int? size,
+   string? sortBy,
+   string? sortOrder,
+   Guid userId,
+   AutoMapper.IConfigurationProvider mapperConfiguration
+  )
+   where TEntityDto : IMapFrom<TEntity>
+    {
+        if (string.IsNullOrEmpty(sortBy) || !IsValidProperty<TEntityDto>(sortBy))
+        {
+            sortBy = typeof(TEntity) == typeof(PlaceFeeedback) ? nameof(PlaceFeeedback.Id) :
+                     throw new ArgumentException("Invalid sortBy property.");
+        }
+
+        sortOrder ??= "asc";
+        var pageNumber = page.GetValueOrDefault(1);
+        var sizeNumber = size.GetValueOrDefault(10);
+
+        var count = await items.CountAsync();
+        var placesWithFeedback = await items
+        .OfType<PlaceFeeedback>()
+        .Select(feedback => new
+        {
+            Feedback = feedback,
+            TotalLike = feedback.PlaceFeeedbackHelpfuls.Count(),
+            IsLike = feedback.PlaceFeeedbackHelpfuls.Any(h => h.UserId == userId)
+        })
+        .ToListAsync();
+        var list = await items
+            .OrderByCustom(sortBy, sortOrder)
+            .Paginate(pageNumber, sizeNumber)
+            .ToListAsync();
+
+        var mapper = mapperConfiguration.CreateMapper();
+        var result = mapper.Map<List<TEntityDto>>(list);
+        for (int i = 0; i < result.Count; i++)
+        {
+            if (result[i] is PlaceFeedbackRequest vm)
+            {
+                var feedbackWithLikes = placesWithFeedback[i];
+                vm.TotalLike = feedbackWithLikes.TotalLike;
+                vm.isLiked = feedbackWithLikes.IsLike;
+            }
+        }
+        return new PaginatedList<TEntityDto>(result, count, pageNumber, sizeNumber);
     }
 }

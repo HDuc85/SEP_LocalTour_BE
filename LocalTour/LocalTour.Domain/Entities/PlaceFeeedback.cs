@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace LocalTour.Domain.Entities;
 
@@ -16,12 +17,12 @@ public partial class PlaceFeeedback
     public string? Content { get; set; }
 
     public DateTime CreatedDate { get; set; }
-
+    [JsonIgnore]
     public virtual Place Place { get; set; } = null!;
 
     public virtual ICollection<PlaceFeeedbackHelpful> PlaceFeeedbackHelpfuls { get; set; } = new List<PlaceFeeedbackHelpful>();
 
     public virtual ICollection<PlaceFeeedbackMedium> PlaceFeeedbackMedia { get; set; } = new List<PlaceFeeedbackMedium>();
-
+    [JsonIgnore]
     public virtual User User { get; set; } = null!;
 }

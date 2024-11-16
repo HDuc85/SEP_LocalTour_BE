@@ -125,7 +125,7 @@ namespace LocalTour.Services.Services
                 _mapper.ConfigurationProvider);
         }
 
-        public async Task<PlaceActivity> GetActivityById(int placeid, int activityid)
+        public async Task<PlaceActivity> GetActivityById(int placeid, int activityid, string languageCode)
         {
             var place = await _unitOfWork.RepositoryPlace.GetById(placeid);
             if (place == null)
@@ -134,13 +134,18 @@ namespace LocalTour.Services.Services
             }
 
             var activityEntity = await _unitOfWork.RepositoryPlaceActivity.GetAll()
+                .Include(p => p.PlaceActivityMedia)
+                .Include(p => p.PlaceActivityTranslations.Where(pt => pt.LanguageCode == languageCode))
                 .FirstOrDefaultAsync(e => e.Id == activityid && e.PlaceId == placeid);
 
             if (activityEntity == null)
             {
-                throw new KeyNotFoundException($"Event with ID {activityid} for Place ID {placeid} not found.");
+                throw new KeyNotFoundException($"PlaceActivity with ID {activityid} for Place ID {placeid} not found.");
             }
-
+            activityEntity.PlaceActivityMedia = activityEntity.PlaceActivityMedia
+                .OrderByDescending(pm => pm.Type == "Video")
+                .ThenBy(pm => pm.Id)
+                .ToList();
             return activityEntity;
         }
 

@@ -36,7 +36,7 @@ namespace LocalTour.Services.Services
             _fileService = fileService;
         }
 
-        public async Task<PlaceFeedbackRequest> CreateFeedback(int placeid, PlaceFeedbackRequest request)
+        public async Task<FeedbackRequest> CreateFeedback(int placeid, FeedbackRequest request)
         {
             var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
             if (places == null)
@@ -126,7 +126,7 @@ namespace LocalTour.Services.Services
             return true;
         }
 
-        public async Task<PlaceFeedbackRequest> UpdateFeedback(int placeid,int feedbackid, PlaceFeedbackRequest request)
+        public async Task<FeedbackRequest> UpdateFeedback(int placeid,int feedbackid, FeedbackRequest request)
         {
             var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
             if (places == null)
@@ -195,7 +195,13 @@ namespace LocalTour.Services.Services
 
         public async Task<PaginatedList<PlaceFeedbackRequest>> GetAllFeedbackByPlace(int placeid, GetPlaceFeedbackRequest request)
         {
-                var feedbacks = _unitOfWork.RepositoryPlaceFeeedback.GetAll()
+            var user = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(user) || !Guid.TryParse(user, out var userId))
+            {
+                throw new UnauthorizedAccessException("User not found or invalid User ID.");
+            }
+            var feedbacks = _unitOfWork.RepositoryPlaceFeeedback.GetAll()
+                                                        .Include(y => y.PlaceFeeedbackMedia)
                                                         .Where(e => e.PlaceId == placeid)
                                                         .AsQueryable();
 
@@ -208,13 +214,15 @@ namespace LocalTour.Services.Services
                 {
                     feedbacks = feedbacks.OrderByCustom(request.SortBy, request.SortOrder);
                 }
-
-                return await feedbacks
-                    .ListPaginateWithSortAsync<PlaceFeeedback, PlaceFeedbackRequest>(
+            feedbacks = feedbacks.OrderByDescending(f => f.UserId == userId)
+                 .ThenBy(f => f.CreatedDate);
+            return await feedbacks
+                    .ListPaginateWithFeedbackAsync<PlaceFeeedback, PlaceFeedbackRequest>(
                     request.Page,
                     request.Size,
                     request.SortBy,
                     request.SortOrder,
+                    userId,
                     _mapper.ConfigurationProvider);
             }
         

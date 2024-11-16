@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace LocalTour.Domain.Entities;
 
@@ -18,6 +19,6 @@ public partial class PlaceTranslation
     public string Address { get; set; } = null!;
 
     public string? Contact { get; set; }
-
+    [JsonIgnore]
     public virtual Place Place { get; set; } = null!;
 }

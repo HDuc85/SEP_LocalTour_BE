@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace LocalTour.Domain.Entities;
 
@@ -12,7 +13,7 @@ public partial class PlaceActivity
     public int DisplayNumber { get; set; }
 
     public string? PhotoDisplay { get; set; }
-
+    [JsonIgnore]
     public virtual Place Place { get; set; } = null!;
 
     public virtual ICollection<PlaceActivityMedium> PlaceActivityMedia { get; set; } = new List<PlaceActivityMedium>();

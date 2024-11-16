@@ -34,11 +34,11 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpPost("create")]
-        public async Task<ActionResult<ApiReponseModel<PlaceFeedbackRequest>>> CreateFeedback( int placeid, PlaceFeedbackRequest request)
+        public async Task<ActionResult<ApiReponseModel<FeedbackRequest>>> CreateFeedback( int placeid, FeedbackRequest request)
         {
             if (request == null)
             {
-                return BadRequest(new ApiReponseModel<PlaceFeedbackRequest>(false, "Request cannot be null"));
+                return BadRequest(new ApiReponseModel<FeedbackRequest>(false, "Request cannot be null"));
             }
             try
             {
@@ -47,15 +47,15 @@ namespace LocalTour.WebApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ApiReponseModel<PlaceFeedbackRequest>(false, $"An error occurred: {ex.Message}"));
+                return StatusCode(500, new ApiReponseModel<FeedbackRequest>(false, $"An error occurred: {ex.Message}"));
             }
         }
         [HttpPut("update")]
-        public async Task<ActionResult<ApiReponseModel<PlaceFeedbackRequest>>> UpdateEvent( int placeid, int feedbackid, PlaceFeedbackRequest request)
+        public async Task<ActionResult<ApiReponseModel<FeedbackRequest>>> UpdateEvent( int placeid, int feedbackid, FeedbackRequest request)
         {
             if (request == null)
             {
-                return BadRequest(new ApiReponseModel<PlaceFeedbackRequest>(false, "Request cannot be null"));
+                return BadRequest(new ApiReponseModel<FeedbackRequest>(false, "Request cannot be null"));
             }
             try
             {
@@ -64,7 +64,7 @@ namespace LocalTour.WebApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ApiReponseModel<PlaceFeedbackRequest>(false, $"An error occurred: {ex.Message}"));
+                return StatusCode(500, new ApiReponseModel<FeedbackRequest>(false, $"An error occurred: {ex.Message}"));
             }
         }
         [HttpDelete("delete")]
