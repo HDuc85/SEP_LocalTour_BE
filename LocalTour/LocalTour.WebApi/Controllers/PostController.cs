@@ -171,7 +171,7 @@ namespace LocalTour.WebApi.Controllers
                         _unitOfWork.RepositoryPostMedium.Delete(media);
                     }
 
-                    var mediaSaveResult = await _fileService.SaveStaticFiles(updatePostRequest.MediaFiles, "PostMedia");
+                    var mediaSaveResult = await _fileService.SaveStaticFiles(updatePostRequest.MediaFiles);
                     if (!mediaSaveResult.Success)
                     {
                         return BadRequest(new { statusCode = 400, message = mediaSaveResult.Message });

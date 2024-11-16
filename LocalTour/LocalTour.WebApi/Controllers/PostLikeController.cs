@@ -27,7 +27,7 @@ namespace LocalTour.WebApi.Controllers
         public async Task<IActionResult> ToggleLike(int postId, [FromQuery] Guid userId)
         {
             // Kiểm tra User
-            var userExists = await _userService.GetUserByIdAsync(userId);
+            var userExists = await _userService.FindById(userId.ToString());
             if (userExists == null)
                 return StatusCode(404, new { message = "User not found." });
 
@@ -51,7 +51,7 @@ namespace LocalTour.WebApi.Controllers
         public async Task<IActionResult> UnlikePost(int postId, [FromQuery] Guid userId)
         {
             // Kiểm tra User
-            var userExists = await _userService.GetUserByIdAsync(userId);
+            var userExists = await _userService.FindById(userId.ToString());
             if (userExists == null)
                 return StatusCode(404, new { message = "User not found." });
 

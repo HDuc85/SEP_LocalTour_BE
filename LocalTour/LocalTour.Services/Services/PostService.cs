@@ -87,7 +87,7 @@ namespace LocalTour.Services.Services
                 postRequest.Media = await GetAllMediaByPostId(postRequest.Id);
 
                 // Fetch user details for the post's author
-                var user = await _userService.GetUserByIdAsync(postRequest.AuthorId);
+                var user = await _userService.FindById(postRequest.AuthorId.ToString());
                 if (user != null)
                 {
                     postRequest.AuthorFullName = user.FullName;
@@ -116,7 +116,7 @@ namespace LocalTour.Services.Services
             var comments = await GetCommentsByPostIdAsync(postId, userId);  // Ensure this is awaited
 
             // Fetch user details associated with the post
-            var user = await _userService.GetUserByIdAsync(postRequest.AuthorId);
+            var user = await _userService.FindById(postRequest.AuthorId.ToString());
 
             // Map the user to UserFollowVM if the user exists
             UserFollowVM userFollowVM = null;
@@ -204,7 +204,7 @@ namespace LocalTour.Services.Services
             {
                 try
                 {
-                    var mediaSaveResult = await _fileService.SaveStaticFiles(createPostRequest.MediaFiles, "PostMedia");
+                    var mediaSaveResult = await _fileService.SaveStaticFiles(createPostRequest.MediaFiles);
 
                     if (!mediaSaveResult.Success)
                     {
@@ -292,7 +292,7 @@ namespace LocalTour.Services.Services
                 }
 
                 // Lưu các tệp phương tiện mới
-                var mediaSaveResult = await _fileService.SaveStaticFiles(updatePostRequest.MediaFiles, "PostMedia");
+                var mediaSaveResult = await _fileService.SaveStaticFiles(updatePostRequest.MediaFiles);
                 if (!mediaSaveResult.Success)
                 {
                     throw new Exception(mediaSaveResult.Message);

@@ -23,7 +23,7 @@ namespace LocalTour.WebApi.Controllers
         [HttpPost("{commentId}/like")]
         public async Task<IActionResult> LikeOrUnlikeComment(int commentId, [FromQuery] Guid userId)
         {
-            var userExists = await _userService.GetUserByIdAsync(userId);
+            var userExists = await _userService.FindById(userId.ToString());
             if (userExists == null)
             {
                 return StatusCode(404, new { statusCode = 404, message = "User not found." });
@@ -52,7 +52,7 @@ namespace LocalTour.WebApi.Controllers
         [HttpPost("{commentId}/unlike")]
         public async Task<IActionResult> UnlikeComment(int commentId, Guid userId)
         {
-            var userExists = await _userService.GetUserByIdAsync(userId);
+            var userExists = await _userService.FindById(userId.ToString());
             if (userExists == null)
             {
                 return StatusCode(404, new { statusCode = 404, message = "User not found." });

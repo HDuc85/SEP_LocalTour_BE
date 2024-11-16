@@ -1,12 +1,21 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using LocalTour.Data.Abstract;
+using LocalTour.Domain.Common;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.Extensions;
+using LocalTour.Services.Model;
 using LocalTour.Services.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace LocalTour.Services.Services
 {
@@ -14,13 +23,15 @@ namespace LocalTour.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IFileService _fileService;
 
-        public PlaceFeedbackService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IFileService fileService)
+        public PlaceFeedbackService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IFileService fileService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
             _fileService = fileService;
         }
@@ -115,7 +126,7 @@ namespace LocalTour.Services.Services
             return true;
         }
 
-        public async Task<FeedbackRequest> UpdateFeedback(int placeid, int feedbackid, FeedbackRequest request)
+        public async Task<FeedbackRequest> UpdateFeedback(int placeid,int feedbackid, FeedbackRequest request)
         {
             var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
             if (places == null)
@@ -172,8 +183,7 @@ namespace LocalTour.Services.Services
                     };
                     await _unitOfWork.RepositoryPlaceFeeedbackMedium.Insert(media);
                 }
-            }
-            else
+            } else
             {
                 throw new InvalidOperationException("Wrong user.");
             }
@@ -185,22 +195,15 @@ namespace LocalTour.Services.Services
 
         public async Task<PaginatedList<PlaceFeedbackRequest>> GetAllFeedbackByPlace(int placeid, GetPlaceFeedbackRequest request)
         {
-            var feedbacks = _unitOfWork.RepositoryPlaceFeeedback.GetAll()
-                                                    .Where(e => e.PlaceId == placeid)
-                                                    .AsQueryable();
-
-            if (request.SearchTerm is not null)
+            var user = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(user) || !Guid.TryParse(user, out var userId))
             {
-                feedbacks = feedbacks.Where(e => e.Content.Contains(request.SearchTerm));
-                var user = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(user) || !Guid.TryParse(user, out var userId))
-                {
-                    throw new UnauthorizedAccessException("User not found or invalid User ID.");
-                }
-                var feedbacks = _unitOfWork.RepositoryPlaceFeeedback.GetAll()
-                                                            .Include(y => y.PlaceFeeedbackMedia)
-                                                            .Where(e => e.PlaceId == placeid)
-                                                            .AsQueryable();
+                throw new UnauthorizedAccessException("User not found or invalid User ID.");
+            }
+            var feedbacks = _unitOfWork.RepositoryPlaceFeeedback.GetAll()
+                                                        .Include(y => y.PlaceFeeedbackMedia)
+                                                        .Where(e => e.PlaceId == placeid)
+                                                        .AsQueryable();
 
                 if (request.SearchTerm is not null)
                 {
@@ -211,31 +214,17 @@ namespace LocalTour.Services.Services
                 {
                     feedbacks = feedbacks.OrderByCustom(request.SortBy, request.SortOrder);
                 }
-                feedbacks = feedbacks.OrderBy(f => f.UserId != userId)
-                         .ThenBy(f => f.CreatedDate);
-                return await feedbacks
-                        .ListPaginateWithFeedbackAsync<PlaceFeeedback, PlaceFeedbackRequest>(
-                        request.Page,
-                        request.Size,
-                        request.SortBy,
-                        request.SortOrder,
-                        userId,
-                        _mapper.ConfigurationProvider);
-            }
-
-            if (!string.IsNullOrEmpty(request.SortBy))
-            {
-                feedbacks = feedbacks.OrderByCustom(request.SortBy, request.SortOrder);
-            }
-
+            feedbacks = feedbacks.OrderBy(f => f.UserId != userId)
+                     .ThenBy(f => f.CreatedDate);
             return await feedbacks
-                .ListPaginateWithSortAsync<PlaceFeeedback, PlaceFeedbackRequest>(
-                request.Page,
-                request.Size,
-                request.SortBy,
-                request.SortOrder,
-                _mapper.ConfigurationProvider);
-        }
-
+                    .ListPaginateWithFeedbackAsync<PlaceFeeedback, PlaceFeedbackRequest>(
+                    request.Page,
+                    request.Size,
+                    request.SortBy,
+                    request.SortOrder,
+                    userId,
+                    _mapper.ConfigurationProvider);
+            }
+        
     }
 }

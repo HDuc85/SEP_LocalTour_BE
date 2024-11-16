@@ -16,7 +16,6 @@ namespace LocalTour.Services.Abstract
                 Task<ScheduleRequest> CreateScheduleAsync(CreateScheduleRequest request);
                 Task<bool> UpdateScheduleAsync(int id, CreateScheduleRequest request);
                 Task<bool> DeleteScheduleAsync(int id);
-                Task<ScheduleRequest?> CloneScheduleAsync(int id, Guid userId);
                 Task<ServiceResponseModel<List<DestinationVM>>> GenerateSchedule(SuggestScheduleRequest request, string userId);
                 Task<ScheduleRequest?> CloneScheduleFromOtherUserAsync(int scheduleId, Guid newUserId);
                 Task<ScheduleRequest> SaveSuggestedSchedule(ScheduleWithDestinationsRequest request, Guid userId);

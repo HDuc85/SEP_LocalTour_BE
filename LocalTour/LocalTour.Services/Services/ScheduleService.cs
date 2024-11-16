@@ -185,6 +185,7 @@ namespace LocalTour.Services.Services
             return true;
         }
 
+
         public async Task<ScheduleRequest?> CloneScheduleFromOtherUserAsync(int scheduleId, Guid newUserId)
         {
             var originalSchedule = await _unitOfWork.RepositorySchedule

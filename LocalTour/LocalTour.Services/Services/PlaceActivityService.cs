@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿﻿using AutoMapper;
 using LocalTour.Data.Abstract;
 using LocalTour.Domain.Common;
 using LocalTour.Domain.Entities;
