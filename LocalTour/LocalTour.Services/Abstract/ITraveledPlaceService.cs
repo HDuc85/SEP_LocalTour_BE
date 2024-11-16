@@ -7,5 +7,5 @@ public interface ITraveledPlaceService
     Task<bool> AddTraveledPlace(string userId, int placeId);
     Task<int> CountTraveledPlace(string userId,int placeId);
     Task<List<(int,int)>> CountTraveledPlaces(string userId, List<int> placeIds);
-    Task<List<TraveledPlaceVM>> GetAllTraveledPlaces(string userId);
+    Task<List<TraveledPlaceVM>> GetAllTraveledPlaces(string userId,  string languageCode);
 }

@@ -57,8 +57,8 @@ public class MarkPlaceService : IMarkPlaceService
         }
         
         var listPlaceId = listMarkPlaces.Select(x => x.PlaceId).ToList();
-        var visitPlaces = await _traveledPlaceService.
-                CountTraveledPlaces(userId, listPlaceId);
+        /*var visitPlaces = await _traveledPlaceService.
+                CountTraveledPlaces(userId, listPlaceId);*/
         
         var results = new List<MarkPlaceVM>();
         foreach (var markPlace in listMarkPlaces)
@@ -66,12 +66,13 @@ public class MarkPlaceService : IMarkPlaceService
             results.Add(new MarkPlaceVM()
             {
                 PlaceId = markPlace.PlaceId,
-                UserId = markPlace.UserId,
+                //UserId = markPlace.UserId,
                 IsVisited = markPlace.IsVisited,
                 Id = markPlace.Id,
                 PhotoDisplay = markPlace.Place.PhotoDisplay,
                 PlaceName = markPlace.Place.PlaceTranslations.Single(z => z.LanguageCode == languageCode).Name,
-                VisitTime = visitPlaces.SingleOrDefault(x => x.Item1 == markPlace.PlaceId).Item2,
+                //VisitTime = visitPlaces.SingleOrDefault(x => x.Item1 == markPlace.PlaceId).Item2,
+                createdDate = markPlace.CreatedDate,
             });
         }
         

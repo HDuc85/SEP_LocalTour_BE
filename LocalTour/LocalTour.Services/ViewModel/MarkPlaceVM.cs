@@ -3,7 +3,7 @@
 public class MarkPlaceVM
 {
     public int Id { get; set; }
-    public Guid UserId { get; set; }
+    //public Guid UserId { get; set; }
 
     public int PlaceId { get; set; }
 
@@ -13,6 +13,6 @@ public class MarkPlaceVM
     
     public bool IsVisited { get; set; }
     
-    public int VisitTime { get; set; }
-    
+    //public int VisitTime { get; set; }
+    public DateTime createdDate { get; set; }
 }

@@ -31,10 +31,10 @@ namespace LocalTour.WebApi.Controllers
 
         [HttpGet("getAll")]
         [Authorize]
-        public async Task<IActionResult> GetAllTraveledPlaces()
+        public async Task<IActionResult> GetAllTraveledPlaces(string languageCode)
         {
             string userId = User.GetUserId();
-            var result = await _traveledPlaceService.GetAllTraveledPlaces(userId);
+            var result = await _traveledPlaceService.GetAllTraveledPlaces(userId, languageCode);
             if (result.Any())
             {
                 return Ok(result);

@@ -80,31 +80,45 @@ public class TraveledPlaceService : ITraveledPlaceService
         return result;
     }
 
-    public async Task<List<TraveledPlaceVM>> GetAllTraveledPlaces(string userId)
+    public async Task<List<TraveledPlaceVM>> GetAllTraveledPlaces(string userId, string languageCode)
     {
         var user = await _userService.FindById(userId);
         if (user == null)
         {
             return new List<TraveledPlaceVM>();
         }
-        var temp = _unitOfWork.
-                        RepositoryTraveledPlace.
-                        GetDataQueryable(x => x.UserId == user.Id)
+
+        var travledplaces =  _unitOfWork.RepositoryTraveledPlace.GetDataQueryable(x => x.UserId == user.Id);
+        var temp = travledplaces
                         .GroupBy(x => x.PlaceId)
                         .Select(y => new
                         {
                             PlaceId = y.Key,
                             VisitTimes = y.Count(),
                         }).ToList();
-        var places = _unitOfWork.RepositoryPlace.GetDataQueryable().Include(x => x.PlaceTranslations);
+        var places = _unitOfWork.RepositoryPlace.GetDataQueryable().
+                    Include(x => x.PlaceTranslations).Include(y => y.Ward);
         var result = new List<TraveledPlaceVM>();
         foreach (var item in temp)
         {
-            result.Add(new TraveledPlaceVM()
+            var place = places.SingleOrDefault(x => x.Id == item.PlaceId);
+            if(place != null)
             {
-                Place = places.Single(x => x.Id == item.PlaceId),
-                TraveledTimes = item.VisitTimes,
-            });
+                var placetrans = place.PlaceTranslations.Single(x => x.LanguageCode == languageCode);
+                
+                result.Add(new TraveledPlaceVM()
+                {
+                    Place = new PlaceTraveledVM
+                    {
+                        PlaceName = placetrans.Name,
+                        WardName = place.Ward.WardName,
+                        PlacePhotoDisplay = place.PhotoDisplay,
+                        FirstVisitDate = travledplaces.Where(x => x.PlaceId == item.PlaceId).Min(y => y.TimeArrive),
+                        LastVisitDate = travledplaces.Where(x => x.PlaceId == item.PlaceId).Max(y => y.TimeArrive),
+                    },
+                    TraveledTimes = item.VisitTimes,
+                });
+            }
         }
         return result;
     }
