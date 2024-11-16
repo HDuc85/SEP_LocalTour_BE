@@ -47,8 +47,12 @@ namespace LocalTour.WebApi.Controllers
 
         [HttpPost("setPassword")]
         [Authorize]
-        public async Task<IActionResult> SetPassword(string password)
+        public async Task<IActionResult> SetPassword(SetPasswordRequest request)
         {
+            if (request.Password != request.ConfirmPassword)
+            {
+                return BadRequest("Passwords do not match");
+            }
             string firebaseToken= User.GetFirebaseToken();
             UserRecord userRecord = await FirebaseAuth.DefaultInstance.GetUserAsync(firebaseToken);
             string phoneNumber = userRecord.PhoneNumber;
@@ -58,7 +62,7 @@ namespace LocalTour.WebApi.Controllers
                 return BadRequest("Invalid Token");
             }
             var userId = User.GetUserId();
-            var result = await _userService.SetPassword(userId,password);
+            var result = await _userService.SetPassword(userId,request.Password);
 
             if (!result)
             {
@@ -75,7 +79,7 @@ namespace LocalTour.WebApi.Controllers
 
             if (result.Success)
             {
-                return Ok(result.Message);
+                return Ok(result.Data);
             }
             return BadRequest(result.Message);
         }
@@ -111,7 +115,8 @@ namespace LocalTour.WebApi.Controllers
         [Authorize]
         public async Task<ActionResult> getProfile(string userId)
         {
-            var result = await _userService.GetProfile(userId);
+            var currentUserId = User.GetUserId();
+            var result = await _userService.GetProfile(userId, currentUserId);
             if (result.Success)
             {
                 return Ok(result.Data);

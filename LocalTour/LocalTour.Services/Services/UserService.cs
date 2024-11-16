@@ -207,28 +207,35 @@ namespace LocalTour.Services.Services
 
             return new ServiceResponseModel<User>(user);
         }
-        public async Task<ServiceResponseModel<bool>> ChangePassword(string userId, ChangePasswordRequest request)
+        public async Task<ServiceResponseModel<ChangePasswordReponse>> ChangePassword(string userId, ChangePasswordRequest request)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                return new ServiceResponseModel<bool>(false, "User is not exist");
-            }
 
             if (request.newPassword != request.confirmPassword)
             {
-                return new ServiceResponseModel<bool>(false,"Passwords do not match"); 
+                return new ServiceResponseModel<ChangePasswordReponse>(false, new ChangePasswordReponse()
+                {
+                    Success = false,
+                    NewPasswordError = "Passwords do not match"
+                }); 
             }
             
             var checkPassword = await _userManager.CheckPasswordAsync(user, request.oldPassword);
             if (!checkPassword)
             {
-                return new ServiceResponseModel<bool>(false, "Old password is incorrect");
+                return new ServiceResponseModel<ChangePasswordReponse>(false, new ChangePasswordReponse()
+                {
+                    Success = false,
+                    OldPasswordError = "Old password is incorrect"
+                });
             }
             var result = await _userManager.ChangePasswordAsync(user, request.oldPassword, request.newPassword);
             if (result.Succeeded)
             {
-                return new ServiceResponseModel<bool>(true, "Password changed successfully");
+                return new ServiceResponseModel<ChangePasswordReponse>(true, new ChangePasswordReponse()
+                {
+                    Success = true,
+                });
             }
 
             string error = string.Empty;
@@ -236,7 +243,7 @@ namespace LocalTour.Services.Services
             {
                 error += errorDescription.Code + "\n";
             }
-            return new ServiceResponseModel<bool>(false, $"{error}");
+            return new (false, $"{error}");
         }
         public async Task<bool> IsUserBanned(string userId)
         {
@@ -252,8 +259,7 @@ namespace LocalTour.Services.Services
             }
             return true;
         }
-
-        public async Task<ServiceResponseModel<UserProfileVM>> GetProfile(string userId)
+        public async Task<ServiceResponseModel<UserProfileVM>> GetProfile(string userId, string currentUserId)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
@@ -281,7 +287,9 @@ namespace LocalTour.Services.Services
                 gender = user.Gender,
                 userProfileImage = user.ProfilePictureUrl,
                 dateOfBirth = user.DateOfBirth,
+                isFollowed = totalFollowers.Any(x => x.UserFollow.ToString() == currentUserId),
             });
         }
+        
     }
 }

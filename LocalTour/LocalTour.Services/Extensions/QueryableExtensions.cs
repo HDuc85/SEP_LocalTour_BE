@@ -146,7 +146,7 @@ where TEntityDto : IMapFrom<TEntity>
         var sizeNumber = size.GetValueOrDefault(10);
 
         var count = await items.CountAsync();
-        if (sortBy.Equals("created by", StringComparison.OrdinalIgnoreCase) && userId.HasValue)
+        if (sortBy.Equals("created_by", StringComparison.OrdinalIgnoreCase) && userId.HasValue)
         {
             var lists = items
                 .OfType<Place>()

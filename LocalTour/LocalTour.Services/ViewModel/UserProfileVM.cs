@@ -14,4 +14,5 @@ public class UserProfileVM
     public int? totalReviews { get; set; }
     public int? totalFollowed { get; set; }
     public int? totalFollowers { get; set; }
+    public bool? isFollowed { get; set; }
 }

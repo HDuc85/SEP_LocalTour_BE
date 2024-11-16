@@ -1,6 +1,7 @@
 ﻿using FirebaseAdmin.Auth;
 using LocalTour.Domain;
 using LocalTour.Domain.Common;
+using LocalTour.Domain.Entities;
 using LocalTour.Services.ViewModel;
 using LocalTour.Services.Abstract;
 using Microsoft.AspNetCore.Authorization;
@@ -92,7 +93,7 @@ namespace LocalTour.WebApi.Controllers
                     });
                     firstTime = true;
                 }
-
+           
                 (string firebaseAuthToken, DateTime expiredDateToken) = await _tokenHandler.CreateAuthenFirebaseToken(user,idToken);
 
                 return Ok(new 
