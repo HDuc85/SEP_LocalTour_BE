@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace LocalTour.Domain.Entities;
 
@@ -19,6 +20,7 @@ public partial class PostComment
 
     public virtual ICollection<PostComment> InverseParent { get; set; } = new List<PostComment>();
 
+    [JsonIgnore]
     public virtual PostComment? Parent { get; set; }
 
     public virtual Post Post { get; set; } = null!;

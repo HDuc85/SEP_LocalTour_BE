@@ -12,6 +12,7 @@ namespace LocalTour.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ScheduleController : ControllerBase
     {
         private readonly IScheduleService _scheduleService;
@@ -115,7 +116,7 @@ namespace LocalTour.WebApi.Controllers
                     return StatusCode(500, new { statusCode = 500, message = "An error occurred while creating the schedule." });
                 }
 
-                return CreatedAtAction(nameof(GetScheduleById), new { id = createdSchedule.Id }, new { statusCode = 201, message = "Schedule created successfully.", data = createdSchedule });
+                return Ok(new { statusCode = 201, message = "Schedule created successfully."});
             }
             catch (Exception ex)
             {

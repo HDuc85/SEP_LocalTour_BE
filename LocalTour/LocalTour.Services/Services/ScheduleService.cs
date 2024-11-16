@@ -85,7 +85,6 @@ namespace LocalTour.Services.Services
             return scheduleRequest;
         }
 
-
         public async Task<List<ScheduleRequest>> GetSchedulesByUserIdAsync(Guid userId)
         {
             Expression<Func<Schedule, bool>> expression = schedule => schedule.UserId == userId;
@@ -113,6 +112,19 @@ namespace LocalTour.Services.Services
 
         public async Task<ScheduleRequest> CreateScheduleAsync(CreateScheduleRequest request)
         {
+
+            // Validate StartDate is not in the past
+            if (request.StartDate <= DateTime.UtcNow)
+            {
+                throw new ArgumentException("StartDate cannot be in the past.");
+            }
+
+            // Validate StartDate < EndDate
+            if (request.StartDate >= request.EndDate)
+            {
+                throw new ArgumentException("StartDate must be less than EndDate.");
+            }
+
             var schedule = _mapper.Map<Schedule>(request);
 
             schedule.CreatedDate = DateTime.UtcNow;
@@ -127,6 +139,18 @@ namespace LocalTour.Services.Services
             var schedule = await _unitOfWork.RepositorySchedule.GetById(id);
             if (schedule == null) return false;
 
+            // Validate StartDate is not in the past
+            if (request.StartDate <= DateTime.UtcNow)
+            {
+                throw new ArgumentException("StartDate cannot be in the past.");
+            }
+
+            // Validate StartDate < EndDate
+            if (request.StartDate >= request.EndDate)
+            {
+                throw new ArgumentException("StartDate must be less than EndDate.");
+            }
+
             _mapper.Map(request, schedule);
 
             _unitOfWork.RepositorySchedule.Update(schedule);
@@ -138,7 +162,17 @@ namespace LocalTour.Services.Services
         public async Task<bool> DeleteScheduleAsync(int id)
         {
             var schedule = await _unitOfWork.RepositorySchedule.GetById(id);
-            if (schedule == null) return false;
+            if (schedule == null)
+            {
+                throw new KeyNotFoundException("Schedule not found.");
+            }
+
+            // Delete all related destinations
+            var destinations = await _unitOfWork.RepositoryDestination.GetData(d => d.ScheduleId == schedule.Id);
+            foreach (var destination in destinations)
+            {
+                _unitOfWork.RepositoryDestination.Delete(destination);
+            }
 
             _unitOfWork.RepositorySchedule.Delete(schedule);
             await _unitOfWork.CommitAsync();
@@ -147,40 +181,35 @@ namespace LocalTour.Services.Services
 
         public async Task<ScheduleRequest?> CloneScheduleFromOtherUserAsync(int scheduleId, Guid newUserId)
         {
-            // Lấy lịch trình gốc cùng với các Destinations
             var originalSchedule = await _unitOfWork.RepositorySchedule
                 .GetByIdForDestination(scheduleId, includeProperties: "Destinations");
 
             if (originalSchedule == null)
             {
-                return null;  // Nếu không tìm thấy lịch trình gốc, trả về null
+                return null;  // If no schedule found, return null
             }
 
-            // Tạo bản sao của lịch trình với thông tin người dùng mới
             var clonedSchedule = new Schedule
             {
-                UserId = newUserId, // Gán UserId của người dùng mới
-                ScheduleName = $"{originalSchedule.ScheduleName} - Copy",  // Thêm "Copy" vào tên lịch trình
+                UserId = newUserId,
+                ScheduleName = $"{originalSchedule.ScheduleName} - Copy",
                 StartDate = originalSchedule.StartDate,
                 EndDate = originalSchedule.EndDate,
-                CreatedDate = DateTime.UtcNow,  // Thời gian tạo mới
+                CreatedDate = DateTime.UtcNow,
                 Status = originalSchedule.Status,
                 IsPublic = originalSchedule.IsPublic
             };
 
-            // Lưu bản sao của lịch trình vào cơ sở dữ liệu
             await _unitOfWork.RepositorySchedule.Insert(clonedSchedule);
-            await _unitOfWork.CommitAsync(); // Lưu thay đổi vào cơ sở dữ liệu
+            await _unitOfWork.CommitAsync();
 
-            // Clone các Destinations từ lịch trình gốc sang lịch trình mới
             if (originalSchedule.Destinations != null && originalSchedule.Destinations.Any())
             {
-                // Nếu có Destinations, sao chép chúng
                 foreach (var destination in originalSchedule.Destinations)
                 {
                     var clonedDestination = new Destination
                     {
-                        ScheduleId = clonedSchedule.Id,  // Gán ScheduleId mới của lịch trình sao chép
+                        ScheduleId = clonedSchedule.Id,
                         PlaceId = destination.PlaceId,
                         StartDate = destination.StartDate,
                         EndDate = destination.EndDate,
@@ -188,34 +217,37 @@ namespace LocalTour.Services.Services
                         IsArrived = destination.IsArrived
                     };
 
-                    // Lưu bản sao của Destination vào cơ sở dữ liệu
                     await _unitOfWork.RepositoryDestination.Insert(clonedDestination);
                 }
             }
-            else
-            {
-                // Nếu không có Destinations, tạo một danh sách rỗng
-                clonedSchedule.Destinations = new List<Destination>();
-            }
 
-            // Commit tất cả các thay đổi, bao gồm cả lịch trình và destinations
             await _unitOfWork.CommitAsync();
 
-            // Map bản sao của lịch trình sang DTO ScheduleRequest và trả về
             return _mapper.Map<ScheduleRequest>(clonedSchedule);
         }
 
         public async Task<ScheduleRequest> SaveSuggestedSchedule(ScheduleWithDestinationsRequest request, Guid userId)
         {
-            // Tạo mới Schedule từ request
+            // Validate StartDate < EndDate
+            if (request.StartDate >= request.EndDate)
+            {
+                throw new ArgumentException("StartDate must be less than EndDate.");
+            }
+
+            // Validate StartDate is not in the past
+            if (request.StartDate < DateTime.UtcNow)
+            {
+                throw new ArgumentException("StartDate cannot be in the past.");
+            }
+
             var newSchedule = new Schedule
             {
-                UserId = userId, 
-                ScheduleName = request.ScheduleName, 
+                UserId = userId,
+                ScheduleName = request.ScheduleName,
                 StartDate = request.StartDate,
-                EndDate = request.EndDate, 
+                EndDate = request.EndDate,
                 CreatedDate = DateTime.UtcNow,
-                IsPublic = request.IsPublic 
+                IsPublic = request.IsPublic
             };
 
             await _unitOfWork.RepositorySchedule.Insert(newSchedule);
@@ -223,13 +255,20 @@ namespace LocalTour.Services.Services
 
             foreach (var destination in request.Destinations)
             {
+                // Validate PlaceId exists
+                var place = await _unitOfWork.RepositoryPlace.GetById(destination.PlaceId);
+                if (place == null)
+                {
+                    throw new ArgumentException($"Place with Id {destination.PlaceId} does not exist.");
+                }
+
                 var newDestination = new Destination
                 {
-                    ScheduleId = newSchedule.Id, 
-                    PlaceId = destination.PlaceId, 
-                    StartDate = destination.StartDate, 
-                    EndDate = destination.EndDate, 
-                    IsArrived = destination.IsArrived 
+                    ScheduleId = newSchedule.Id,
+                    PlaceId = destination.PlaceId,
+                    StartDate = destination.StartDate,
+                    EndDate = destination.EndDate,
+                    IsArrived = destination.IsArrived
                 };
 
                 await _unitOfWork.RepositoryDestination.Insert(newDestination);
@@ -239,6 +278,5 @@ namespace LocalTour.Services.Services
 
             return _mapper.Map<ScheduleRequest>(newSchedule);
         }
-
     }
 }

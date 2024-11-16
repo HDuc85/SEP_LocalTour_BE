@@ -1,5 +1,6 @@
-using System.Reflection;
+﻿using System.Reflection;
 using AutoMapper;
+using Azure.Core;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Common.Mapping;
 using LocalTour.Services.ViewModel;
@@ -49,6 +50,7 @@ public class MappingProfile : Profile
         CreateMap<PostCommentRequest, PostComment>()
             .ForMember(dest => dest.Id, opt => opt.Ignore()) // Ignore Id for auto-generation
             .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => DateTime.UtcNow)); // Set creation time
+
         ApplyMappingFromAssembly(Assembly.GetExecutingAssembly());
         CreateMap<Place, PlaceRequest>();
         CreateMap<Event, EventRequest>();
@@ -58,7 +60,9 @@ public class MappingProfile : Profile
         CreateMap<Schedule, ScheduleRequest>().ReverseMap();
 
         // Map for Destination and DestinationRequest
-        CreateMap<Destination, DestinationRequest>().ReverseMap();
+        CreateMap<Destination, DestinationRequest>()
+        .ForMember(dest => dest.PlaceTranslations, 
+                   opt => opt.MapFrom(src => src.Place.PlaceTranslations));
 
         // Map for ScheduleLike and ScheduleLikeRequest
         CreateMap<ScheduleLike, ScheduleLikeRequest>().ReverseMap();
@@ -80,7 +84,19 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "Active"))
             .ForMember(dest => dest.IsPublic, opt => opt.MapFrom(src => src.IsPublic));
 
+        CreateMap<CreateDestinationRequest, Destination>()
+            .ForMember(dest => dest.ScheduleId, opt => opt.MapFrom(src => src.ScheduleId))
+            .ForMember(dest => dest.PlaceId, opt => opt.MapFrom(src => src.PlaceId))
+            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
+            .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate))
+            .ForMember(dest => dest.IsArrived, opt => opt.MapFrom(src => src.IsArrived))
+            .ForMember(dest => dest.Detail, opt => opt.MapFrom(src => src.Detail));
 
+        CreateMap<User, UserFollowVM>()
+            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.FullName))
+            .ForMember(dest => dest.UserProfileUrl, opt => opt.MapFrom(src => src.ProfilePictureUrl));
+
+        CreateMap<PostRequest, CreatePostRequest>();
     }
 
     private void ApplyMappingFromAssembly(Assembly assembly)

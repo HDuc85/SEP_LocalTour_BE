@@ -21,7 +21,7 @@ namespace LocalTour.Infrastructure.Configuration
         public static void RegesterContextDb(this IServiceCollection service, IConfiguration configuration)
         {
             service.AddDbContext<LocalTourDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("LocalTourDBConnection")));
+                options.UseSqlServer(configuration.GetConnectionString("LocalTourDBConnection")),ServiceLifetime.Scoped);
             service.AddIdentityCore<User>(options =>
             {
                 options.Password.RequireNonAlphanumeric = true;

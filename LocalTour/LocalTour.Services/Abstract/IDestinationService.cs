@@ -7,10 +7,11 @@ namespace LocalTour.Services.Abstract
 {
     public interface IDestinationService
     {
-        Task<DestinationRequest?> GetDestinationByIdAsync(int id);
-        Task<List<DestinationRequest>> GetDestinationsByScheduleIdAsync(int scheduleId); // Add this line
-        Task<Destination> CreateDestinationAsync(DestinationRequest request);
-        Task<bool> UpdateDestinationAsync(int id, DestinationRequest request);
+        Task<List<DestinationRequest>> GetAllDestinations(string ?languageCode);
+        Task<List<DestinationRequest>> GetAllDestinationsByScheduleId(int scheduleId, string? languageCode);
+        Task<DestinationRequest> GetDestinationById(int id, string? languageCode);
+        Task<Destination> CreateDestinationAsync(CreateDestinationRequest request);
+        Task<bool> UpdateDestinationAsync(int id, CreateDestinationRequest request);
         Task<bool> DeleteDestinationAsync(int id);
     }
 }

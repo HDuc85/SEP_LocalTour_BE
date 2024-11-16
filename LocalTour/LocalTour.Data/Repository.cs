@@ -88,6 +88,10 @@ namespace LocalTour.Data
             return await query.FirstOrDefaultAsync(s => s.Id == scheduleId);
         }
 
+        public async Task<int> CountAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _context.Set<T>().CountAsync(predicate);
+    }
 
     }
 }

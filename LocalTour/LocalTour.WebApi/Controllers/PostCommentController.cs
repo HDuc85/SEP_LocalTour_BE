@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.ViewModel;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace LocalTour.WebApi.Controllers
 {
@@ -18,8 +20,9 @@ namespace LocalTour.WebApi.Controllers
             _postCommentService = postCommentService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateComment([FromBody] CreatePostCommentRequest request)
+        [Authorize]
+        [HttpPost("createPostComment")]
+        public async Task<IActionResult> CreateComment([FromForm] CreatePostCommentRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -28,24 +31,46 @@ namespace LocalTour.WebApi.Controllers
 
             try
             {
-                var createdComment = await _postCommentService.CreateCommentAsync(request);
+                var userId = User?.FindFirstValue(ClaimTypes.NameIdentifier); // Extract user ID from HttpContext
+
+                if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsedUserId))
+                {
+                    return Unauthorized(new { error = "User not authenticated or invalid user ID." });
+                }
+
+                var createdComment = await _postCommentService.CreateCommentAsync(request, parsedUserId); // Pass user ID to service
                 return CreatedAtAction(nameof(GetCommentsByPostId), new { postId = createdComment.PostId }, createdComment);
             }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { error = ex.Message });
-            }   
+            }
         }
 
-        [HttpGet("{postId}")]
-        public async Task<IActionResult> GetCommentsByPostId(int postId, int parentId, [FromQuery] Guid userId)
+        [HttpGet("getCommentsByPost/{postId}")]
+        public async Task<IActionResult> GetCommentsByPostId(int postId, [FromQuery] int? parentId)
         {
-            var comments = await _postCommentService.GetCommentsByPostIdAsync(postId,parentId, userId);
-            return Ok(comments);
+            try
+            {
+                // Extract user ID from the HttpContext (authenticated user)
+                var userId = User?.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsedUserId))
+                {
+                    return Unauthorized(new { error = "User not authenticated or invalid user ID." });
+                }
+
+                // Get the comments for the specified post ID
+                var comments = await _postCommentService.GetCommentsByPostIdAsync(postId, parentId, parsedUserId);
+                return Ok(comments); // Return the list of comments
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateComment(int id, [FromBody] UpdatePostCommentRequest request)
+        [HttpPut("updateComments/{id}")]
+        public async Task<IActionResult> UpdateComment(int id, [FromForm] UpdatePostCommentRequest request)
         {
             var updatedComment = await _postCommentService.UpdateCommentAsync(id, request);
             if (updatedComment == null)
@@ -54,7 +79,7 @@ namespace LocalTour.WebApi.Controllers
             return Ok(updatedComment);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("deleteComments/{id}")]
         public async Task<IActionResult> DeleteComment(int id)
         {
             var success = await _postCommentService.DeleteCommentAsync(id);

@@ -11,11 +11,12 @@ namespace LocalTour.Services.Abstract
 {
     public interface IPostService
     {
-        Task<PostRequest> GetPostById(int postId, Guid currentUserId);
+        Task<ServiceResponseModel<PostRequest>> GetPostById(int postId, Guid currentUserId);
         Task<PaginatedList<PostRequest>> GetAllPosts(GetPostRequest request);
-        Task<PostRequest> CreatePost(CreatePostRequest createPostRequest);
-        Task<PostRequest?> UpdatePost(int postId, CreatePostRequest createPostRequest);
-        Task<bool> DeletePost(int id);
+        Task<PostRequest> CreatePost(CreatePostRequest createPostRequest, Guid parsedUserId);
+        Task<bool> UpdatePost(int postId, CreatePostRequest createPostRequest);
+        Task<bool> DeletePost(int postId, Guid guid);
         Guid GetCurrentUserId();
+        Task<List<PostCommentRequest>> GetCommentsByPostIdAsync(int postId, Guid userId );
     }
 }

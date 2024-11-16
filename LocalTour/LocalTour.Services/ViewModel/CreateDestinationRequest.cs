@@ -1,5 +1,4 @@
 ﻿using LocalTour.Domain.Entities;
-using LocalTour.Services.Common.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,19 +7,17 @@ using System.Threading.Tasks;
 
 namespace LocalTour.Services.ViewModel
 {
-    public class DestinationRequest : IMapFrom<Destination>
+    public class CreateDestinationRequest
     {
-        public int Id { get; set; }
         public int ScheduleId { get; set; }
         public int PlaceId { get; set; }
+
+        //public string PlaceName { get; set; }
+
+        //public string placePhotoDisplay { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public string? Detail { get; set; }
         public bool IsArrived { get; set; }
-
-        public virtual ICollection<PlaceTranslation> PlaceTranslations { get; set; }
-
-        public string PlacePhotoDisplay { get; set; }
-        public string PlaceName { get; set; }
     }
 }
