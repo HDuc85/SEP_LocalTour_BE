@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using AutoMapper;
+using Google.Apis.Util;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Common.Mapping;
 using LocalTour.Services.ViewModel;
@@ -41,11 +42,20 @@ public class MappingProfile : Profile
         ApplyMappingFromAssembly(Assembly.GetExecutingAssembly());
         CreateMap<Place, PlaceVM>()
             .ForMember(dest => dest.PlaceMedia, opt => opt.MapFrom(src => src.PlaceMedia))
-            .ForMember(dest => dest.PlaceActivities, opt => opt.MapFrom(src => src.PlaceActivities));
+            .ForMember(dest => dest.PlaceActivities, opt => opt.MapFrom(src => src.PlaceActivities))
+            .ForMember(dest => dest.PlaceTranslation, opt => opt.MapFrom(src => src.PlaceTranslations))
+            .ForMember(dest => dest.WardName, opt => opt.MapFrom(src => src.Ward.WardName))
+             .ForMember(dest => dest.Distance, opt => opt.Ignore())
+             .ForMember(dest => dest.Rating, opt => opt.Ignore())
+             .ForMember(dest => dest.TotalPlaceFeedback, opt => opt.Ignore());
         CreateMap<Event, EventRequest>();
         CreateMap<PlaceActivity, PlaceActivityRequest>()
         .ForMember(dest => dest.PhotoDisplay, opt => opt.Ignore());
         CreateMap<PlaceMedium, PlaceMediumRequest>();
+        CreateMap<PlaceFeeedback, PlaceFeedbackRequest>()
+                    .ForMember(dest => dest.PlaceFeeedbackMedia, opt => opt.MapFrom(src => src.PlaceFeeedbackMedia))
+                    .ForMember(dest => dest.TotalLike, opt => opt.Ignore())
+                    .ForMember(dest => dest.isLiked, opt => opt.Ignore());
 
         // Map for Schedule and ScheduleRequest
         CreateMap<Schedule, ScheduleRequest>().ReverseMap();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace LocalTour.Domain.Entities;
 
@@ -14,6 +15,6 @@ public partial class PlaceMedium
     public string Url { get; set; } = null!;
 
     public DateTime CreateDate { get; set; }
-
+    [JsonIgnore]
     public virtual Place Place { get; set; } = null!;
 }

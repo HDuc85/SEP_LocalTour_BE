@@ -12,7 +12,7 @@ namespace LocalTour.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize]
     public class PlaceController : ControllerBase
     {
         private readonly IPlaceService _placeService;
@@ -54,17 +54,12 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpGet("getPlaceById")]
-        public async Task<ActionResult<ApiReponseModel<Place>>> GetPlaceById([FromQuery] int placeid)
+        public async Task<ActionResult<ApiReponseModel<Place>>> GetPlaceById(string languageCode, int placeid)
         {
             try
             {
-                var placeEntity = await _placeService.GetPlaceById(placeid);
-                return Ok(new ApiReponseModel<Place>(placeEntity)
-                {
-                    success = true,
-                    message = "Successfully."
-                }
-                );
+                var placeEntity = await _placeService.GetPlaceById(languageCode,placeid);
+                return Ok(placeEntity);
             }
             catch (Exception ex)
             {

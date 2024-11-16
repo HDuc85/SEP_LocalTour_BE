@@ -142,22 +142,28 @@ namespace LocalTour.Services.Services
             IQueryable<Place> places;
             if (roles.Contains("Visitor"))
             {
-                places = _unitOfWork.RepositoryPlace.GetAll().Include(x => x.PlaceTranslations)
+                places = _unitOfWork.RepositoryPlace.GetAll().Include(x => x.PlaceTranslations.Where(pt => pt.LanguageCode == request.LanguageCode))
                         .Include(y => y.PlaceTags)
                         .Include(z => z.PlaceActivities)
                         .Include(r => r.PlaceMedia)
+                        .Include(w => w.Ward)
                         .Where(r => r.Status == "1")
                         .AsQueryable();
 
             }
             else
             {
-                places = _unitOfWork.RepositoryPlace.GetAll().Include(x => x.PlaceTranslations)
+                places = _unitOfWork.RepositoryPlace.GetAll().Include(x => x.PlaceTranslations.Where(pt => pt.LanguageCode == request.LanguageCode))
                            .Include(y => y.PlaceTags)
                            .Include(z => z.PlaceActivities)
                            .Include(r => r.PlaceMedia)
+                           .Include(w => w.Ward)
                            .AsQueryable();
 
+            }
+            if (request.Tags != null && request.Tags.Any())
+            {
+                places = places.Where(p => p.PlaceTags.Any(pt => request.Tags.Contains(pt.TagId)));
             }
             if (request.SearchTerm is not null)
             {
@@ -194,21 +200,21 @@ namespace LocalTour.Services.Services
             return degree * Math.PI / 180.0;
         }
 
-        public async Task<Place> GetPlaceById(int placeid)
+        public async Task<Place> GetPlaceById(string languageCode, int placeid)
         {
             var placeEntity = await _unitOfWork.RepositoryPlace.GetAll()
-                .Include(p => p.PlaceActivities)
-                .Include(p => p.Events)
-                .Include(p => p.PlaceFeeedbacks)
                 .Include(p => p.PlaceMedia)
-                .Include(p => p.PlaceTranslations)
+                .Include(p => p.PlaceTranslations.Where(pt => pt.LanguageCode == languageCode))
                 .FirstOrDefaultAsync(e => e.Id == placeid);
 
             if (placeEntity == null)
             {
                 throw new KeyNotFoundException($"Place with ID {placeid} not found.");
             }
-
+            placeEntity.PlaceMedia = placeEntity.PlaceMedia
+            .OrderByDescending(pm => pm.Type == "Video")
+            .ThenBy(pm => pm.Id)
+            .ToList();
             return placeEntity;
         }
         public async Task<PlaceRequest> UpdatePlace(int placeid, PlaceRequest request)

@@ -63,9 +63,9 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpGet("getactivitybyid")]
-        public async Task<ActionResult<PlaceActivity>> GetActivityById([FromQuery] int placeid, [FromQuery] int activityid)
+        public async Task<ActionResult<PlaceActivity>> GetActivityById( int placeid, int activityid, string languageCode)
         {
-            var activityEntity = await _placeActivityService.GetActivityById(placeid, activityid);
+            var activityEntity = await _placeActivityService.GetActivityById(placeid, activityid, languageCode);
             return Ok(activityEntity);
         }
         [HttpDelete("delete")]
