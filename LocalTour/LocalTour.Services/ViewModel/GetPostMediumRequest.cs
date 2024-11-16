@@ -1,7 +1,8 @@
 ﻿using LocalTour.Services.ViewModel;
+using Microsoft.AspNetCore.Http;
 
 public class GetPostMediumRequest : PaginatedQueryParams
 {
-    public int? PostId { get; set; }
-    public string? Type { get; set; } // Optional filter to differentiate Photo/Video
+    public string Type { get; set; } = null!;  // 'photo' or 'video'
+    public IFormFile File { get; set; } = null!;
 }

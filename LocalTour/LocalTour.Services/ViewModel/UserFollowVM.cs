@@ -1,4 +1,7 @@
-﻿namespace LocalTour.Services.ViewModel;
+﻿using LocalTour.Domain.Entities;
+using LocalTour.Services.Common.Mapping;
+
+namespace LocalTour.Services.ViewModel;
 
 public class UserFollowVM
 {

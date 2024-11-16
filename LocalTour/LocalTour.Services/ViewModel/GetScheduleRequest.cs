@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace LocalTour.Services.ViewModel
 {
-    public class GetPostRequest : PaginatedQueryParams
+    public class GetScheduleRequest : PaginatedQueryParams
     {
         public Guid? UserId { get; set; }
-        public int? PostId { get; set; } 
-        public string? FilterBy { get; set; } 
+        public DateTime? CreatDate { get; set; }  
+        public string? FilterBy { get; set; }
 
     }
 }

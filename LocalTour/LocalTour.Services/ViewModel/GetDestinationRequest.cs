@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace LocalTour.Services.ViewModel
 {
-    public class ModTagRequest
+    public class GetDestinationRequest : PaginatedQueryParams
     {
-        public Guid UserId { get; set; }
-        public List<int> TagIds { get; set; } = new List<int>();
+        public string? FilterBy { get; set; }
+        public string? LanguageCode { get; set; }
     }
-
 }

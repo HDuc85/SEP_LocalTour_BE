@@ -28,4 +28,5 @@ public class PaginatedList<T>
         var items = await query.ToListAsync();
         return new PaginatedList<T>(items, count, pageNumber, pageSize);
     }
+
 }

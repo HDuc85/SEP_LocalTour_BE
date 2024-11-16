@@ -3,6 +3,7 @@ using LocalTour.Data.Abstract;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.ViewModel;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,11 +21,30 @@ namespace LocalTour.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<List<UserPreferenceTagsRequest>> GetAllUserPreferenceTags()
+        public async Task<IEnumerable<GetUserPreferenceTagsRequest>> GetAllUserPreferenceTagsGroupedByUserAsync()
         {
-            var entities = _unitOfWork.RepositoryUserPreferenceTags.GetAll();
-            return _mapper.Map<List<UserPreferenceTagsRequest>>(entities);
+            // Fetch all ModTag entries and include Tag details for TagName
+            var userTags = await _unitOfWork.RepositoryUserPreferenceTags
+                .GetAll()
+                .Include(mt => mt.Tag)
+                .ToListAsync();
+
+            // Group by UserId and collect detailed Tag information for each UserId
+            var userTagGroups = userTags
+                .GroupBy(mt => mt.UserId)
+                .Select(group => new GetUserPreferenceTagsRequest
+                {
+                    UserId = group.Key,
+                    Tags = group.Select(mt => new TagRequest
+                    {
+                        TagId = mt.TagId,
+                        TagName = mt.Tag.TagName
+                    }).ToList()
+                });
+
+            return userTagGroups;
         }
+
 
         public async Task<UserPreferenceTagsRequest?> GetUserPreferenceTagsById(int id)
         {
@@ -34,31 +54,112 @@ namespace LocalTour.Services.Services
 
         public async Task<UserPreferenceTagsRequest> CreateUserPreferenceTags(UserPreferenceTagsRequest request)
         {
-            var entity = _mapper.Map<UserPreferenceTags>(request);
-            await _unitOfWork.RepositoryUserPreferenceTags.Insert(entity);
+            // Check if the user exists
+            var userExists = await _unitOfWork.RepositoryUser.GetById(request.UserId);
+
+            if (userExists == null)
+            {
+                // Handle case when user doesn't exist (optional)
+                throw new InvalidOperationException("User does not exist.");
+            }
+
+            // Check if all TagIds exist in the Tag table
+            var existingTagIds = await _unitOfWork.RepositoryTag
+                .GetAll()
+                .Where(tag => request.TagIds.Contains(tag.Id))
+                .Select(tag => tag.Id)
+                .ToListAsync();
+
+            var invalidTagIds = request.TagIds.Except(existingTagIds).ToList();
+
+            if (invalidTagIds.Any())
+            {
+                // Handle case for missing tags (either throw error or log)
+                throw new InvalidOperationException($"The following TagIds do not exist: {string.Join(", ", invalidTagIds)}");
+            }
+
+            // Create the list of UserPreferenceTags based on the tag IDs provided
+            var userPreferenceTags = request.TagIds.Select(tagId => new UserPreferenceTags
+            {
+                UserId = request.UserId,
+                TagId = tagId
+            }).ToList();
+
+            // Insert each UserPreferenceTag into the correct repository
+            foreach (var userPreferenceTag in userPreferenceTags)
+            {
+                await _unitOfWork.RepositoryUserPreferenceTags.Insert(userPreferenceTag);
+            }
+
+            // Commit the transaction to save the changes
             await _unitOfWork.CommitAsync();
-            return _mapper.Map<UserPreferenceTagsRequest>(entity);
+
+            // Returning a single UserPreferenceTagsRequest (adjust according to your needs)
+            var result = new UserPreferenceTagsRequest
+            {
+                UserId = request.UserId,
+                TagIds = request.TagIds
+            };
+
+            return result;
         }
 
-        public async Task<UserPreferenceTagsRequest?> UpdateUserPreferenceTags(int id, UserPreferenceTagsRequest request)
+        public async Task<bool> UpdateUserTagsAsync(Guid userId, List<int> tagIds)
         {
-            var entity = await _unitOfWork.RepositoryUserPreferenceTags.GetById(id);
-            if (entity == null) return null;
+            var existingTags = await _unitOfWork.RepositoryUserPreferenceTags
+                .GetAll()
+                .Where(ut => ut.UserId == userId)
+                .ToListAsync();
 
-            _mapper.Map(request, entity);
-            _unitOfWork.RepositoryUserPreferenceTags.Update(entity);
-            await _unitOfWork.CommitAsync();
-            return _mapper.Map<UserPreferenceTagsRequest>(entity);
-        }
+            if (existingTags == null || !existingTags.Any()) return false;
 
-        public async Task<bool> DeleteUserPreferenceTags(int id)
-        {
-            var entity = await _unitOfWork.RepositoryUserPreferenceTags.GetById(id);
-            if (entity == null) return false;
+            foreach (var userTag in existingTags)
+            {
+                _unitOfWork.RepositoryUserPreferenceTags.Delete(userTag);
+            }
 
-            _unitOfWork.RepositoryUserPreferenceTags.Delete(entity);
+            var newUserTags = tagIds.Select(tagId => new UserPreferenceTags
+            {
+                UserId = userId,
+                TagId = tagId
+            }).ToList();
+
+            await _unitOfWork.RepositoryUserPreferenceTags.Insert(newUserTags);
+
             await _unitOfWork.CommitAsync();
             return true;
         }
+
+
+        public async Task<bool> DeleteUserPreferenceTags(Guid userId, List<int> tagIds)
+        {
+            var userTags = await _unitOfWork.RepositoryUserPreferenceTags
+                .GetAll()
+                .Where(ut => ut.UserId == userId && tagIds.Contains(ut.TagId))
+                .ToListAsync();
+
+            if (!userTags.Any())
+            {
+                return false;
+            }
+
+            foreach (var userTag in userTags)
+            {
+                _unitOfWork.RepositoryUserPreferenceTags.Delete(userTag);
+            }
+
+            try
+            {
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+
     }
 }

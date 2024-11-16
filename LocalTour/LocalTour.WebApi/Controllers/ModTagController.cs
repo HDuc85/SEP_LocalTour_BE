@@ -25,17 +25,6 @@ public class ModTagController : ControllerBase
         return Ok(modTags);
     }
 
-    [HttpGet("{userId}/{tagId}")]
-    public async Task<IActionResult> GetById(Guid userId, int tagId)
-    {
-        var modTag = await _modTagService.GetByIdAsync(userId, tagId);
-        if (modTag == null)
-            return NotFound();
-
-        return Ok(modTag);
-    }
-
-    // GET: api/ModTag/UserTags/{userId}
     [HttpGet("UserTags/{userId}")]
     public async Task<ActionResult<IEnumerable<ModTagRequest>>> GetTagsByUser(Guid userId)
     {
@@ -47,7 +36,6 @@ public class ModTagController : ControllerBase
         return Ok(tags);
     }
 
-    // GET: api/ModTag/TagUsers/{tagId}
     [HttpGet("TagUsers/{tagId}")]
     public async Task<ActionResult<IEnumerable<ModTagRequest>>> GetUsersByTag(int tagId)
     {
@@ -60,26 +48,27 @@ public class ModTagController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(ModTagRequest request)
+    public async Task<IActionResult> CreateMultiple([FromForm] ModTagRequest request)
     {
-        var modTag = await _modTagService.CreateAsync(request);
-        return CreatedAtAction(nameof(GetById), new { userId = modTag.UserId, tagId = modTag.TagId }, modTag);
+        var modTags = await _modTagService.CreateMultipleAsync(request);
+        return Ok(modTags);
     }
 
-    [HttpPut("{userId}/{tagId}")]
-    public async Task<IActionResult> Update(Guid userId, int tagId, ModTagRequest request)
+    [HttpPut("{userId}")]
+    public async Task<IActionResult> Update(Guid userId, [FromForm] UpdateTagRequest request)
     {
-        var updatedModTag = await _modTagService.UpdateAsync(userId, tagId, request);
-        if (updatedModTag == null)
-            return NotFound();
+        var result = await _modTagService.UpdateUserTagsAsync(userId, request.TagIds);
+        if (!result)
+            return NotFound($"No record found for UserId {userId}.");
 
-        return Ok(updatedModTag);
+        return Ok("User tags updated successfully.");
     }
 
-    [HttpDelete("{userId}/{tagId}")]
-    public async Task<IActionResult> Delete(Guid userId, int tagId)
+
+    [HttpDelete("{userId}")]
+    public async Task<IActionResult> DeleteMultiple(Guid userId, [FromForm] List<int> tagIds)
     {
-        var result = await _modTagService.DeleteAsync(userId, tagId);
+        var result = await _modTagService.DeleteMultipleAsync(userId, tagIds);
         if (!result)
             return NotFound();
 

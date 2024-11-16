@@ -85,6 +85,7 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
     public virtual DbSet<ModTag> ModTags { get; set; }
     
     public virtual DbSet<UserNotification> UserNotifications { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
 

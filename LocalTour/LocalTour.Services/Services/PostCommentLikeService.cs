@@ -22,16 +22,18 @@ namespace LocalTour.Services.Services
 
         public async Task<bool> LikeCommentAsync(int commentId, Guid userId)
         {
-            // Check if the like already exists
             var existingLike = await _unitOfWork.RepositoryPostCommentLike
                 .GetAll()
                 .FirstOrDefaultAsync(l => l.PostCommentId == commentId && l.UserId == userId);
 
             if (existingLike != null)
             {
-                return false; // Already liked
+                _unitOfWork.RepositoryPostCommentLike.Delete(existingLike);
+                await _unitOfWork.CommitAsync();
+                return false; 
             }
 
+            // Nếu chưa like thì thêm like
             var like = new PostCommentLike
             {
                 PostCommentId = commentId,
@@ -41,10 +43,8 @@ namespace LocalTour.Services.Services
 
             await _unitOfWork.RepositoryPostCommentLike.Insert(like);
             await _unitOfWork.CommitAsync();
-
             return true;
         }
-
         public async Task<bool> UnlikeCommentAsync(int commentId, Guid userId)
         {
             var existingLike = await _unitOfWork.RepositoryPostCommentLike

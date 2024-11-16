@@ -10,12 +10,11 @@ namespace LocalTour.Services.Abstract
 {
     public interface IModTagService
     {
-        Task<IEnumerable<ModTag>> GetAllAsync();
-        Task<ModTag?> GetByIdAsync(Guid userId, int tagId);
-        Task<IEnumerable<ModTagRequest>> GetTagsByUserAsync(Guid userId);
-        Task<IEnumerable<ModTagRequest>> GetUsersByTagAsync(int tagId);
-        Task<ModTag> CreateAsync(ModTagRequest request);
-        Task<ModTag?> UpdateAsync(Guid userId, int tagId, ModTagRequest request);
-        Task<bool> DeleteAsync(Guid userId, int tagId);
+        Task<IEnumerable<GetModTagRequest>> GetAllAsync();
+        Task<GetModTagRequest> GetTagsByUserAsync(Guid userId);
+        Task<IEnumerable<GetModTagRequest>> GetUsersByTagAsync(int tagId);
+        Task<List<ModTagRequest>> CreateMultipleAsync(ModTagRequest request);
+        Task<bool> UpdateUserTagsAsync(Guid userId, List<int> tagIds);
+        Task<bool> DeleteMultipleAsync(Guid userId, List<int> tagIds);
     }
 }

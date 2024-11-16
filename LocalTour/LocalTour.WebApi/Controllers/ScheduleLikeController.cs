@@ -22,28 +22,53 @@ namespace LocalTour.WebApi.Controllers
         public async Task<IActionResult> LikeSchedule(int scheduleId, Guid userId)
         {
             var result = await _scheduleLikeService.LikeScheduleAsync(scheduleId, userId);
-            return result ? Ok("Schedule liked successfully.") : BadRequest("Schedule already liked.");
+
+            // Kiểm tra kết quả trả về từ service
+            if (result == 1) // Nếu result = 1, tức là hành động "like" đã được thực hiện thành công
+            {
+                return StatusCode(200, new { statusCode = 200, message = "Liked the schedule successfully." });
+            }
+            else if (result == 2) // Nếu result = 2, tức là hành động "unlike" đã được thực hiện thành công
+            {
+                return StatusCode(200, new { statusCode = 200, message = "Unliked the schedule successfully." });
+            }
+            else
+            {
+                // Trả về lỗi nếu có vấn đề khi toggle
+                return StatusCode(400, new { statusCode = 400, message = "An error occurred while toggling like status." });
+            }
         }
+
 
         [HttpPost("unlike")]
         public async Task<IActionResult> UnlikeSchedule(int scheduleId, Guid userId)
         {
             var result = await _scheduleLikeService.UnlikeScheduleAsync(scheduleId, userId);
-            return result ? Ok("Schedule unliked successfully.") : BadRequest("Schedule not liked.");
+
+            if (result)
+            {
+                return StatusCode(200, new { statusCode = 200, message = "Schedule unliked successfully." });
+            }
+            else
+            {
+                return StatusCode(400, new { statusCode = 400, message = "Schedule not liked." });
+            }
         }
 
         [HttpGet("totalLikes/{scheduleId}")]
         public async Task<IActionResult> GetTotalLikes(int scheduleId)
         {
             var totalLikes = await _scheduleLikeService.GetTotalLikesAsync(scheduleId);
-            return Ok(totalLikes);
+
+            return StatusCode(200, new { statusCode = 200, message = "Total likes retrieved successfully.", data = totalLikes });
         }
 
         [HttpGet("usersLiked/{scheduleId}")]
         public async Task<IActionResult> GetUsersLiked(int scheduleId)
         {
             var usersLiked = await _scheduleLikeService.GetUsersLikedAsync(scheduleId);
-            return Ok(usersLiked);
+
+            return StatusCode(200, new { statusCode = 200, message = "Users who liked the schedule retrieved successfully.", data = usersLiked });
         }
     }
 }

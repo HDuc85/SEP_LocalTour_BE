@@ -1,6 +1,4 @@
-﻿using LocalTour.Domain.Entities;
-using LocalTour.Services.Common.Mapping;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace LocalTour.Services.ViewModel
 {
-    public class UserPreferenceTagsRequest
+    public class GetUserPreferenceTagsRequest
     {
+        public int Id { get; set; }
+        public List<TagRequest> Tags { get; set; } = new List<TagRequest>();
         public Guid UserId { get; set; }
-        public List<int> TagIds { get; set; } = new List<int>();
     }
 }

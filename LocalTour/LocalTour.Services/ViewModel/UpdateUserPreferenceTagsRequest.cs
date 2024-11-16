@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace LocalTour.Services.ViewModel
 {
-    public class ModTagRequest
+    public class UpdateUserPreferenceTagsRequest
     {
-        public Guid UserId { get; set; }
-        public List<int> TagIds { get; set; } = new List<int>();
-    }
 
+    }
 }

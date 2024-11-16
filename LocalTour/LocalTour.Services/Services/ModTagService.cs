@@ -24,88 +24,140 @@ namespace LocalTour.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<ModTag>> GetAllAsync()
+        public async Task<IEnumerable<GetModTagRequest>> GetAllAsync()
         {
-            return  _unitOfWork.RepositoryModTag.GetAll();
-        }
-
-        public async Task<ModTag?> GetByIdAsync(Guid userId, int tagId)
-        {
-            return await _unitOfWork.RepositoryModTag
-                .GetAll() // Assuming GetAll() returns an IQueryable
-                .FirstOrDefaultAsync(e => e.UserId == userId && e.TagId == tagId);
-        }
-
-        public async Task<ModTag> CreateAsync(ModTagRequest request)
-        {
-            var modTag = _mapper.Map<ModTag>(request);
-            await _unitOfWork.RepositoryModTag.Insert(modTag);
-            await _unitOfWork.CommitAsync();
-            return modTag;
-        }
-
-        // Method to get all tags owned by a specific user
-        public async Task<IEnumerable<ModTagRequest>> GetTagsByUserAsync(Guid userId)
-        {
-            // Use GetAll to fetch all ModTag entries for the specific user
+            // Fetch all ModTag entries and include Tag details for TagName
             var modTags = await _unitOfWork.RepositoryModTag
-                .GetAll() // Assuming GetAll() returns an IQueryable
+                .GetAll()
+                .Include(mt => mt.Tag)
+                .ToListAsync();
+
+            // Group by UserId and collect detailed Tag information for each UserId
+            var userTagGroups = modTags
+                .GroupBy(mt => mt.UserId)
+                .Select(group => new GetModTagRequest
+                {
+                    UserId = group.Key,
+                    Tags = group.Select(mt => new TagRequest
+                    {
+                        TagId = mt.TagId,
+                        TagName = mt.Tag.TagName
+                    }).ToList()
+                });
+
+            return userTagGroups;
+        }
+
+        public async Task<List<ModTagRequest>> CreateMultipleAsync(ModTagRequest request)
+        {
+            var userExists = await _unitOfWork.RepositoryUser.GetById(request.UserId);
+            if (userExists == null)
+            {
+                throw new InvalidOperationException("User does not exist.");
+            }
+
+            var modTags = request.TagIds.Select(tagId => new ModTag
+            {
+                UserId = request.UserId,
+                TagId = tagId
+            }).ToList();
+
+            foreach (var modTag in modTags)
+            {
+                await _unitOfWork.RepositoryModTag.Insert(modTag);
+            }
+
+            await _unitOfWork.CommitAsync();
+
+            var modTagRequests = modTags.Select(modTag => new ModTagRequest
+            {
+                UserId = modTag.UserId,
+                TagIds = new List<int> { modTag.TagId }
+            }).ToList();
+
+            return modTagRequests;
+        }
+
+        public async Task<GetModTagRequest> GetTagsByUserAsync(Guid userId)
+        {
+            // Fetch all tags associated with the user, including the tag name
+            var tagRequest = await _unitOfWork.RepositoryModTag
+                .GetAll()
+                .Where(mt => mt.UserId == userId)
+                .Select(mt => new TagRequest
+                {
+                    TagId = mt.Tag.Id,
+                    TagName = mt.Tag.TagName
+                })
+                .ToListAsync();
+
+            return new GetModTagRequest
+            {
+                UserId = userId,
+                Tags = tagRequest
+            };
+        }
+
+        public async Task<IEnumerable<GetModTagRequest>> GetUsersByTagAsync(int tagId)
+        {
+            // Fetch all ModTag entries associated with the specified TagId and include Tag details
+            var modTags = await _unitOfWork.RepositoryModTag
+                .GetAll()
+                .Where(mt => mt.TagId == tagId)
+                .Include(mt => mt.Tag)
+                .ToListAsync();
+
+            // Group by UserId and collect Tag information for each UserId
+            var modTagRequests = modTags
+                .GroupBy(mt => mt.UserId)
+                .Select(group => new GetModTagRequest
+                {
+                    UserId = group.Key,
+                    Tags = group.Select(mt => new TagRequest
+                    {
+                        TagId = mt.TagId,
+                        TagName = mt.Tag.TagName
+                    }).ToList()
+                });
+
+            return modTagRequests;
+        }
+
+        public async Task<bool> UpdateUserTagsAsync(Guid userId, List<int> tagIds)
+        {
+            // Retrieve the existing ModTags for the user
+            var existingTags = await _unitOfWork.RepositoryModTag
+                .GetAll()
                 .Where(mt => mt.UserId == userId)
                 .ToListAsync();
 
-            // Mapping to ModTagRequest for the response
-            return _mapper.Map<IEnumerable<ModTagRequest>>(modTags);
-        }
-
-        // Method to get all users associated with a specific tag
-        public async Task<IEnumerable<ModTagRequest>> GetUsersByTagAsync(int tagId)
-        {
-            // Use GetAll to fetch all ModTag entries for the specific tag
-            var modTags = await _unitOfWork.RepositoryModTag
-                .GetAll() // Assuming GetAll() returns an IQueryable
-                .Where(mt => mt.TagId == tagId)
-                .ToListAsync();
-
-            // Mapping to ModTagRequest for the response
-            return _mapper.Map<IEnumerable<ModTagRequest>>(modTags);
-        }
-
-        public async Task<ModTag?> UpdateAsync(Guid userId, int tagId, ModTagRequest request)
-        {
-            var modTag = await _unitOfWork.RepositoryModTag
-                .GetAll()
-                .FirstOrDefaultAsync(mt => mt.UserId == userId && mt.TagId == tagId);
-
-            if (modTag == null)
+            // Remove old tags
+            foreach (var modTag in existingTags)
             {
-                return null; // Handle the case where the entity is not found
+                _unitOfWork.RepositoryModTag.Delete(modTag);
             }
 
-            // Delete the old entity
-            _unitOfWork.RepositoryModTag.Delete(modTag);
+            // Add new tags
+            var newModTags = tagIds.Select(tagId => new ModTag { UserId = userId, TagId = tagId }).ToList();
+            await _unitOfWork.RepositoryModTag.Insert(newModTags);
 
-            var newModTag = new ModTag
-            {
-                UserId = request.UserId,  // Assuming you have these properties in your request
-                TagId = request.TagId,
-                // Set other properties accordingly
-            };
-
-            // Add the new entity
-            await _unitOfWork.RepositoryModTag.Insert(newModTag);
+            // Commit changes
             await _unitOfWork.CommitAsync();
-
-
-            return newModTag;
+            return true;
         }
 
-
-        public async Task<bool> DeleteAsync(Guid userId, int tagId)
+        public async Task<bool> DeleteMultipleAsync(Guid userId, List<int> tagIds)
         {
-            var modTag = await GetByIdAsync(userId, tagId);
-            if (modTag == null) return false;
+            var modTags = await _unitOfWork.RepositoryModTag
+                .GetAll()
+                .Where(mt => mt.UserId == userId && tagIds.Contains(mt.TagId))
+                .ToListAsync();
 
-            _unitOfWork.RepositoryModTag.Delete(modTag);
+            foreach (var modTag in modTags)
+            {
+                _unitOfWork.RepositoryModTag.Delete(modTag);
+            }
+
             await _unitOfWork.CommitAsync();
             return true;
         }
