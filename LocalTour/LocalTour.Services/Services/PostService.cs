@@ -395,6 +395,7 @@ namespace LocalTour.Services.Services
 
         public async Task<List<PostCommentRequest>> GetCommentsByPostIdAsync(int postId, Guid userId)
         {
+            // Fetch all comments for the post, including their child comments (InverseParent)
             var comments = await _unitOfWork.RepositoryPostComment
                 .GetAll()
                 .Where(c => c.PostId == postId)
@@ -402,18 +403,17 @@ namespace LocalTour.Services.Services
                 .OrderBy(c => c.CreatedDate)
                 .ToListAsync();
 
-            // Filter comments based on parentId if provided
-            var filteredComments = parentId.HasValue
-                ? comments.Where(c => c.ParentId == parentId.Value).ToList()
-                : comments.Where(c => c.ParentId == null).ToList(); // No parentId provided, get top-level comments
+            // Filter for top-level comments (ParentId is null)
+            var topLevelComments = comments.Where(c => c.ParentId == null).ToList();
 
-            var tasks = filteredComments
-                .Where(c => c.ParentId == null)
-                .Select(parent => MapToRequestWithChildren(parent, comments, userId)); // Await the tasks
+            // Map each top-level comment to a PostCommentRequest with nested child comments
+            var tasks = topLevelComments.Select(parent => MapToRequestWithChildren(parent, comments, userId));
 
-            var result = await Task.WhenAll(tasks); // This returns an array of PostCommentRequest
+            // Wait for all mapping tasks to complete
+            var result = await Task.WhenAll(tasks);
 
-            return result.ToList(); // Convert the array to a list
+            // Convert the array to a list and return
+            return result.ToList();
         }
 
         private async Task<PostCommentRequest> MapToRequestWithChildren(PostComment parent, List<PostComment> comments, Guid userId)

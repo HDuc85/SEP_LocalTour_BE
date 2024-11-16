@@ -22,18 +22,22 @@ namespace LocalTour.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<bool> LikePostAsync(int postId, Guid userId)
+        public async Task<bool> ToggleLikePostAsync(int postId, Guid userId)
         {
-            // Check if the like already exists
+            // Kiểm tra nếu người dùng đã "Like" bài viết
             var existingLike = await _unitOfWork.RepositoryPostLike
                 .GetAll()
                 .FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
 
             if (existingLike != null)
             {
-                return false; // Already liked
+                // Nếu đã "Like", xóa "Like" (Unlike)
+                _unitOfWork.RepositoryPostLike.Delete(existingLike);
+                await _unitOfWork.CommitAsync();
+                return false; // Trả về false để chỉ ra hành động là "Unlike"
             }
 
+            // Nếu chưa "Like", thêm "Like"
             var like = new PostLike
             {
                 PostId = postId,
@@ -43,10 +47,8 @@ namespace LocalTour.Services.Services
 
             await _unitOfWork.RepositoryPostLike.Insert(like);
             await _unitOfWork.CommitAsync();
-
-            return true;
+            return true; // Trả về true để chỉ ra hành động là "Like"
         }
-
         public async Task<bool> UnlikePostAsync(int postId, Guid userId)
         {
             var existingLike = await _unitOfWork.RepositoryPostLike

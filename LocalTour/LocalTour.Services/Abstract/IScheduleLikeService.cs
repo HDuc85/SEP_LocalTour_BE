@@ -9,7 +9,7 @@ namespace LocalTour.Services.Abstract
 {
     public interface IScheduleLikeService
     {
-        Task<bool> LikeScheduleAsync(int ScheduleId, Guid userId);
+        Task<int> LikeScheduleAsync(int scheduleId, Guid userId);
         Task<bool> UnlikeScheduleAsync(int ScheduleId, Guid userId);
         Task<int> GetTotalLikesAsync(int scheduleId);
         Task<List<Guid>> GetUsersLikedAsync(int scheduleId);

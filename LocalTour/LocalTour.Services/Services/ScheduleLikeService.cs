@@ -23,30 +23,36 @@ namespace LocalTour.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<bool> LikeScheduleAsync(int scheduleId, Guid userId)
+        public async Task<int> LikeScheduleAsync(int scheduleId, Guid userId)
         {
-            // Check if the like already exists
+            // Kiểm tra xem người dùng đã "like" lịch trình chưa
             var existingLike = await _unitOfWork.RepositoryScheduleLike
                 .GetAll()
                 .FirstOrDefaultAsync(l => l.ScheduleId == scheduleId && l.UserId == userId);
 
             if (existingLike != null)
             {
-                return false; // Already liked
+                // Nếu đã "like" thì "unlike"
+                _unitOfWork.RepositoryScheduleLike.Delete(existingLike);
+                await _unitOfWork.CommitAsync();
+                return 2;  // Trả về 2 khi "unlike"
             }
-
-            var like = new ScheduleLike
+            else
             {
-                ScheduleId = scheduleId,
-                UserId = userId,
-                CreatedDate = DateTime.UtcNow
-            };
+                // Nếu chưa "like", thì thực hiện "like"
+                var like = new ScheduleLike
+                {
+                    ScheduleId = scheduleId,
+                    UserId = userId,
+                    CreatedDate = DateTime.UtcNow
+                };
 
-            await _unitOfWork.RepositoryScheduleLike.Insert(like);
-            await _unitOfWork.CommitAsync();
-
-            return true;
+                await _unitOfWork.RepositoryScheduleLike.Insert(like);
+                await _unitOfWork.CommitAsync();
+                return 1;  // Trả về 1 khi "like"
+            }
         }
+
 
         public async Task<bool> UnlikeScheduleAsync(int scheduleId, Guid userId)
         {
