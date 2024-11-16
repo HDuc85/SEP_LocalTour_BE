@@ -214,8 +214,8 @@ namespace LocalTour.Services.Services
                 {
                     feedbacks = feedbacks.OrderByCustom(request.SortBy, request.SortOrder);
                 }
-            feedbacks = feedbacks.OrderByDescending(f => f.UserId == userId)
-                 .ThenBy(f => f.CreatedDate);
+            feedbacks = feedbacks.OrderBy(f => f.UserId != userId)
+                     .ThenBy(f => f.CreatedDate);
             return await feedbacks
                     .ListPaginateWithFeedbackAsync<PlaceFeeedback, PlaceFeedbackRequest>(
                     request.Page,
