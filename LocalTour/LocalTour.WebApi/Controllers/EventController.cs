@@ -40,10 +40,7 @@ namespace LocalTour.WebApi.Controllers
             try
             {
                 var events = await _eventService.CreateEvent(placeid, request);
-                return Ok(new ServiceResponseModel<EventRequest>(events)
-                {
-                    Message = "Place created successfully"
-                });
+                return Ok(events);
             }
             catch (Exception ex)
             {
@@ -60,10 +57,7 @@ namespace LocalTour.WebApi.Controllers
             try
             {
                 var events = await _eventService.UpdateEvent(placeid,eventid, request);
-                return Ok(new ServiceResponseModel<EventRequest>(events)
-                {
-                    Message = "Event updated successfully"
-                });
+                return Ok(events);
             }
             catch (Exception ex)
             {

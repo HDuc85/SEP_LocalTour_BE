@@ -52,6 +52,7 @@ public class MappingProfile : Profile
         CreateMap<PlaceActivity, PlaceActivityRequest>()
         .ForMember(dest => dest.PhotoDisplay, opt => opt.Ignore());
         CreateMap<PlaceMedium, PlaceMediumRequest>();
+        CreateMap<Tag, TagViewModel>();
         CreateMap<PlaceFeeedback, PlaceFeedbackRequest>()
                     .ForMember(dest => dest.PlaceFeeedbackMedia, opt => opt.MapFrom(src => src.PlaceFeeedbackMedia))
                     .ForMember(dest => dest.TotalLike, opt => opt.Ignore())
