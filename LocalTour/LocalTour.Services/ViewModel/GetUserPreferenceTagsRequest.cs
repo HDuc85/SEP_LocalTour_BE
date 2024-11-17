@@ -9,7 +9,7 @@ namespace LocalTour.Services.ViewModel
     public class GetUserPreferenceTagsRequest
     {
         public int Id { get; set; }
-        public List<TagRequest> Tags { get; set; } = new List<TagRequest>();
+        public List<TagVM> Tags { get; set; } = new List<TagVM>();
         public Guid UserId { get; set; }
     }
 }

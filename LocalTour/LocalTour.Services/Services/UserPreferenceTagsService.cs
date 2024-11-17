@@ -35,8 +35,9 @@ namespace LocalTour.Services.Services
                 .Select(group => new GetUserPreferenceTagsRequest
                 {
                     UserId = group.Key,
-                    Tags = group.Select(mt => new TagRequest
+                    Tags = group.Select(mt => new TagVM
                     {
+                        TagUrl = mt.Tag.TagPhotoUrl,
                         TagId = mt.TagId,
                         TagName = mt.Tag.TagName
                     }).ToList()

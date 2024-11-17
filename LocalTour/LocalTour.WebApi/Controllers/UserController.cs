@@ -76,12 +76,8 @@ namespace LocalTour.WebApi.Controllers
         public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
         {
             var result = await _userService.ChangePassword(User.GetUserId(),request);
-
-            if (result.Success)
-            {
                 return Ok(result.Data);
-            }
-            return BadRequest(result.Message);
+            
         }
 
 

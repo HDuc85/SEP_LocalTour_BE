@@ -9,6 +9,6 @@ namespace LocalTour.Services.ViewModel
     public class GetModTagRequest
     {
         public Guid UserId { get; set; }
-        public List<TagRequest> Tags { get; set; } = new List<TagRequest>();
+        public List<TagVM> Tags { get; set; } = new List<TagVM>();
     }
 }

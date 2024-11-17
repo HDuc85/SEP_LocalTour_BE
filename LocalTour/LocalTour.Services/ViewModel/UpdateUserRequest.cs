@@ -4,6 +4,7 @@ namespace LocalTour.Services.ViewModel
 {
     public class UpdateUserRequest
     {
+        public string? Username { get; set; }
         public string? FullName { get; set; }
 
         public DateTime? DateOfBirth { get; set; }

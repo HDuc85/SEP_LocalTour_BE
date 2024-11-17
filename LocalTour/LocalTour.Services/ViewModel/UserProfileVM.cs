@@ -2,6 +2,7 @@
 
 public class UserProfileVM
 {
+    public string? fullName { get; set; }
     public string? userName { get; set; }
     public string? userProfileImage { get; set; }
     public string? email { get; set; }
@@ -15,4 +16,5 @@ public class UserProfileVM
     public int? totalFollowed { get; set; }
     public int? totalFollowers { get; set; }
     public bool? isFollowed { get; set; }
+    public bool? isHasPassword { get; set; }
 }

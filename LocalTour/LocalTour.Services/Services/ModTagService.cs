@@ -38,8 +38,9 @@ namespace LocalTour.Services.Services
                 .Select(group => new GetModTagRequest
                 {
                     UserId = group.Key,
-                    Tags = group.Select(mt => new TagRequest
+                    Tags = group.Select(mt => new TagVM
                     {
+                        TagUrl = mt.Tag.TagPhotoUrl,
                         TagId = mt.TagId,
                         TagName = mt.Tag.TagName
                     }).ToList()
@@ -84,8 +85,9 @@ namespace LocalTour.Services.Services
             var tagRequest = await _unitOfWork.RepositoryModTag
                 .GetAll()
                 .Where(mt => mt.UserId == userId)
-                .Select(mt => new TagRequest
+                .Select(mt => new TagVM
                 {
+                    TagUrl = mt.Tag.TagPhotoUrl,
                     TagId = mt.Tag.Id,
                     TagName = mt.Tag.TagName
                 })
@@ -113,9 +115,10 @@ namespace LocalTour.Services.Services
                 .Select(group => new GetModTagRequest
                 {
                     UserId = group.Key,
-                    Tags = group.Select(mt => new TagRequest
+                    Tags = group.Select(mt => new TagVM
                     {
                         TagId = mt.TagId,
+                        TagUrl = mt.Tag.TagPhotoUrl,
                         TagName = mt.Tag.TagName
                     }).ToList()
                 });

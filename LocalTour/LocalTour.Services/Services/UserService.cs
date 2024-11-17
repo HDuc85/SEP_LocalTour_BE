@@ -207,13 +207,13 @@ namespace LocalTour.Services.Services
 
             return new ServiceResponseModel<User>(user);
         }
-        public async Task<ServiceResponseModel<ChangePasswordReponse>> ChangePassword(string userId, ChangePasswordRequest request)
+        public async Task<ServiceResponseModel<ChangePasswordResponse>> ChangePassword(string userId, ChangePasswordRequest request)
         {
             var user = await _userManager.FindByIdAsync(userId);
 
             if (request.newPassword != request.confirmPassword)
             {
-                return new ServiceResponseModel<ChangePasswordReponse>(false, new ChangePasswordReponse()
+                return new ServiceResponseModel<ChangePasswordResponse>(false, new ChangePasswordResponse()
                 {
                     Success = false,
                     NewPasswordError = "Passwords do not match"
@@ -223,7 +223,7 @@ namespace LocalTour.Services.Services
             var checkPassword = await _userManager.CheckPasswordAsync(user, request.oldPassword);
             if (!checkPassword)
             {
-                return new ServiceResponseModel<ChangePasswordReponse>(false, new ChangePasswordReponse()
+                return new ServiceResponseModel<ChangePasswordResponse>(false, new ChangePasswordResponse()
                 {
                     Success = false,
                     OldPasswordError = "Old password is incorrect"
@@ -232,7 +232,7 @@ namespace LocalTour.Services.Services
             var result = await _userManager.ChangePasswordAsync(user, request.oldPassword, request.newPassword);
             if (result.Succeeded)
             {
-                return new ServiceResponseModel<ChangePasswordReponse>(true, new ChangePasswordReponse()
+                return new ServiceResponseModel<ChangePasswordResponse>(true, new ChangePasswordResponse()
                 {
                     Success = true,
                 });
@@ -280,6 +280,7 @@ namespace LocalTour.Services.Services
                 totalFollowed = totalFollowed.Count(),
                 totalReviews = totalReviews.Count(),
                 totalSchedules = totalSchedules.Count(),
+                fullName = user.FullName,
                 userName = user.UserName,
                 phoneNumber = user.PhoneNumber,
                 email = user.Email,
@@ -287,6 +288,7 @@ namespace LocalTour.Services.Services
                 gender = user.Gender,
                 userProfileImage = user.ProfilePictureUrl,
                 dateOfBirth = user.DateOfBirth,
+                isHasPassword = user.PasswordHash != null,
                 isFollowed = totalFollowers.Any(x => x.UserFollow.ToString() == currentUserId),
             });
         }
