@@ -1,4 +1,4 @@
-using LocalTour.Domain.Entities;
+﻿using LocalTour.Domain.Entities;
 using LocalTour.Services.Common.Mapping;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -9,11 +9,12 @@ using System.Threading.Tasks;
 
 namespace LocalTour.Services.ViewModel
 {
-    public class TagRequest
+    public class TagViewModel : IMapFrom<Tag>
     {
+        public int Id { get; set; }
 
         public string TagName { get; set; } = null!;
 
-        public IFormFile TagPhotoUrl { get; set; } = null!;
+        public string TagPhotoUrl { get; set; } = null!;
     }
 }
