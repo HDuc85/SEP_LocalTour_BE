@@ -2,6 +2,7 @@
 using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
 using LocalTour.Services.ViewModel;
+using LocalTour.WebApi.Helper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LocalTour.WebApi.Controllers
@@ -21,6 +22,17 @@ namespace LocalTour.WebApi.Controllers
             var tags = await _tagService.GetAllTag(request);
             return Ok(tags);
         }
+
+        [HttpGet("TagsTopPlace")]
+        public async Task<IActionResult> TagsTopPlace()
+        {
+            var userId = User.GetUserId();
+
+            var result = await _tagService.GetTagsTopPlace(userId);
+            
+            return Ok(result);
+        }
+        
         [HttpGet("getTagById")]
         public async Task<ActionResult<Tag>> GetTagById( int tagid)
         {

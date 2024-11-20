@@ -1,4 +1,5 @@
 ﻿using FirebaseAdmin.Auth;
+using LocalTour.Domain.Common;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.WebApi.Helper;
@@ -14,9 +15,11 @@ namespace LocalTour.WebApi.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly ITokenHandler _tokenHandler;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, ITokenHandler tokenHandler)
         {
+            _tokenHandler = tokenHandler;
             _userService = userService;
         }
 
@@ -62,12 +65,25 @@ namespace LocalTour.WebApi.Controllers
                 return BadRequest("Invalid Token");
             }
             var userId = User.GetUserId();
-            var result = await _userService.SetPassword(userId,request.Password);
+            var user = await _userService.FindById(userId);
+            var result = await _userService.SetPassword(user.Id.ToString(),request.Password);
 
             if (!result)
             {
                 return BadRequest("Set Password Fail");
             }
+            
+            (string accessToken, DateTime expiredDateAccessToken) = await _tokenHandler.CreateAccessToken(user);
+            (string refreshToken, DateTime expiredDateRefreshToken) = await _tokenHandler.CreateRefreshToken(user);
+            
+            return Ok(new JwtModel
+            {
+                accessToken = accessToken,
+                refreshToken = refreshToken,
+                userId = user.Id.ToString(),
+                accessTokenExpiredDate = expiredDateAccessToken,
+                refeshTokenExpiredDate = expiredDateRefreshToken
+            });
             return Ok();
         }
 
@@ -77,7 +93,6 @@ namespace LocalTour.WebApi.Controllers
         {
             var result = await _userService.ChangePassword(User.GetUserId(),request);
                 return Ok(result.Data);
-            
         }
 
 
@@ -86,25 +101,34 @@ namespace LocalTour.WebApi.Controllers
         public async Task<IActionResult> UpdateUser([FromForm]UpdateUserRequest updateUserRequest)
         {
             string userId = User.GetUserId();
-            var result = await _userService.UpdateUser(userId, updateUserRequest);
-            if (!result.Success)
+            try
             {
-                return BadRequest(result.Message);
-            }
-            else
-            {
-                return Ok(new UserProfileVM()
+                var result = await _userService.UpdateUser(userId, updateUserRequest);
+                
+                if (!result.Success)
                 {
-                    phoneNumber = result.Data.PhoneNumber,
-                    email = result.Data.Email,
-                    address = result.Data.Address,
-                    gender = result.Data.Gender,
-                    userName = result.Data.UserName,
-                    dateOfBirth = result.Data.DateOfBirth,
-                    userProfileImage = result.Data.ProfilePictureUrl
-                });
+                    return BadRequest(result.Message);
+                }
+                else
+                {
+                    return Ok(new UserProfileVM()
+                    {
+                        phoneNumber = result.Data.PhoneNumber,
+                        email = result.Data.Email,
+                        address = result.Data.Address,
+                        gender = result.Data.Gender,
+                        userName = result.Data.UserName,
+                        dateOfBirth = result.Data.DateOfBirth,
+                        userProfileImage = result.Data.ProfilePictureUrl
+                    });
 
+                }
             }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+            
         }
 
         [HttpGet("getProfile")]

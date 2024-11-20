@@ -5,6 +5,7 @@ using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.Extensions;
 using LocalTour.Services.ViewModel;
+using Microsoft.IdentityModel.Tokens;
 
 
 namespace LocalTour.Services.Services
@@ -115,5 +116,48 @@ namespace LocalTour.Services.Services
             await _unitOfWork.CommitAsync();
             return request;
         }
+
+        public async Task<List<TagViewModel>> GetTagsTopPlace(String? userId)
+        {
+            var userTags = !userId.IsNullOrEmpty()
+                ? _unitOfWork.RepositoryUserPreferenceTags.GetDataQueryable()
+                    .Where(ut => ut.UserId == Guid.Parse(userId))
+                    .Select(ut => ut.TagId)
+                : Enumerable.Empty<int>();
+            
+            var tagPlaceCounts = _unitOfWork.RepositoryPlaceTag.GetDataQueryable()
+                .GroupBy(pt => pt.TagId)
+                .Select(g => new
+                {
+                    TagId = g.Key,
+                    PlaceCount = g.Count()
+                });
+            
+            var userPreferredTags = tagPlaceCounts
+                .Where(tag => userTags.Contains(tag.TagId))
+                .OrderByDescending(tag => tag.PlaceCount)
+                .Take(10)  
+                .ToList();
+
+            var additionalTags = tagPlaceCounts
+                .Where(tag => !userTags.Contains(tag.TagId))
+                .OrderByDescending(tag => tag.PlaceCount)
+                .Take(10 - userPreferredTags.Count())  
+                .ToList();
+            
+            
+            var tags = await _unitOfWork.RepositoryTag.GetData();
+            var result = userPreferredTags
+                .Concat(additionalTags)
+                .Select(tag => new TagViewModel
+                {
+                    Id = tag.TagId,
+                    TagPhotoUrl = tags.Single(x => x.Id == tag.TagId).TagPhotoUrl,
+                    TagName = tags.Single(x => x.Id == tag.TagId).TagName,
+                })
+                .ToList();
+            return result;
+        }
+        
     }
 }

@@ -41,7 +41,6 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpGet("getAll")]
-        [Authorize]
         public async Task<ActionResult<PaginatedList<PlaceVM>>> GetAllPlaces([FromQuery] GetPlaceRequest request)
         {
             try

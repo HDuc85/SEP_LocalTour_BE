@@ -4,6 +4,8 @@ using LocalTour.Services.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using LocalTour.WebApi.Helper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LocalTour.WebApi.Controllers
 {
@@ -19,9 +21,10 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<GetUserPreferenceTagsRequest>>> GetAllUserPreferenceTagsGroupedByUserAsync()
         {
-            var result = await _service.GetAllUserPreferenceTagsGroupedByUserAsync();
+            var result = await _service.GetAllUserPreferenceTagsGroupedByUserAsync(User.GetUserId());
 
             if (result == null || !result.Any())
             {
@@ -43,9 +46,10 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<UserPreferenceTagsRequest>> Create([FromForm] UserPreferenceTagsRequest request)
+        [Authorize]
+        public async Task<ActionResult<UserPreferenceTagsRequest>> Create(UserPreferenceTagsRequest request)
         {
-            var createdTag = await _service.CreateUserPreferenceTags(request);
+            var createdTag = await _service.CreateUserPreferenceTags(User.GetUserId(),request);
             return CreatedAtAction(nameof(GetById), new { id = createdTag.TagIds }, createdTag);
         }
 

@@ -3,7 +3,9 @@ using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
 using LocalTour.Services.ViewModel;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 
 namespace LocalTour.Services.Services
 {
@@ -171,7 +173,7 @@ namespace LocalTour.Services.Services
             if (updateUserRequest.DateOfBirth.HasValue)
                 if (!(updateUserRequest.DateOfBirth <= maxDate) || !(updateUserRequest.DateOfBirth >= minDate))
                 {
-                    return new(false, $"{updateUserRequest.DateOfBirth} is too young or too old");
+                    throw new Exception($"{updateUserRequest.DateOfBirth} is too young or too old");
                 }
                 else
                 {
@@ -203,6 +205,16 @@ namespace LocalTour.Services.Services
             }
             user.DateUpdated = today;
 
+            if (!updateUserRequest.Username.IsNullOrEmpty())
+            {
+                var check = await _userManager.FindByNameAsync(updateUserRequest.Username);
+                if (check != null)
+                {
+                    throw new Exception("Username already exist");
+                }
+                user.UserName = updateUserRequest.Username;
+            }
+            
             await _userManager.UpdateAsync(user);
 
             return new ServiceResponseModel<User>(user);

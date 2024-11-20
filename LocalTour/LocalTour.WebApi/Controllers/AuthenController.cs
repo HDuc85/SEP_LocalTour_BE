@@ -1,4 +1,6 @@
-﻿using FirebaseAdmin.Auth;
+﻿using FirebaseAdmin;
+using FirebaseAdmin.Auth;
+using Google.Apis.Auth.OAuth2;
 using LocalTour.Domain;
 using LocalTour.Domain.Common;
 using LocalTour.Domain.Entities;
@@ -22,6 +24,13 @@ namespace LocalTour.WebApi.Controllers
         {
             _userService = userService;
             _tokenHandler = tokenHandler;
+            if (FirebaseApp.DefaultInstance == null)
+            {
+                FirebaseApp.Create(new AppOptions
+                {
+                    Credential = GoogleCredential.FromFile("firebaseServiceAccount.json")
+                });
+            }
         }
 
         [HttpPost("login")]
@@ -44,7 +53,6 @@ namespace LocalTour.WebApi.Controllers
                 accessToken = accessToken,
                 refreshToken = refreshToken,
                 userId = result.Data.Id.ToString(),
-                phoneNumber = result.Data.PhoneNumber,
                 accessTokenExpiredDate = expiredDateAccessToken,
                 refeshTokenExpiredDate = expiredDateRefreshToken
             });
@@ -52,10 +60,10 @@ namespace LocalTour.WebApi.Controllers
 
         [HttpPost("refreshToken")]
         [AllowAnonymous]
-        public async Task<IActionResult> RefreshToken([FromBody]string refreshToken)
+        public async Task<IActionResult> RefreshToken([FromBody]TokenRequest request)
         {
-            var validate = await _tokenHandler.ValidateRefreshToken(refreshToken);
-            if (validate.phoneNumber == null)
+            var validate = await _tokenHandler.ValidateRefreshToken(request.Token);
+            if (validate.userId == null)
                 return Unauthorized("Invalid RefreshToken");
             return Ok(validate);
             
@@ -63,18 +71,23 @@ namespace LocalTour.WebApi.Controllers
 
         [HttpPost("verifyTokenFirebase")]
         [AllowAnonymous]
-        public async Task<IActionResult> VerifyToken([FromBody]string idToken)
+        public async Task<IActionResult> VerifyToken([FromBody]TokenRequest request)
         {
             try
             {
-                UserRecord userRecord = await FirebaseAuth.DefaultInstance.GetUserAsync(idToken);
+                UserRecord userRecord = await FirebaseAuth.DefaultInstance.GetUserAsync(request.Token);
                 string phoneNumber = userRecord.PhoneNumber;
                 string email = userRecord.Email;
-                
-                var user = await _userService.FindByPhoneNumber(phoneNumber);
-                if (user == null)
+                User user = null;
+
+                if (phoneNumber != null)
                 {
-                user = await _userService.FindByEmail(email);
+                phoneNumber = "0" + phoneNumber.Substring(3);
+                user = await _userService.FindByPhoneNumber(phoneNumber);
+                }
+                if (user == null && !string.IsNullOrEmpty(email))
+                {
+                    user = await _userService.FindByEmail(email);
                 }
 
                 bool firstTime = false;
@@ -93,14 +106,15 @@ namespace LocalTour.WebApi.Controllers
                     });
                     firstTime = true;
                 }
-           
-                (string firebaseAuthToken, DateTime expiredDateToken) = await _tokenHandler.CreateAuthenFirebaseToken(user,idToken);
-
+                
+                (string firebaseAuthToken, DateTime expiredDateToken) = await _tokenHandler.CreateAuthenFirebaseToken(user,request.Token);
+                if(user.PasswordHash == null) firstTime = true;
                 return Ok(new 
                 {
                     firebaseAuthToken = firebaseAuthToken,
                     expiredDateToken = expiredDateToken,
-                    firstTime = firstTime
+                    firstTime = firstTime,
+                    userId = user.Id.ToString()
                 });
             }
             catch (FirebaseAuthException ex)
@@ -116,5 +130,6 @@ namespace LocalTour.WebApi.Controllers
             }
         }
 
+        
     }
 }

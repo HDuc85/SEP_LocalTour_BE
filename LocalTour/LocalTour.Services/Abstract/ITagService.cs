@@ -15,5 +15,6 @@ namespace LocalTour.Services.Abstract
         Task<TagRequest> CreateTag(TagRequest request);
         Task<TagRequest> UpdateTag(int tagid, TagRequest request);
         Task<bool> DeleteTag( int tagid);
+        Task<List<TagViewModel>> GetTagsTopPlace(String? userId);
     }
 }

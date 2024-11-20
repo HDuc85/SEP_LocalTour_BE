@@ -20,21 +20,22 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
 
 namespace LocalTour.Services.Services
 {
     public class PlaceService : IPlaceService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IUserService _userService;
         private readonly IMapper _mapper;
-        private readonly IConfiguration _configuration;
         private readonly IFileService _fileService;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public PlaceService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IFileService fileService, IHttpContextAccessor httpContextAccessor)
+        public PlaceService(IUnitOfWork unitOfWork, IMapper mapper,IUserService userService, IFileService fileService, IHttpContextAccessor httpContextAccessor)
         {
+            _userService = userService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _configuration = configuration;
             _fileService = fileService;
             _httpContextAccessor = httpContextAccessor;
         }
@@ -125,22 +126,25 @@ namespace LocalTour.Services.Services
 
         public async Task<PaginatedList<PlaceVM>> GetAllPlace(GetPlaceRequest request)
         {
-            var user = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(user) || !Guid.TryParse(user, out var userId))
+            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            User user = new User();
+            if (userId != null)
             {
-                throw new UnauthorizedAccessException("User not found or invalid User ID.");
+                user = await _userService.FindById(userId);
             }
-            var userTags = await _unitOfWork.RepositoryUserPreferenceTags.GetAll()
-                .Where(mt => mt.UserId == userId)
-                .Select(mt => mt.TagId)
-                .ToListAsync();
+            List<int> userTags = new List<int>();
+            if (user != null)
+            {  
+                userTags = await _unitOfWork.RepositoryUserPreferenceTags.GetAll()
+                    .Where(mt => mt.UserId == user.Id)
+                    .Select(mt => mt.TagId)
+                    .ToListAsync();
+            }
+            
             var roles = _httpContextAccessor.HttpContext.User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
-            if (!roles.Any())
-            {
-                throw new UnauthorizedAccessException("User has no assigned roles.");
-            }
+            
             IQueryable<Place> places;
-            if (roles.Contains("Visitor"))
+            if (roles.Contains("Visitor") || roles.IsNullOrEmpty())
             {
                 places = _unitOfWork.RepositoryPlace.GetAll().Include(x => x.PlaceTranslations.Where(pt => pt.LanguageCode == request.LanguageCode))
                         .Include(y => y.PlaceTags)
@@ -179,7 +183,7 @@ namespace LocalTour.Services.Services
                     request.CurrentLongitude,
                     request.CurrentLatitude,
                     userTags,
-                    userId,
+                    user.Id,
                     _mapper.ConfigurationProvider);
         }
         private double CalculateDistance(double longitude1, double latitude1, double longitude2, double latitude2)

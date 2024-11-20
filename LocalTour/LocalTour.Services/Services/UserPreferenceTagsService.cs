@@ -21,29 +21,24 @@ namespace LocalTour.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<GetUserPreferenceTagsRequest>> GetAllUserPreferenceTagsGroupedByUserAsync()
+        public async Task<List<Tag>> GetAllUserPreferenceTagsGroupedByUserAsync(string userId)
         {
+            var user = await _unitOfWork.RepositoryUser.GetById(Guid.Parse(userId));
             // Fetch all ModTag entries and include Tag details for TagName
             var userTags = await _unitOfWork.RepositoryUserPreferenceTags
                 .GetAll()
+                .Where(x => x.UserId == user.Id )
                 .Include(mt => mt.Tag)
-                .ToListAsync();
-
-            // Group by UserId and collect detailed Tag information for each UserId
-            var userTagGroups = userTags
-                .GroupBy(mt => mt.UserId)
-                .Select(group => new GetUserPreferenceTagsRequest
+                .Select(mt => new Tag
                 {
-                    UserId = group.Key,
-                    Tags = group.Select(mt => new TagVM
-                    {
-                        TagUrl = mt.Tag.TagPhotoUrl,
-                        TagId = mt.TagId,
-                        TagName = mt.Tag.TagName
-                    }).ToList()
-                });
+                    Id = mt.TagId,
+                    TagName = mt.Tag.TagName,
+                    TagPhotoUrl = mt.Tag.TagPhotoUrl,
+                })
+                .ToListAsync();
+            
 
-            return userTagGroups;
+            return userTags;
         }
 
 
@@ -53,10 +48,10 @@ namespace LocalTour.Services.Services
             return entity == null ? null : _mapper.Map<UserPreferenceTagsRequest>(entity);
         }
 
-        public async Task<UserPreferenceTagsRequest> CreateUserPreferenceTags(UserPreferenceTagsRequest request)
+        public async Task<UserPreferenceTagsRequest> CreateUserPreferenceTags(string UserId,UserPreferenceTagsRequest request)
         {
             // Check if the user exists
-            var userExists = await _unitOfWork.RepositoryUser.GetById(request.UserId);
+            var userExists = await _unitOfWork.RepositoryUser.GetById(Guid.Parse(UserId));
 
             if (userExists == null)
             {
@@ -65,24 +60,19 @@ namespace LocalTour.Services.Services
             }
 
             // Check if all TagIds exist in the Tag table
+            
+            var userExitsTags = await _unitOfWork.RepositoryUserPreferenceTags.GetAll()
+                .Where(x => x.UserId == userExists.Id)
+                .Select(y => y.TagId).ToListAsync();
             var existingTagIds = await _unitOfWork.RepositoryTag
                 .GetAll()
-                .Where(tag => request.TagIds.Contains(tag.Id))
+                .Where(tag => request.TagIds.Contains(tag.Id) && !userExitsTags.Contains(tag.Id))
                 .Select(tag => tag.Id)
                 .ToListAsync();
-
-            var invalidTagIds = request.TagIds.Except(existingTagIds).ToList();
-
-            if (invalidTagIds.Any())
-            {
-                // Handle case for missing tags (either throw error or log)
-                throw new InvalidOperationException($"The following TagIds do not exist: {string.Join(", ", invalidTagIds)}");
-            }
-
             // Create the list of UserPreferenceTags based on the tag IDs provided
-            var userPreferenceTags = request.TagIds.Select(tagId => new UserPreferenceTags
+            var userPreferenceTags = existingTagIds.Select(tagId => new UserPreferenceTags
             {
-                UserId = request.UserId,
+                UserId = userExists.Id,
                 TagId = tagId
             }).ToList();
 
@@ -98,7 +88,6 @@ namespace LocalTour.Services.Services
             // Returning a single UserPreferenceTagsRequest (adjust according to your needs)
             var result = new UserPreferenceTagsRequest
             {
-                UserId = request.UserId,
                 TagIds = request.TagIds
             };
 

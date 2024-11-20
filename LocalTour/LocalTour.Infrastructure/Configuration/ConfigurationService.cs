@@ -29,6 +29,8 @@ namespace LocalTour.Infrastructure.Configuration
                 options.Password.RequireLowercase = true;
                 options.Password.RequireUppercase = true;
                 options.Password.RequiredLength = 6;
+                options.User.RequireUniqueEmail = false;
+
             })
                 .AddRoles<Role>()
                 .AddEntityFrameworkStores<LocalTourDbContext>();
