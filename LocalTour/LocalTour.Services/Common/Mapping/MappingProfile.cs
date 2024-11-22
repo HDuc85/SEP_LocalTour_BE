@@ -49,6 +49,8 @@ public class MappingProfile : Profile
              .ForMember(dest => dest.Rating, opt => opt.Ignore())
              .ForMember(dest => dest.TotalPlaceFeedback, opt => opt.Ignore());
         CreateMap<Event, EventRequest>();
+        CreateMap<Event, EventViewModel>()
+                          .ForMember(dest => dest.PlaceName, opt => opt.MapFrom(src => src.Place.PlaceTranslations.FirstOrDefault().Name));
         CreateMap<PlaceActivity, PlaceActivityRequest>()
         .ForMember(dest => dest.PhotoDisplay, opt => opt.Ignore());
         CreateMap<PlaceMedium, PlaceMediumRequest>();

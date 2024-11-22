@@ -16,5 +16,6 @@ namespace LocalTour.Services.Abstract
         Task<PlaceRequest> UpdatePlace(int placeid,PlaceRequest request);
         Task<Place> ChangeStatusPlace(int placeid,string status);
         Task<bool> DeletePlace(int placeid);
+        Task<PaginatedList<PlaceVM>> GetAllPlaceByRole(GetPlaceRequest request);
     }
 }
