@@ -17,5 +17,6 @@ namespace LocalTour.Services.Abstract
         Task<EventRequest> UpdateEvent(int placeid, int eventid, EventRequest request);
         Task<bool> DeleteEvent(int placeid, int eventid);
         Task<Event> ChangeStatusEvent(int placeid, int eventid, string status);
+        Task<PaginatedList<EventViewModel>> GetAllEvent(GetEventRequest request);
     }
 }

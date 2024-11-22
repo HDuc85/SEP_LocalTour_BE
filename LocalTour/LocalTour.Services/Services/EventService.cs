@@ -4,6 +4,7 @@ using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.Extensions;
 using LocalTour.Services.ViewModel;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -18,10 +19,12 @@ namespace LocalTour.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public EventService(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public EventService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
         public async Task<PaginatedList<EventRequest>> GetAllEventByPlaceid(int placeid, GetEventRequest request)
         {
@@ -48,7 +51,7 @@ namespace LocalTour.Services.Services
                 request.SortOrder,
                 _mapper.ConfigurationProvider);
         }
-        
+
         public async Task<PaginatedList<EventResponse>> GetAllEventByVisitor(int placeid, GetEventRequest request)
         {
             var events = _unitOfWork.RepositoryEvent.GetAll()
@@ -74,6 +77,41 @@ namespace LocalTour.Services.Services
                     request.SortOrder,
                     _mapper.ConfigurationProvider);
         }
+        public async Task<PaginatedList<EventViewModel>> GetAllEvent(GetEventRequest request)
+        {
+            var user = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(user) || !Guid.TryParse(user, out var userId))
+            {
+                throw new UnauthorizedAccessException("User not found or invalid User ID.");
+            }
+            var events = _unitOfWork.RepositoryEvent.GetAll()
+                        .Include(e => e.Place)
+                        .ThenInclude(p => p.PlaceTranslations)
+                        .Include(e => e.Place.PlaceTags)
+                        .AsQueryable();
+            var userTags = await _unitOfWork.RepositoryModTag.GetAll()
+                    .Where(mt => mt.UserId == userId)
+                    .Select(mt => mt.TagId)
+                    .ToListAsync();
+            events = events.Where(e => e.Place.PlaceTags.Any(pt => userTags.Contains(pt.TagId)));
+            if (request.SearchTerm is not null)
+            {
+                events = events.Where(e => e.EventName.Contains(request.SearchTerm) ||
+                                           e.Description.Contains(request.SearchTerm));
+            }
+
+            if (!string.IsNullOrEmpty(request.SortBy))
+            {
+                events = events.OrderByCustom(request.SortBy, request.SortOrder);
+            }
+
+            return await events.ListPaginateWithSortAsync<Event, EventViewModel>(
+                request.Page,
+                request.Size,
+                request.SortBy,
+                request.SortOrder,
+                _mapper.ConfigurationProvider);
+        }
         public async Task<EventRequest> CreateEvent(int placeid, EventRequest request)
         {
             var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
@@ -85,20 +123,20 @@ namespace LocalTour.Services.Services
             {
                 throw new ArgumentNullException(nameof(request));
             }
-                var events = new Event
-                {
-                    EventName = request.EventName,
-                    Description = request.Description,
-                    StartDate = request.StartDate,
-                    EndDate = request.EndDate,
-                    EventStatus = "Pending",
-                    CreatedAt = DateTime.Now,
-                    //UpdatedAt = DateTime.Now,
-                    PlaceId = placeid,
-                };
-                await _unitOfWork.RepositoryEvent.Insert(events);
-                await _unitOfWork.CommitAsync();
-                return request;
+            var events = new Event
+            {
+                EventName = request.EventName,
+                Description = request.Description,
+                StartDate = request.StartDate,
+                EndDate = request.EndDate,
+                EventStatus = "Pending",
+                CreatedAt = DateTime.Now,
+                //UpdatedAt = DateTime.Now,
+                PlaceId = placeid,
+            };
+            await _unitOfWork.RepositoryEvent.Insert(events);
+            await _unitOfWork.CommitAsync();
+            return request;
         }
 
         public async Task<EventRequest> UpdateEvent(int placeid, int eventid, EventRequest request)
@@ -167,7 +205,7 @@ namespace LocalTour.Services.Services
             return true;
 
         }
-        public async Task<Event> ChangeStatusEvent(int placeid,int eventid, string status)
+        public async Task<Event> ChangeStatusEvent(int placeid, int eventid, string status)
         {
             var existingPlace = await _unitOfWork.RepositoryPlace.GetById(placeid);
             if (existingPlace == null)

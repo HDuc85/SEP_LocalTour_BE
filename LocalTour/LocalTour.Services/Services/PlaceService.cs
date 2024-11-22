@@ -438,6 +438,72 @@ namespace LocalTour.Services.Services
             return true;
 
         }
+        public async Task<PaginatedList<PlaceVM>> GetAllPlaceByRole(GetPlaceRequest request)
+        {
+            var user = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(user) || !Guid.TryParse(user, out var userId))
+            {
+                throw new UnauthorizedAccessException("User not found or invalid User ID.");
+            }
+            var userTags = await _unitOfWork.RepositoryUserPreferenceTags.GetAll()
+                .Where(mt => mt.UserId == userId)
+                .Select(mt => mt.TagId)
+                .ToListAsync();
+            var modTags = await _unitOfWork.RepositoryModTag.GetAll()
+                .Where(mt => mt.UserId == userId)
+                .Select(mt => mt.TagId)
+                .ToListAsync();
+            var roles = _httpContextAccessor.HttpContext.User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
+            if (!roles.Any())
+            {
+                throw new UnauthorizedAccessException("User has no assigned roles.");
+            }
+            IQueryable<Place> places;
+            if (roles.Contains("Service Owner"))
+            {
+                places = _unitOfWork.RepositoryPlace.GetAll().Include(x => x.PlaceTranslations.Where(pt => pt.LanguageCode == request.LanguageCode))
+                        .Include(y => y.PlaceTags)
+                        .Include(z => z.PlaceActivities)
+                        .Include(r => r.PlaceMedia)
+                        .Include(w => w.Ward)
+                        .Where(r => r.AuthorId == userId)
+                        .AsQueryable();
+
+            }
+            else if (roles.Contains("Moderator"))
+            {
+                places = _unitOfWork.RepositoryPlace.GetAll().Include(x => x.PlaceTranslations.Where(pt => pt.LanguageCode == request.LanguageCode))
+                           .Where(y => y.PlaceTags.Any(pt => modTags.Contains(pt.TagId)))
+                           .Include(z => z.PlaceActivities)
+                           .Include(r => r.PlaceMedia)
+                           .Include(w => w.Ward)
+                           .AsQueryable();
+
+            } else
+            {
+                throw new UnauthorizedAccessException("You do not have permission to access this page");
+            }
+            if (request.Tags != null && request.Tags.Any())
+            {
+                places = places.Where(p => p.PlaceTags.Any(pt => request.Tags.Contains(pt.TagId)));
+            }
+            if (request.SearchTerm is not null)
+            {
+                places = places.Where(x => x.PlaceTranslations.Any(pt => pt.Name.Contains(request.SearchTerm)) ||
+                                           x.PlaceTranslations.Any(pt => pt.Address.Contains(request.SearchTerm)));
+            }
+            return await places
+                .ListPaginateWithSortPlaceAsync<Place, PlaceVM>(
+                    request.Page,
+                    request.Size,
+                    request.SortBy,
+                    request.SortOrder,
+                    request.CurrentLongitude,
+                    request.CurrentLatitude,
+                    userTags,
+                    userId,
+                    _mapper.ConfigurationProvider);
+        }
     }
 
 }

@@ -23,6 +23,12 @@ namespace LocalTour.WebApi.Controllers
             var events = await _eventService.GetAllEventByPlaceid(placeid, request);
             return Ok(events);
         }
+        [HttpGet("getallevent")]
+        public async Task<ActionResult<PaginatedList<EventViewModel>>> GetAllEvents( [FromQuery] GetEventRequest request)
+        {
+            var events = await _eventService.GetAllEvent(request);
+            return Ok(events);
+        }
         [HttpGet("geteventbyid")]
         public async Task<ActionResult<Event>> GetEventById([FromQuery] int placeid, [FromQuery] int eventid)
         {
