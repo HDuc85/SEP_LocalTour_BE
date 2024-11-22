@@ -204,22 +204,81 @@ namespace LocalTour.Services.Services
             return degree * Math.PI / 180.0;
         }
 
-        public async Task<Place> GetPlaceById(string languageCode, int placeid)
+        public async Task<PlaceDetailModel> GetPlaceById(string languageCode, int placeid)
         {
             var placeEntity = await _unitOfWork.RepositoryPlace.GetAll()
                 .Include(p => p.PlaceMedia)
                 .Include(p => p.PlaceTranslations.Where(pt => pt.LanguageCode == languageCode))
+                .Include(p => p.PlaceActivities)
+                .ThenInclude(pa => pa.PlaceActivityTranslations.Where(pat => pat.LanguageCode == languageCode) )
+                .Include(p => p.PlaceActivities)
+                .ThenInclude(pa => pa.PlaceActivityMedia)
                 .FirstOrDefaultAsync(e => e.Id == placeid);
+            
+            var placeFeedback = await _unitOfWork.RepositoryPlaceFeeedback.GetAll().Where(p => p.PlaceId == placeid).ToListAsync();
+            
+            double AverageRating = placeFeedback.Any() ? placeFeedback.Average(feedback => feedback.Rating) : 0;
+            
 
             if (placeEntity == null)
             {
                 throw new KeyNotFoundException($"Place with ID {placeid} not found.");
             }
+            
+            
+            
             placeEntity.PlaceMedia = placeEntity.PlaceMedia
             .OrderByDescending(pm => pm.Type == "Video")
             .ThenBy(pm => pm.Id)
             .ToList();
-            return placeEntity;
+         
+            
+            placeEntity.PlaceActivities = placeEntity.PlaceActivities.OrderBy(x => x.DisplayNumber).ToList();
+            PlaceDetailModel result = new PlaceDetailModel
+            {
+                Id = placeEntity.Id,
+                Latitude = placeEntity.Latitude,
+                Longitude = placeEntity.Longitude,
+                Status = placeEntity.Status,
+                ContactLink = placeEntity.ContactLink,
+                AuthorId = placeEntity.AuthorId,
+                PhotoDisplay = placeEntity.PhotoDisplay,
+                TimeClose = placeEntity.TimeClose,
+                TimeOpen = placeEntity.TimeOpen,
+                ApprovedTime = placeEntity.ApprovedTime,
+                Approver = placeEntity.Approver,
+                Destinations = placeEntity.Destinations,
+                Events = placeEntity.Events,
+                Posts = placeEntity.Posts,
+                Ward = placeEntity.Ward,
+                ApproverId = placeEntity.ApproverId,
+                PlaceMedia = placeEntity.PlaceMedia,
+                PlaceTranslations = placeEntity.PlaceTranslations,
+                PlaceActivities = placeEntity.PlaceActivities,
+                MarkPlaces = placeEntity.MarkPlaces,
+                PlaceFeeedbacks = placeEntity.PlaceFeeedbacks,
+                PlaceTags = placeEntity.PlaceTags,
+                PlaceReports = placeEntity.PlaceReports,
+                WardId = placeEntity.WardId,
+                TraveledPlaces = placeEntity.TraveledPlaces,
+                PlaceSearchHistories = placeEntity.PlaceSearchHistories,
+                Rating = AverageRating,
+            };
+
+            return result;
+        }
+
+        public async Task<List<TagViewModel>> GetTagsByPlaceId(int placeid)
+        {
+            var places = await _unitOfWork.RepositoryPlaceTag.GetAll().Where(p => p.PlaceId == placeid)
+                .Include(pt => pt.Tag)
+                .Select(p => new TagViewModel
+                {
+                    Id = p.TagId,
+                    TagName = p.Tag.TagName,
+                    TagPhotoUrl = p.Tag.TagPhotoUrl
+                }).ToListAsync();
+            return places;
         }
         public async Task<PlaceRequest> UpdatePlace(int placeid, PlaceRequest request)
         {

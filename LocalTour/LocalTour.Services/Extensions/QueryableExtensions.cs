@@ -69,6 +69,7 @@ public static class QueryableExtensions
         // Count the total items
         var count = await items.CountAsync();
 
+
         // Apply pagination
         var list = await items
             .Paginate(pageNumber, sizeNumber)
@@ -303,17 +304,17 @@ where TEntityDto : IMapFrom<TEntity>
    int? size,
    string? sortBy,
    string? sortOrder,
-   Guid userId,
+   Guid? userId,
    AutoMapper.IConfigurationProvider mapperConfiguration
   )
    where TEntityDto : IMapFrom<TEntity>
-    {
+    {/*
         if (string.IsNullOrEmpty(sortBy) || !IsValidProperty<TEntityDto>(sortBy))
         {
             sortBy = typeof(TEntity) == typeof(PlaceFeeedback) ? nameof(PlaceFeeedback.Id) :
                      throw new ArgumentException("Invalid sortBy property.");
-        }
-
+        }*/
+        sortBy ??= "none";
         sortOrder ??= "asc";
         var pageNumber = page.GetValueOrDefault(1);
         var sizeNumber = size.GetValueOrDefault(10);
@@ -325,14 +326,50 @@ where TEntityDto : IMapFrom<TEntity>
         {
             Feedback = feedback,
             TotalLike = feedback.PlaceFeeedbackHelpfuls.Count(),
-            IsLike = feedback.PlaceFeeedbackHelpfuls.Any(h => h.UserId == userId)
+            IsLike = userId.HasValue && feedback.PlaceFeeedbackHelpfuls.Any(h => h.UserId == userId)
         })
         .ToListAsync();
+        
+        if (sortBy.Equals("created_by", StringComparison.OrdinalIgnoreCase))
+        {
+            if (sortOrder.Equals("asc", StringComparison.OrdinalIgnoreCase))
+            {
+                placesWithFeedback = placesWithFeedback.OrderByDescending(dto => dto.Feedback.CreatedDate).ToList();
+            }
+            else
+            {
+                placesWithFeedback = placesWithFeedback.OrderBy(dto => dto.Feedback.CreatedDate).ToList();
+            }
+        }
+        if (sortBy.Equals("liked", StringComparison.OrdinalIgnoreCase))
+        {
+            if (sortOrder.Equals("asc", StringComparison.OrdinalIgnoreCase))
+            {
+                placesWithFeedback = placesWithFeedback.OrderBy(dto => dto.TotalLike).ToList();
+            }
+            else
+            {
+                placesWithFeedback = placesWithFeedback.OrderByDescending(dto => dto.TotalLike).ToList();
+            }
+        }
+        if (sortBy.Equals("rating", StringComparison.OrdinalIgnoreCase))
+        {
+            if (sortOrder.Equals("asc", StringComparison.OrdinalIgnoreCase))
+            {
+                placesWithFeedback = placesWithFeedback.OrderBy(dto => dto.Feedback.Rating).ToList();
+            }
+            else
+            {
+                placesWithFeedback = placesWithFeedback.OrderByDescending(dto => dto.Feedback.Rating).ToList();
+            }
+        }
+        
+        
         var list = await items
-            .OrderByCustom(sortBy, sortOrder)
+            //.OrderByCustom(sortBy, sortOrder)
             .Paginate(pageNumber, sizeNumber)
             .ToListAsync();
-
+       
         var mapper = mapperConfiguration.CreateMapper();
         var result = mapper.Map<List<TEntityDto>>(list);
         for (int i = 0; i < result.Count; i++)
@@ -340,10 +377,22 @@ where TEntityDto : IMapFrom<TEntity>
             if (result[i] is PlaceFeedbackRequest vm)
             {
                 var feedbackWithLikes = placesWithFeedback[i];
+                vm.Id = feedbackWithLikes.Feedback.Id;
                 vm.TotalLike = feedbackWithLikes.TotalLike;
                 vm.isLiked = feedbackWithLikes.IsLike;
+                vm.Rating = feedbackWithLikes.Feedback.Rating;
+                vm.CreateDate = feedbackWithLikes.Feedback.CreatedDate;
+                vm.UserId = feedbackWithLikes.Feedback.UserId;
+                vm.UserName = feedbackWithLikes.Feedback.User.UserName;
+                vm.ProfileUrl = feedbackWithLikes.Feedback.User.ProfilePictureUrl;
+                vm.Content = feedbackWithLikes.Feedback.Content;
+                vm.UpdateDate = feedbackWithLikes.Feedback.UpdatedDate;
             }
         }
+        
+        
+        
+        
         return new PaginatedList<TEntityDto>(result, count, pageNumber, sizeNumber);
     }
 }

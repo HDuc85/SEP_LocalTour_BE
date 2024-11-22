@@ -48,6 +48,32 @@ namespace LocalTour.Services.Services
                 request.SortOrder,
                 _mapper.ConfigurationProvider);
         }
+        
+        public async Task<PaginatedList<EventResponse>> GetAllEventByVisitor(int placeid, GetEventRequest request)
+        {
+            var events = _unitOfWork.RepositoryEvent.GetAll()
+                .Where(e => e.PlaceId == placeid && e.EventStatus == "Approved")
+                .AsQueryable();
+
+            if (request.SearchTerm is not null)
+            {
+                events = events.Where(e => e.EventName.Contains(request.SearchTerm) ||
+                                           e.Description.Contains(request.SearchTerm));
+            }
+
+            if (!string.IsNullOrEmpty(request.SortBy))
+            {
+                events = events.OrderByCustom(request.SortBy, request.SortOrder);
+            }
+
+            return await events
+                .ListPaginateWithSortAsync<Event, EventResponse>(
+                    request.Page,
+                    request.Size,
+                    request.SortBy,
+                    request.SortOrder,
+                    _mapper.ConfigurationProvider);
+        }
         public async Task<EventRequest> CreateEvent(int placeid, EventRequest request)
         {
             var places = await _unitOfWork.RepositoryPlace.GetById(placeid);

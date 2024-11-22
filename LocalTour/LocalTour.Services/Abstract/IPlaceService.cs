@@ -12,9 +12,10 @@ namespace LocalTour.Services.Abstract
     {
         Task<PlaceRequest> CreatePlace(PlaceRequest place);
         Task<PaginatedList<PlaceVM>> GetAllPlace(GetPlaceRequest request);
-        Task<Place> GetPlaceById(string languageCode, int placeid);
+        Task<PlaceDetailModel> GetPlaceById(string languageCode, int placeid);
         Task<PlaceRequest> UpdatePlace(int placeid,PlaceRequest request);
         Task<Place> ChangeStatusPlace(int placeid,string status);
         Task<bool> DeletePlace(int placeid);
+        Task<List<TagViewModel>> GetTagsByPlaceId(int placeid);
     }
 }

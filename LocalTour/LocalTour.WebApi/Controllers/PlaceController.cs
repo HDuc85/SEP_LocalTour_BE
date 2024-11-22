@@ -66,6 +66,19 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(400, new ApiReponseModel<Place>(false, $"An error occurred: {ex.Message}"));
             }
         }
+        [HttpGet("getTagsInPlace")]
+        public async Task<ActionResult> getTagsInPlace([FromQuery] int placeId)
+        {
+            try
+            {
+                var places = await _placeService.GetTagsByPlaceId(placeId);
+                return Ok(places);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, new ApiReponseModel<PlaceVM>(false, $"An error occurred: {ex.Message}"));
+            }
+        }
         [HttpPut("update")]
         public async Task<ActionResult<ApiReponseModel<PlaceRequest>>> UpdatePlace(int placeid,PlaceRequest request)
         {

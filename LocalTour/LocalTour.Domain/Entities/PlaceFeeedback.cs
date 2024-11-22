@@ -17,6 +17,9 @@ public partial class PlaceFeeedback
     public string? Content { get; set; }
 
     public DateTime CreatedDate { get; set; }
+    
+    public DateTime? UpdatedDate { get; set; }
+    
     [JsonIgnore]
     public virtual Place Place { get; set; } = null!;
 

@@ -3,6 +3,7 @@ using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
 using LocalTour.Services.Services;
 using LocalTour.Services.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LocalTour.WebApi.Controllers
@@ -17,6 +18,7 @@ namespace LocalTour.WebApi.Controllers
             _placeFeedbackHelpfulService = placeFeedbackHelpfulService;
         }
         [HttpPost("likeOrUnlike")]
+        [Authorize]
         public async Task<ActionResult<ServiceResponseModel<PlaceFeeedbackHelpful>>> LikeorUnlikeFeedback([FromForm] int placeid, [FromForm] int placefeedbackid)
         {
             if (placefeedbackid == null)

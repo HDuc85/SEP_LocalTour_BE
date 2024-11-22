@@ -108,11 +108,13 @@ namespace LocalTour.WebApi.Controllers
                 }
                 
                 (string firebaseAuthToken, DateTime expiredDateToken) = await _tokenHandler.CreateAuthenFirebaseToken(user,request.Token);
+                (string refreshToken, DateTime expiredDateRefreshToken) = await _tokenHandler.CreateRefreshToken(user);
                 if(user.PasswordHash == null) firstTime = true;
                 return Ok(new 
                 {
                     firebaseAuthToken = firebaseAuthToken,
                     expiredDateToken = expiredDateToken,
+                    refreshToken = refreshToken,
                     firstTime = firstTime,
                     userId = user.Id.ToString()
                 });
