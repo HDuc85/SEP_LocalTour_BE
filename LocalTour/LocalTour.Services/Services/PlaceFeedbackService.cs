@@ -36,12 +36,12 @@ namespace LocalTour.Services.Services
             _fileService = fileService;
         }
 
-        public async Task<FeedbackRequest> CreateFeedback(int placeid, FeedbackRequest request)
+        public async Task<FeedbackRequest> CreateFeedback(FeedbackRequest request)
         {
-            var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
+            var places = await _unitOfWork.RepositoryPlace.GetById(request.placeid);
             if (places == null)
             {
-                throw new ArgumentException($"Place with id {placeid} not found.");
+                throw new ArgumentException($"Place with id {request.placeid} not found.");
             }
             if (request == null)
             {
@@ -52,19 +52,19 @@ namespace LocalTour.Services.Services
             {
                 throw new InvalidOperationException("User ID is not a valid GUID.");
             }
-            var lastFeedbacks = await _unitOfWork.RepositoryPlaceFeeedback.GetData(f => f.PlaceId == placeid && f.UserId == userId);
+            var lastFeedbacks = await _unitOfWork.RepositoryPlaceFeeedback.GetData(f => f.PlaceId == request.placeid && f.UserId == userId);
             var lastFeedback = lastFeedbacks.OrderByDescending(f => f.CreatedDate).FirstOrDefault();
             if (lastFeedback != null)
             {
                 var daysSinceLastFeedback = (DateTime.UtcNow - lastFeedback.CreatedDate).TotalDays;
                 if (daysSinceLastFeedback < 7)
                 {
-                    throw new InvalidOperationException("You can only provide feedback every 7 days for the same place.");
+                    throw new Exception("You can only provide feedback every 7 days for the same place.");
                 }
             }
             var feedback = new PlaceFeeedback
             {
-                PlaceId = placeid,
+                PlaceId = request.placeid,
                 UserId = userId,
                 Rating = request.Rating,
                 Content = request.Content,

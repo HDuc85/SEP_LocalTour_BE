@@ -5,6 +5,8 @@ using LocalTour.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using LocalTour.WebApi.Helper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LocalTour.WebApi.Controllers
 {
@@ -40,15 +42,23 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<UserReportRequest>> CreateUserReport([FromBody] UserReportRequest request)
         {
-            if (request == null) return BadRequest();
+            try
+            {
+                if (request == null) return BadRequest();
 
-            var reportEntity = _mapper.Map<UserReport>(request);
-            var createdReport = await _userReportService.CreateReport(reportEntity);
 
-            var createdReportRequest = _mapper.Map<UserReportRequest>(createdReport);
-            return CreatedAtAction(nameof(GetUserReportById), new { id = createdReportRequest.Id }, createdReportRequest);
+                var createdReport = await _userReportService.CreateReport(request, User.GetUserId());
+
+                var createdReportRequest = _mapper.Map<UserReportRequest>(createdReport);
+                return createdReportRequest;
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpPut("{id}")]

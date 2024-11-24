@@ -1,6 +1,8 @@
 ﻿using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
 using LocalTour.Services.ViewModel;
+using LocalTour.WebApi.Helper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LocalTour.WebApi.Controllers
@@ -17,12 +19,20 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<PlaceReportRequest>> CreateReport([FromBody] PlaceReportRequest request)
         {
-            if (request == null) return BadRequest();
+            try
+            {
+                if (request == null) return BadRequest();
 
-            var createdReport = await _placeReportService.CreateReport(request);
-            return CreatedAtAction(nameof(GetPlaceReportById), new { id = createdReport.Id }, createdReport);
+                var createdReport = await _placeReportService.CreateReport(request, User.GetUserId());
+                return Ok(createdReport);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpGet]

@@ -34,11 +34,38 @@ namespace LocalTour.Services.Services
             return reportEntity == null ? null : _mapper.Map<UserReport>(reportEntity);
         }
 
-        public async Task<UserReport> CreateReport(UserReport report)
+        public async Task<UserReport> CreateReport(UserReportRequest report, String userReportId)
         {
             if (report == null) throw new ArgumentNullException(nameof(report));
+            
+            Guid xserReportId = Guid.Parse(userReportId);
+            
+            var userReported = await _unitOfWork.RepositoryUser.GetById(report.UserId);
+            if (userReported == null)
+            {
+                throw new Exception("User report not found");
+            }
+            
+            var existReport =  _unitOfWork.RepositoryUserReport.GetAll().Where(x => x.UserReportId == xserReportId && x.UserId == userReported.Id);
+            if (existReport.Any())
+            {
+                DateTime newestDate = existReport.Max(item => item.ReportDate);
+                DateTime now = DateTime.Now;
+                TimeSpan limit = now - newestDate;
+                if (limit.TotalDays < 3)
+                {
+                    throw new Exception($"You have already {userReported.UserName} this place, please wait {3 - limit.Days} days.");
+                }
+            }
 
-            var reportEntity = _mapper.Map<UserReport>(report);
+            var reportEntity = new UserReport()
+            {
+                UserReportId = xserReportId,
+                ReportDate = DateTime.Now,
+                UserId = report.UserId,
+                Content = report.Message,
+                Status = "Pending",
+            };
             await _unitOfWork.RepositoryUserReport.Insert(reportEntity);
             await _unitOfWork.CommitAsync();
 

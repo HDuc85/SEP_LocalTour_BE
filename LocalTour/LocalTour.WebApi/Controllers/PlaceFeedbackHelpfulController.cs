@@ -19,7 +19,7 @@ namespace LocalTour.WebApi.Controllers
         }
         [HttpPost("likeOrUnlike")]
         [Authorize]
-        public async Task<ActionResult<ServiceResponseModel<PlaceFeeedbackHelpful>>> LikeorUnlikeFeedback([FromForm] int placeid, [FromForm] int placefeedbackid)
+        public async Task<ActionResult<ServiceResponseModel<PlaceFeeedbackHelpful>>> LikeorUnlikeFeedback(int placeid, int placefeedbackid)
         {
             if (placefeedbackid == null)
             {

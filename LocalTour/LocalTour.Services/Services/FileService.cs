@@ -177,7 +177,7 @@ namespace LocalTour.Services.Services
                 }
 
                 var fileUrl = $"{getRequestUrl()}/Media/{fileName}";
-                if(media == "images")
+                if(media == "image")
                 {
                     imageUrls.Add(fileUrl);
                 }

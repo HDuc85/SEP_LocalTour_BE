@@ -3,6 +3,7 @@ using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
 using LocalTour.Services.Services;
 using LocalTour.Services.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LocalTour.WebApi.Controllers
@@ -34,7 +35,8 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpPost("create")]
-        public async Task<ActionResult<ApiReponseModel<FeedbackRequest>>> CreateFeedback( int placeid, FeedbackRequest request)
+        [Authorize]
+        public async Task<ActionResult<ApiReponseModel<FeedbackRequest>>> CreateFeedback([FromForm] FeedbackRequest request)
         {
             if (request == null)
             {
@@ -42,7 +44,7 @@ namespace LocalTour.WebApi.Controllers
             }
             try
             {
-                var feedback = await _placeFeedbackService.CreateFeedback(placeid, request);
+                var feedback = await _placeFeedbackService.CreateFeedback(request);
                 return Ok(feedback);
             }
             catch (Exception ex)

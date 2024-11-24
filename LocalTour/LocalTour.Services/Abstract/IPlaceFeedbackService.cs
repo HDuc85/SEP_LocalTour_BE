@@ -9,7 +9,7 @@ namespace LocalTour.Services.Abstract
 {
     public interface IPlaceFeedbackService
     {
-        Task<FeedbackRequest> CreateFeedback(int placeid, FeedbackRequest request);
+        Task<FeedbackRequest> CreateFeedback(FeedbackRequest request);
         Task<FeedbackRequest> UpdateFeedback(int placeid,int feedbackid, FeedbackRequest request);
         Task<bool> DeleteFeedback(int placeid, int feedbackid);
         Task<PaginatedList<PlaceFeedbackRequest>> GetAllFeedbackByPlace(int placeid, GetPlaceFeedbackRequest request);

@@ -114,7 +114,7 @@ public class MarkPlaceService : IMarkPlaceService
         if (markPlace.Any())
         {
             _unitOfWork.RepositoryMarkPlace.Delete(markPlace.First());
-            _unitOfWork.CommitAsync();
+            await _unitOfWork.CommitAsync();
             return new ServiceResponseModel<bool>(true, "Mark place deleted successfully");
         }
         return new ServiceResponseModel<bool>(false, "Place is not marked");

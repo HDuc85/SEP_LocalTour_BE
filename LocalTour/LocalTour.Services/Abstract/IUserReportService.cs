@@ -2,6 +2,7 @@
 using LocalTour.Services.Model;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using LocalTour.Services.ViewModel;
 
 namespace LocalTour.Services.Abstract
 {
@@ -9,7 +10,7 @@ namespace LocalTour.Services.Abstract
     {
         Task<List<UserReport>> GetAllReports();
         Task<UserReport?> GetReportById(int reportId);
-        Task<UserReport> CreateReport(UserReport report);
+        Task<UserReport> CreateReport(UserReportRequest report, String userReportId);
         Task<bool> UpdateReport(UserReport report);
         Task<ServiceResponseModel<bool>> DeleteReport(int reportId);
     }

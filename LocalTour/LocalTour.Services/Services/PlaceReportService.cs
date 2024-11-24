@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using LocalTour.Data;
 using LocalTour.Data.Abstract;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
@@ -19,13 +18,38 @@ namespace LocalTour.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<PlaceReportRequest> CreateReport(PlaceReportRequest request)
+        public async Task<PlaceReport> CreateReport(PlaceReportRequest request, String userId)
         {
-            var reportEntity = _mapper.Map<PlaceReport>(request);
-            await _unitOfWork.RepositoryPlaceReport.Insert(reportEntity);
+            var existPlaceReport = await _unitOfWork.RepositoryPlaceReport.GetData(x => x.PlaceId == request.PlaceId && x.UserReportId == Guid.Parse(userId));
+            if (existPlaceReport.Any())
+            {
+                DateTime newestDate = existPlaceReport.Max(item => item.ReportDate);
+                DateTime now = DateTime.Now;
+                TimeSpan limit = now - newestDate;
+                if (limit.TotalDays < 3)
+                {
+                    throw new Exception($"You have already reported this place, please wait {3 - limit.Days} days.");
+                }
+            }
+            
+            var place = await _unitOfWork.RepositoryPlace.GetData(x => x.Id == request.PlaceId);
+            if (!place.Any())
+            {
+                throw new Exception($"There is no place with id: {request.PlaceId}");
+            }
+            
+            var newReport = new PlaceReport()
+            {
+                PlaceId = request.PlaceId,
+                Content = request.Message,
+                UserReportId = Guid.Parse(userId),
+                ReportDate = DateTime.Now,
+                Status = "Pending"
+            };
+            await _unitOfWork.RepositoryPlaceReport.Insert(newReport);
             await _unitOfWork.CommitAsync();
 
-            return _mapper.Map<PlaceReportRequest>(reportEntity);
+            return newReport;
         }
 
         public async Task<IEnumerable<PlaceReportRequest>> GetAllReports()

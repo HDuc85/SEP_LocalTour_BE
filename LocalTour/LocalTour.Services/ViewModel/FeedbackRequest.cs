@@ -9,8 +9,9 @@ namespace LocalTour.Services.ViewModel
 {
     public class FeedbackRequest
     {
+        public int placeid { get; set; }
         public int Rating { get; set; }
-        public string? Content { get; set; }
-        public List<IFormFile> PlaceFeedbackMedia { get; set; }
+        public string Content { get; set; }
+        public List<IFormFile>? PlaceFeedbackMedia { get; set; }
     }
 }
