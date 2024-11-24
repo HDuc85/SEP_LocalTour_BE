@@ -12,6 +12,7 @@ namespace LocalTour.Services.ViewModel
     public class EventViewModel : IMapFrom<Event>
     {
         public int Id { get; set; }
+        public int PlaceId { get; set; }
 
         public string PlaceName { get; set; }
 

@@ -105,6 +105,20 @@ namespace LocalTour.Services.Services
         }
         public async Task<bool> DeleteFeedback(int placeid, int feedbackid)
         {
+            var userid = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userid, out var userId))
+            {
+                throw new InvalidOperationException("User ID is not a valid GUID.");
+            }
+            var feedbackEntity = await _unitOfWork.RepositoryPlaceFeeedback.GetById(feedbackid);
+            if (feedbackEntity == null)
+            {
+                throw new ArgumentException($"Feedback with id {feedbackid} not found.");
+            }
+            if (feedbackEntity.UserId != userId)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to delete this feedback.");
+            }
             var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
             if (places == null)
             {
@@ -117,7 +131,6 @@ namespace LocalTour.Services.Services
             {
                 _unitOfWork.RepositoryPlaceFeeedbackMedium.Delete(media);
             }
-            var feedbackEntity = await _unitOfWork.RepositoryPlaceFeeedback.GetById(feedbackid);
             if (feedbackEntity != null)
             {
                 _unitOfWork.RepositoryPlaceFeeedback.Delete(feedbackEntity);
