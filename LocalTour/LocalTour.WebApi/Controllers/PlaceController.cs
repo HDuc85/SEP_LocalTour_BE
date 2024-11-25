@@ -30,10 +30,7 @@ namespace LocalTour.WebApi.Controllers
             try
             {
                 var place = await _placeService.CreatePlace(request);
-                return Ok(new ApiReponseModel<PlaceRequest>(place)
-                {
-                    message = "Place created successfully"
-                });
+                return Ok(place);
             }
             catch (Exception ex)
             {
@@ -76,10 +73,7 @@ namespace LocalTour.WebApi.Controllers
             try
             {
                 var place = await _placeService.UpdatePlace(placeid, request);
-                return Ok(new ApiReponseModel<PlaceRequest>(place)
-                {
-                    message = "Place updated successfully"
-                });
+                return Ok(place);
             }
             catch (Exception ex)
             {

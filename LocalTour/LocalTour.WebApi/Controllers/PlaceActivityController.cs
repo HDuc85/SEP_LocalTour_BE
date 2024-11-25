@@ -31,11 +31,8 @@ namespace LocalTour.WebApi.Controllers
             }
             try
             {
-                var events = await _placeActivityService.CreatePlaceActivity(placeid, request);
-                return Ok(new ServiceResponseModel<PlaceActivityRequest>(events)
-                {
-                    Message = "Place created successfully"
-                });
+                var activity = await _placeActivityService.CreatePlaceActivity(placeid, request);
+                return Ok(activity);
             }
             catch (Exception ex)
             {
@@ -52,10 +49,7 @@ namespace LocalTour.WebApi.Controllers
             try
             {
                 var activity = await _placeActivityService.UpdateActivity(placeid, activityid, request);
-                return Ok(new ServiceResponseModel<PlaceActivityRequest>(activity)
-                {
-                    Message = "PlaceActivity updated successfully"
-                });
+                return Ok(activity));
             }
             catch (Exception ex)
             {
