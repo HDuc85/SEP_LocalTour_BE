@@ -10,7 +10,7 @@ namespace LocalTour.Services.Abstract
 {
         public interface IScheduleService
         {
-                Task<PaginatedList<ScheduleRequest>> GetAllSchedulesAsync(GetScheduleRequest request);
+                Task<PaginatedList<ScheduleRequest>> GetAllSchedulesAsync(GetScheduleRequest request, String userId);
                 Task<ScheduleRequest?> GetScheduleByIdAsync(int id);
                 Task<List<ScheduleRequest>> GetSchedulesByUserIdAsync(Guid userId);
                 Task<ScheduleRequest> CreateScheduleAsync(CreateScheduleRequest request);

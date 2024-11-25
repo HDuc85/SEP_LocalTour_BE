@@ -77,9 +77,7 @@ public class MappingProfile : Profile
         CreateMap<Schedule, ScheduleRequest>().ReverseMap();
 
         // Map for Destination and DestinationRequest
-        CreateMap<Destination, DestinationRequest>()
-        .ForMember(dest => dest.PlaceTranslations,
-                   opt => opt.MapFrom(src => src.Place.PlaceTranslations));
+        CreateMap<Destination, DestinationRequest>();
 
         // Map for ScheduleLike and ScheduleLikeRequest
         CreateMap<ScheduleLike, ScheduleLikeRequest>().ReverseMap();

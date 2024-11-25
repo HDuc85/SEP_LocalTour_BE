@@ -24,6 +24,7 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpGet("getAllSchedule")]
+        [AllowAnonymous]
         public async Task<ActionResult<List<ScheduleRequest>>> GetAllSchedules([FromQuery] GetScheduleRequest request)
         {
             try
@@ -33,7 +34,7 @@ namespace LocalTour.WebApi.Controllers
                     return BadRequest(new { statusCode = 400, message = "Validation error." });
                 }
 
-                var schedules = await _scheduleService.GetAllSchedulesAsync(request);
+                var schedules = await _scheduleService.GetAllSchedulesAsync(request, User.GetUserId());
 
                 if (schedules == null || schedules.TotalCount == 0)
                 {
@@ -53,6 +54,7 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpGet("getById/{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetScheduleById(int id)
         {
             try

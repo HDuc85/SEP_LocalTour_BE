@@ -22,7 +22,7 @@ namespace LocalTour.WebApi.Controllers
 
         [Authorize]
         [HttpPost("createPostComment")]
-        public async Task<IActionResult> CreateComment([FromForm] CreatePostCommentRequest request)
+        public async Task<IActionResult> CreateComment([FromBody] CreatePostCommentRequest request)
         {
             if (!ModelState.IsValid)
             {

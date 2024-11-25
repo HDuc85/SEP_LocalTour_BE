@@ -400,9 +400,7 @@ namespace LocalTour.Services.Services
             _unitOfWork.RepositoryPost.Update(postEntity);
             await _unitOfWork.CommitAsync();
 
-            var updatedPostRequest = _mapper.Map<PostRequest>(postEntity);
-            updatedPostRequest.Media = await _postMediumService.GetAllMediaByPostId(postEntity.Id);
-
+           
             return true;
         }
 

@@ -28,45 +28,80 @@ namespace LocalTour.Services.Services
             _configuration = configuration;
         }
 
-        public async Task<PaginatedList<ScheduleRequest>> GetAllSchedulesAsync(GetScheduleRequest request)
+        public async Task<PaginatedList<ScheduleRequest>> GetAllSchedulesAsync(GetScheduleRequest request, String userId)
         {
             var schedulesQuery = _unitOfWork.RepositorySchedule.GetAll()
                 .Include(s => s.ScheduleLikes)
                 .Include(s => s.Destinations)
-                .AsQueryable();
+                .ThenInclude(x => x.Place)
+                .ThenInclude(y => y.PlaceTranslations)
+                .ToList();
 
             if (request.UserId != null)
             {
-                schedulesQuery = schedulesQuery.Where(s => s.UserId == request.UserId);
+                schedulesQuery = schedulesQuery.Where(s => s.UserId == request.UserId).ToList();
+            }
+     
+            if (userId != null)
+            {
+                if (userId != request.UserId.ToString())
+                {
+                    schedulesQuery = schedulesQuery.Where(x => x.IsPublic == true).ToList();
+                }
             }
 
-            if (request.SortBy == "like")
+            if (request.SortBy == "liked")
             {
                 schedulesQuery = request.SortOrder == "asc"
-                    ? schedulesQuery.OrderBy(s => s.ScheduleLikes.Count)
-                    : schedulesQuery.OrderByDescending(s => s.ScheduleLikes.Count);
+                    ? schedulesQuery.OrderBy(s => s.ScheduleLikes.Count).ToList()
+                    : schedulesQuery.OrderByDescending(s => s.ScheduleLikes.Count).ToList();
             }
-            else if (request.SortBy == "date")
+            else if (request.SortBy == "created_by")
             {
                 schedulesQuery = request.SortOrder == "asc"
-                    ? schedulesQuery.OrderBy(s => s.CreatedDate)
-                    : schedulesQuery.OrderByDescending(s => s.CreatedDate);
+                    ? schedulesQuery.OrderBy(s => s.CreatedDate).ToList()
+                    : schedulesQuery.OrderByDescending(s => s.CreatedDate).ToList();
             }
 
-            var totalCount = await schedulesQuery.CountAsync();
-            var items = await schedulesQuery
+            var totalCount = schedulesQuery.Count;
+            var items =  schedulesQuery
                 .Skip((request.Page - 1) * request.Size ?? 0)
                 .Take(request.Size ?? 10)
-                .ToListAsync();
+                .ToList();
 
             // Map the result to ScheduleRequest DTO
-            var scheduleRequests = _mapper.Map<List<ScheduleRequest>>(items);
-
-            foreach (var scheduleRequest in scheduleRequests)
+           // var scheduleRequests = _mapper.Map<List<ScheduleRequest>>(items);
+            var author = await _unitOfWork.RepositoryUser.GetById(request.UserId);
+            List<ScheduleRequest> scheduleRequests = new List<ScheduleRequest>();
+            foreach (var scheduleRequest in items)
             {
-                // Populate additional properties like total likes
-                var totalLikes = await _unitOfWork.RepositoryScheduleLike.GetData(l => l.ScheduleId == scheduleRequest.Id);
-                scheduleRequest.TotalLikes = totalLikes.Count();
+                scheduleRequests.Add( new ScheduleRequest()
+                {
+                    Id = scheduleRequest.Id,
+                    CreatedDate = scheduleRequest.CreatedDate,
+                    UserName = author.UserName,
+                    ScheduleName = scheduleRequest.ScheduleName,
+                    StartDate = scheduleRequest.StartDate,
+                    EndDate = scheduleRequest.EndDate,
+                    IsPublic = scheduleRequest.IsPublic,
+                    Status = scheduleRequest.Status,
+                    TotalLikes = scheduleRequest.ScheduleLikes.Count,
+                    UserProfileImage = author.ProfilePictureUrl,
+                    UserId = author.Id,
+                    IsLiked = userId != null ? schedulesQuery.Any(x => x.ScheduleLikes.Any(y => y.ScheduleId == scheduleRequest.Id && y.UserId.ToString() == userId)) : false,
+                    Destinations = scheduleRequest.Destinations.Select(x => new DestinationRequest()
+                    {
+                        PlaceId = x.PlaceId,
+                        StartDate = x.StartDate,
+                        EndDate = x.EndDate,
+                        Detail = x.Detail,
+                        IsArrived = x.IsArrived,
+                        ScheduleId = x.ScheduleId,
+                        Id = x.Id,
+                        PlaceName = x.Place.PlaceTranslations.FirstOrDefault(y => y.LanguageCode == request.languageCode).Name,
+                        PlacePhotoDisplay = x.Place.PhotoDisplay
+                    }).ToList(),
+                });
             }
 
             return new PaginatedList<ScheduleRequest>(scheduleRequests, totalCount, request.Page ?? 1, request.Size ?? 10);
@@ -87,6 +122,7 @@ namespace LocalTour.Services.Services
 
             var totalLikes = await _unitOfWork.RepositoryScheduleLike.GetData(l => l.ScheduleId == schedule.Id);
             scheduleRequest.TotalLikes = totalLikes.Count();
+            
 
             return scheduleRequest;
         }
