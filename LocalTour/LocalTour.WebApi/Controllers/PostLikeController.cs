@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
+using LocalTour.WebApi.Helper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LocalTour.WebApi.Controllers
 {
@@ -24,21 +26,12 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpPost("toggle/{postId}")]
-        public async Task<IActionResult> ToggleLike(int postId, [FromQuery] Guid userId)
+        [Authorize]
+        public async Task<IActionResult> ToggleLike(int postId)
         {
-            // Kiểm tra User
-            var userExists = await _userService.FindById(userId.ToString());
-            if (userExists == null)
-                return StatusCode(404, new { message = "User not found." });
-
-            // Kiểm tra Post
-            var postExists = await _postService.GetPostById(postId, userId);
-            if (postExists == null)
-                return StatusCode(404, new { message = "Post not found." });
-
             try
             {
-                var isLiked = await _postLikeService.ToggleLikePostAsync(postId, userId);
+                var isLiked = await _postLikeService.ToggleLikePostAsync(postId, Guid.Parse(User.GetUserId()));
                 return StatusCode(200, new { message = isLiked ? "Liked the post successfully." : "Unliked the post successfully." });
             }
             catch (Exception ex)
@@ -56,7 +49,7 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(404, new { message = "User not found." });
 
             // Kiểm tra Post
-            var postExists = await _postService.GetPostById(postId, userId);
+            var postExists = await _postService.GetPostById(postId, User.GetUserId());
             if (postExists == null)
                 return StatusCode(404, new { message = "Post not found." });
 
@@ -75,13 +68,8 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpGet("users/{postId}")]
-        public async Task<IActionResult> GetUsersWhoLikedPost(int postId, Guid userId)
+        public async Task<IActionResult> GetUsersWhoLikedPost(int postId)
         {
-            // Kiểm tra Post
-            var postExists = await _postService.GetPostById(postId, userId);
-            if (postExists == null)
-                return StatusCode(404, new { message = "Post not found." });
-
             try
             {
                 var users = await _postLikeService.GetUserLikesByPostIdAsync(postId);
@@ -94,13 +82,8 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpGet("total-likes/{postId}")]
-        public async Task<IActionResult> GetTotalLikes(int postId, Guid userId)
+        public async Task<IActionResult> GetTotalLikes(int postId)
         {
-            // Kiểm tra Post
-            var postExists = await _postService.GetPostById(postId, userId);
-            if (postExists == null)
-                return StatusCode(404, new { message = "Post not found." });
-
             try
             {
                 var totalLikes = await _postLikeService.GetTotalLikesByPostIdAsync(postId);

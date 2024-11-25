@@ -61,10 +61,18 @@ namespace LocalTour.Services.Services
         {
             return await _userManager.FindByIdAsync(userid);
         }
+
         public async Task<User> FindByEmail(string email)
         {
-            return await _userManager.FindByEmailAsync(email);
+            var user = await _unitOfWork.RepositoryUser.GetData(x => x.Email == email);
+            if (!user.Any())
+            {
+                return null;
+            }
+
+            return user.First();
         }
+
         public async Task<bool> BanUser(string userId, DateTime timeEnd)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -304,6 +312,54 @@ namespace LocalTour.Services.Services
                 isFollowed = totalFollowers.Any(x => x.UserFollow.ToString() == currentUserId),
             });
         }
+
+        public async Task<bool> UpdatePhoneOrEmail(User user)   
+        {
+            try
+            {
+                 _unitOfWork.RepositoryUser.Update(user);
+                await _unitOfWork.CommitAsync();
+                return true;
+            }
+            catch (Exception e)
+            {
+               return false;
+            }
+        }
+
+        public async Task<bool> RemovePhone(String userId)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                user.PhoneNumber = null;
+                user.PhoneNumberConfirmed = false;
+                _unitOfWork.RepositoryUser.Update(user);
+                await _unitOfWork.CommitAsync();
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
         
+        public async Task<bool> RemoveEmail(String userId)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                user.Email = null;
+                user.NormalizedEmail = null;
+                user.EmailConfirmed = false;
+                _unitOfWork.RepositoryUser.Update(user);
+                await _unitOfWork.CommitAsync();
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
     }
 }

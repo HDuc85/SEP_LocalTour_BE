@@ -49,11 +49,12 @@ namespace LocalTour.WebApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ApiReponseModel<FeedbackRequest>(false, $"An error occurred: {ex.Message}"));
+                return BadRequest(ex.Message);
             }
         }
         [HttpPut("update")]
-        public async Task<ActionResult<ApiReponseModel<FeedbackRequest>>> UpdateEvent( int placeid, int feedbackid, FeedbackRequest request)
+        [Authorize]
+        public async Task<ActionResult<ApiReponseModel<FeedbackRequest>>> UpdateEvent(int feedbackid, FeedbackRequest request)
         {
             if (request == null)
             {
@@ -61,7 +62,7 @@ namespace LocalTour.WebApi.Controllers
             }
             try
             {
-                var feedback = await _placeFeedbackService.UpdateFeedback(placeid, feedbackid, request);
+                var feedback = await _placeFeedbackService.UpdateFeedback(request.placeid, feedbackid, request);
                 return Ok(feedback);
             }
             catch (Exception ex)

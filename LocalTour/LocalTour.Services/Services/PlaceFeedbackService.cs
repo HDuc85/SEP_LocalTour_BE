@@ -72,102 +72,9 @@ namespace LocalTour.Services.Services
             };
             await _unitOfWork.RepositoryPlaceFeeedback.Insert(feedback);
             await _unitOfWork.CommitAsync();
-            var mediaSaveResult = await _fileService.SaveStaticFiles(request.PlaceFeedbackMedia);
-            if (!mediaSaveResult.Success)
-            {
-                throw new Exception(mediaSaveResult.Message);
-            }
 
-            foreach (var photoUrl in mediaSaveResult.Data.imageUrls)
+            if (request.PlaceFeedbackMedia != null && request.PlaceFeedbackMedia.Count > 0)
             {
-                var photo = new PlaceFeeedbackMedium
-                {
-                    FeedbackId = feedback.Id,
-                    Type = "Image",
-                    CreateDate = DateTime.Now,
-                    Url = photoUrl
-                };
-                await _unitOfWork.RepositoryPlaceFeeedbackMedium.Insert(photo);
-            }
-            foreach (var mediaUrl in mediaSaveResult.Data.videoUrls)
-            {
-                var media = new PlaceFeeedbackMedium
-                {
-                    FeedbackId = feedback.Id,
-                    Type = "Video",
-                    CreateDate = DateTime.Now,
-                    Url = mediaUrl
-                };
-                await _unitOfWork.RepositoryPlaceFeeedbackMedium.Insert(media);
-            }
-            await _unitOfWork.CommitAsync();
-            return request;
-        }
-        public async Task<bool> DeleteFeedback(int placeid, int feedbackid)
-        {
-            var userid = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!Guid.TryParse(userid, out var userId))
-            {
-                throw new InvalidOperationException("User ID is not a valid GUID.");
-            }
-            var feedbackEntity = await _unitOfWork.RepositoryPlaceFeeedback.GetById(feedbackid);
-            if (feedbackEntity == null)
-            {
-                throw new ArgumentException($"Feedback with id {feedbackid} not found.");
-            }
-            if (feedbackEntity.UserId != userId)
-            {
-                throw new UnauthorizedAccessException("You are not authorized to delete this feedback.");
-            }
-            var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
-            if (places == null)
-            {
-                throw new ArgumentException($"Place with id {placeid} not found.");
-            }
-            var existingMedia = await _unitOfWork.RepositoryPlaceFeeedbackMedium.GetAll()
-                                         .Where(e => e.FeedbackId == feedbackid)
-                                         .ToListAsync();
-            foreach (var media in existingMedia)
-            {
-                _unitOfWork.RepositoryPlaceFeeedbackMedium.Delete(media);
-            }
-            if (feedbackEntity != null)
-            {
-                _unitOfWork.RepositoryPlaceFeeedback.Delete(feedbackEntity);
-            }
-            await _unitOfWork.CommitAsync();
-            return true;
-        }
-
-        public async Task<FeedbackRequest> UpdateFeedback(int placeid,int feedbackid, FeedbackRequest request)
-        {
-            var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
-            if (places == null)
-            {
-                throw new ArgumentException($"Place with id {placeid} not found.");
-            }
-            var feedback = await _unitOfWork.RepositoryPlaceFeeedback.GetById(feedbackid);
-            if (feedback == null)
-            {
-                throw new ArgumentException($"Feedback with id {feedbackid} not found.");
-            }
-            var userid = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!Guid.TryParse(userid, out var userId))
-            {
-                throw new InvalidOperationException("User ID is not a valid GUID.");
-            }
-            var existingMedia = await _unitOfWork.RepositoryPlaceFeeedbackMedium.GetAll()
-                                                     .Where(e => e.FeedbackId == feedbackid)
-                                                     .ToListAsync();
-            foreach (var media in existingMedia)
-            {
-                _unitOfWork.RepositoryPlaceFeeedbackMedium.Delete(media);
-            }
-            if (userId == feedback.UserId)
-            {
-                feedback.Rating = request.Rating;
-                feedback.Content = request.Content;
-                feedback.CreatedDate = DateTime.UtcNow;
                 var mediaSaveResult = await _fileService.SaveStaticFiles(request.PlaceFeedbackMedia);
                 if (!mediaSaveResult.Success)
                 {
@@ -196,10 +103,132 @@ namespace LocalTour.Services.Services
                     };
                     await _unitOfWork.RepositoryPlaceFeeedbackMedium.Insert(media);
                 }
+                await _unitOfWork.CommitAsync();
+            }
+            return request;
+        }
+        public async Task<bool> DeleteFeedback(int placeid, int feedbackid)
+        {
+            var userid = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userid, out var userId))
+            {
+                throw new InvalidOperationException("User ID is not a valid GUID.");
+            }
+            var feedbackEntity = await _unitOfWork.RepositoryPlaceFeeedback.GetById(feedbackid);
+            if (feedbackEntity == null)
+            {
+                throw new ArgumentException($"Feedback with id {feedbackid} not found.");
+            }
+            if (feedbackEntity.UserId != userId)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to delete this feedback.");
+            }
+            var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
+            if (places == null)
+            {
+                throw new ArgumentException($"Place with id {placeid} not found.");
+            }
+            var existingMedia = await _unitOfWork.RepositoryPlaceFeeedbackMedium.GetAll()
+                                         .Where(e => e.FeedbackId == feedbackid)
+                                         .ToListAsync();
+            var existingHelpful = await _unitOfWork.RepositoryPlaceFeeedbackHelpful.GetAll()
+                .Where(e => e.PlaceFeedBackId == feedbackid).ToListAsync();
+            foreach (var media in existingMedia)
+            {
+                _unitOfWork.RepositoryPlaceFeeedbackMedium.Delete(media);
+            }
+
+            foreach (var helpful in existingHelpful)
+            {
+                _unitOfWork.RepositoryPlaceFeeedbackHelpful.Delete(helpful);
+            }
+            
+            if (feedbackEntity != null)
+            {
+                _unitOfWork.RepositoryPlaceFeeedback.Delete(feedbackEntity);
+            }
+            await _unitOfWork.CommitAsync();
+            return true;
+        }
+
+        public async Task<FeedbackRequest> UpdateFeedback(int placeid,int feedbackid, FeedbackRequest request)
+        {
+            var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
+            if (places == null)
+            {
+                throw new ArgumentException($"Place with id {placeid} not found.");
+            }
+            var feedback = await _unitOfWork.RepositoryPlaceFeeedback.GetById(feedbackid);
+            if (feedback == null)
+            {
+                throw new ArgumentException($"Feedback with id {feedbackid} not found.");
+            }
+            var userid = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userid, out var userId))
+            {
+                throw new InvalidOperationException("User ID is not a valid GUID.");
+            }
+            
+            if (userId == feedback.UserId)
+            {
+                feedback.Rating = request.Rating;
+                feedback.Content = request.Content;
+                feedback.UpdatedDate = DateTime.UtcNow;
             } else
             {
                 throw new InvalidOperationException("Wrong user.");
             }
+
+            if (request.PlaceFeedbackMedia != null && request.PlaceFeedbackMedia.Count > 0)
+            {
+                var existingMedia = await _unitOfWork.RepositoryPlaceFeeedbackMedium.GetAll()
+                    .Where(e => e.FeedbackId == feedbackid)
+                    .ToListAsync();
+                foreach (var media in existingMedia)
+                {
+                    _unitOfWork.RepositoryPlaceFeeedbackMedium.Delete(media);
+                }
+                var mediaSaveResult = await _fileService.SaveStaticFiles(request.PlaceFeedbackMedia);
+                if (!mediaSaveResult.Success)
+                {
+                    throw new Exception(mediaSaveResult.Message);
+                }
+
+                foreach (var photoUrl in mediaSaveResult.Data.imageUrls)
+                {
+                    var photo = new PlaceFeeedbackMedium
+                    {
+                        FeedbackId = feedback.Id,
+                        Type = "Image",
+                        CreateDate = DateTime.Now,
+                        Url = photoUrl
+                    };
+                    await _unitOfWork.RepositoryPlaceFeeedbackMedium.Insert(photo);
+                }
+                foreach (var mediaUrl in mediaSaveResult.Data.videoUrls)
+                {
+                    var media = new PlaceFeeedbackMedium
+                    {
+                        FeedbackId = feedback.Id,
+                        Type = "Video",
+                        CreateDate = DateTime.Now,
+                        Url = mediaUrl
+                    };
+                    await _unitOfWork.RepositoryPlaceFeeedbackMedium.Insert(media);
+                }
+            }else
+            {
+                var existingMedia = await _unitOfWork.RepositoryPlaceFeeedbackMedium.GetAll()
+                    .Where(e => e.FeedbackId == feedbackid)
+                    .ToListAsync();
+                foreach (var media in existingMedia)
+                {
+                    _unitOfWork.RepositoryPlaceFeeedbackMedium.Delete(media);
+                }
+            }
+            
+           
+            
             _unitOfWork.RepositoryPlaceFeeedback.Update(feedback);
             await _unitOfWork.CommitAsync();
 

@@ -2,6 +2,7 @@
 
 public class UserProfileVM
 {
+    
     public string? fullName { get; set; }
     public string? userName { get; set; }
     public string? userProfileImage { get; set; }

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using LocalTour.WebApi.Helper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LocalTour.WebApi.Controllers
 {
@@ -21,18 +23,14 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpPost("{commentId}/like")]
-        public async Task<IActionResult> LikeOrUnlikeComment(int commentId, [FromQuery] Guid userId)
+        [Authorize]
+        public async Task<IActionResult> LikeOrUnlikeComment(int commentId)
         {
-            var userExists = await _userService.FindById(userId.ToString());
-            if (userExists == null)
-            {
-                return StatusCode(404, new { statusCode = 404, message = "User not found." });
-            }
 
             try
             {
                 // Kiểm tra và xử lý like/unlike
-                var isLiked = await _postCommentLikeService.LikeCommentAsync(commentId, userId);
+                var isLiked = await _postCommentLikeService.LikeCommentAsync(commentId, Guid.Parse(User.GetUserId()));
 
                 if (isLiked)
                 {

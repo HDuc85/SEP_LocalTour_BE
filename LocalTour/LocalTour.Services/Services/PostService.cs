@@ -44,45 +44,104 @@ namespace LocalTour.Services.Services
             _serviceProvider = serviceProvider;
         }
 
-        public async Task<PaginatedList<PostRequest>> GetAllPosts(GetPostRequest request)
+        public async Task<List<PostRequest>> GetAllPosts(GetPostRequest request,String userId)
         {
             var postsQuery = _unitOfWork.RepositoryPost.GetAll()
-                .Include(p => p.PostMedia)    
-                .Include(p => p.Author)       
-                .Include(p => p.PostLikes)   
-                .AsQueryable();
-
-            if (request.UserId != null)
+                .Where(x => x.AuthorId == request.UserId)
+                .Include(p => p.Author)
+                .Include(p => p.PostLikes)
+                .Include(p => p.Place)
+                .ThenInclude(pp => pp.PlaceTranslations)
+                .Include(z => z.Schedule)
+                .Include(t => t.PostComments)
+                .ToList();
+            var listPostMedium = await _unitOfWork.RepositoryPostMedium.GetData();
+            User currentUser = null;
+            if (userId != null)
             {
-                postsQuery = postsQuery.Where(p => p.AuthorId == request.UserId);
+                currentUser = await _userService.FindById(userId);
             }
-
-            if (request.PostId != null)
+            var author = await _userService.FindById(request.UserId.ToString());
+            if (currentUser != null)
             {
-                postsQuery = postsQuery.Where(p => p.Id == request.PostId);
+                if (currentUser.Id != request.UserId)
+                {
+                    postsQuery = postsQuery.Where(x => x.Public == true).ToList();
+                }
             }
+            
+            
+            List<PostRequest> postRequests = new List<PostRequest>();
+            foreach (var post in postsQuery)
+            {
+                postRequests.Add(new PostRequest()
+                {
+                    Id = post.Id,
+                    Title = post.Title,
+                    Content = post.Content,
+                    AuthorId = post.AuthorId,
+                    CreatedDate = post.CreatedDate,
+                    ScheduleId = post.ScheduleId,
+                    PlaceId = post.PlaceId,
+                    Public = post.Public,   
+                    UpdateDate = post.UpdateDate,
+                    TotalLikes = post.PostLikes.Count,
+                    TotalComments = post.PostComments.Count,
+                    AuthorFullName = author.UserName,
+                    Media = listPostMedium.Where(x => x.PostId == post.Id).Select(x =>
+                    {
+                            return new PostMedium
+                            {
+                                Id = x.Id,
+                                Type = x.Type,
+                                CreateDate = x.CreateDate,
+                                Url = x.Url,
+                                PostId = x.PostId,
+                            };
+                    }).ToList(),
+                    Latitude = post.Latitude,
+                    Longitude = post.Longitude,
+                    isLiked = currentUser != null? post.PostLikes.Any(x => x.UserId == currentUser.Id): false,
+                    AuthorProfilePictureUrl = author.ProfilePictureUrl,
+                    PlaceName = post.PlaceId != null ? post.Place.PlaceTranslations.FirstOrDefault(x => x.LanguageCode == request.languageCode).Name : "" ,
+                    ScheduleName = post.ScheduleId != null ? post.Schedule.ScheduleName : "",
+                    PlacePhotoDisplay = post.PlaceId != null ?post.Place.PhotoDisplay : ""
+                });
+            }
+            
 
             // Sorting by likes count or date
-            if (request.SortBy == "like")
+            if (request.SortBy == "liked")
             {
-                postsQuery = request.SortOrder == "asc"
-                    ? postsQuery.OrderBy(p => p.PostLikes.Count)
-                    : postsQuery.OrderByDescending(p => p.PostLikes.Count);
+                postRequests = request.SortOrder == "asc"
+                    ? postRequests.OrderBy(p => p.TotalLikes).ToList()
+                    : postRequests.OrderByDescending(p => p.TotalLikes).ToList();
             }
-            else if (request.SortBy == "date")
+            else if (request.SortBy == "created_by")
             {
-                postsQuery = request.SortOrder == "asc"
-                    ? postsQuery.OrderBy(p => p.CreatedDate)
-                    : postsQuery.OrderByDescending(p => p.CreatedDate);
+                postRequests = request.SortOrder == "asc"
+                    ? postRequests.OrderBy(p => p.CreatedDate).ToList()
+                    : postRequests.OrderByDescending(p => p.CreatedDate).ToList();
             }
 
-            // Fetching paginated posts
+
+            if (request.SearchTerm != null)
+            {
+                postRequests = postRequests.Where(x => 
+                    x.Title.ToLower().Contains(request.SearchTerm.ToLower())||
+                    x.Content.ToLower().Contains(request.SearchTerm.ToLower()) || 
+                    x.PlaceName.ToLower().Contains(request.SearchTerm.ToLower())||
+                    x.ScheduleName.ToLower().Contains(request.SearchTerm.ToLower()))
+                    .ToList();
+            }
+
+
+            /*
             var posts = await postsQuery
                 .ListPaginateWithSortPostAsync<Post, PostRequest>(request.Page, request.Size, request.SortOrder, _mapper.ConfigurationProvider);
 
             foreach (var postRequest in posts.Items)
             {
-                postRequest.TotalLikes = postRequest.TotalLikes; 
 
                 postRequest.Media = await GetAllMediaByPostId(postRequest.Id);
 
@@ -93,12 +152,16 @@ namespace LocalTour.Services.Services
                     postRequest.AuthorFullName = user.FullName;
                     postRequest.AuthorProfilePictureUrl = user.ProfilePictureUrl;
                 }
-            }
 
-            return posts;
+            }*/
+
+
+
+            return postRequests;
         }
+        
 
-        public async Task<ServiceResponseModel<PostRequest>> GetPostById(int postId, Guid userId)
+        public async Task<ServiceResponseModel<PostRequest>> GetPostById(int postId, String userId)
         {
             // Fetch the post by ID
             var post = await _unitOfWork.RepositoryPost.GetById(postId);
@@ -109,25 +172,36 @@ namespace LocalTour.Services.Services
 
             var postRequest = _mapper.Map<PostRequest>(post);
 
+            var listMedia = await _unitOfWork.RepositoryPostMedium.GetData(x => x.PostId == postId);
             // Fetch media associated with the post
-            postRequest.Media = await GetAllMediaByPostId(postId);  // Sequential fetching
-
+            postRequest.Media = listMedia.Select(x => new PostMedium
+            {
+                PostId = x.PostId,
+                Type = x.Type,
+                CreateDate = x.CreateDate,
+                Url = x.Url,
+            }).ToList();  // Sequential fetching
+            
             // Fetch comments associated with the post
-            var comments = await GetCommentsByPostIdAsync(postId, userId);  // Ensure this is awaited
+          //  var comments = await GetCommentsByPostIdAsync(postId, userId);  // Ensure this is awaited
 
             // Fetch user details associated with the post
             var user = await _userService.FindById(postRequest.AuthorId.ToString());
-
+            if (userId != null)
+            {
+                var islikePost = await _unitOfWork.RepositoryPostLike.GetData(x => x.PostId == postId);
+                postRequest.isLiked = islikePost.Any( x => x.UserId == Guid.Parse(userId));
+            }
             // Map the user to UserFollowVM if the user exists
             UserFollowVM userFollowVM = null;
             if (user != null)
             {
-                userFollowVM = _mapper.Map<UserFollowVM>(user); // Mapping User to UserFollowVM
                 postRequest.AuthorFullName = user.FullName;
                 postRequest.AuthorProfilePictureUrl = user.ProfilePictureUrl;
             }
 
             // Ensure the comments list is not null and assign user information
+            /*
             if (comments != null)
             {
                 // Assign parent-child relationships for comments
@@ -137,6 +211,7 @@ namespace LocalTour.Services.Services
             {
                 postRequest.Comments = new List<PostCommentRequest>(); // Ensure it's an empty list if no comments
             }
+            */
 
             // Fetch total likes for the post
             postRequest.TotalLikes = await GetTotalLikesByPostIdAsync(postId);
@@ -172,21 +247,23 @@ namespace LocalTour.Services.Services
             return BuildComments(commentDictionary[null].ToList());
         }
 
-        public async Task<PostRequest> CreatePost(CreatePostRequest createPostRequest, Guid parsedUserId)
+        public async Task<PostRequest> CreatePost(CreatePostRequest createPostRequest, String parsedUserId)
         {
             // Lấy UserId từ HttpContext.User hoặc User.Identity.Name
-            var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            //var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out parsedUserId))
+            var user = await _userService.FindById(parsedUserId);
+            if (user == null)
             {
-                throw new Exception("Cannot determine the user making the request.");
+                throw new ApplicationException("User not found");
             }
+            
 
             // Tạo entity bài viết
             var postEntity = new Post
             {
                 Title = createPostRequest.Title,
-                AuthorId = parsedUserId,
+                AuthorId = user.Id,
                 Content = createPostRequest.Content,
                 CreatedDate = DateTime.UtcNow,
                 UpdateDate = DateTime.UtcNow,
@@ -252,25 +329,20 @@ namespace LocalTour.Services.Services
             return postRequest;
         }
 
-        public async Task<bool> UpdatePost(int postId, CreatePostRequest updatePostRequest)
+        public async Task<bool> UpdatePost(int postId, CreatePostRequest updatePostRequest, String parsedUserId)
         {
             // Lấy UserId từ HttpContext
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst("sub")?.Value;
-
-            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var parsedUserId))
-            {
-                throw new Exception("Cannot determine the user making the request.");
-            }
+            var user = await _userService.FindById(parsedUserId);
 
             var postEntity = await _unitOfWork.RepositoryPost.GetById(postId);
             if (postEntity == null) return true;
 
             // Kiểm tra xem người dùng có phải là tác giả của bài đăng không
-            if (postEntity.AuthorId != parsedUserId)
+            if (postEntity.AuthorId != user.Id)
             {
                 throw new UnauthorizedAccessException("You do not have permission to update this post.");
             }
-
+            
             postEntity.Title = updatePostRequest.Title;
             postEntity.Content = updatePostRequest.Content;
             postEntity.Public = updatePostRequest.Public;
@@ -393,13 +465,15 @@ namespace LocalTour.Services.Services
             return _mapper.Map<PostRequest>(post);
         }
 
-        public async Task<List<PostCommentRequest>> GetCommentsByPostIdAsync(int postId, Guid userId)
+        public async Task<List<PostCommentRequest>> GetCommentsByPostIdAsync(int postId, String userId)
         {
+
             // Fetch all comments for the post, including their child comments (InverseParent)
             var comments = await _unitOfWork.RepositoryPostComment
                 .GetAll()
                 .Where(c => c.PostId == postId)
                 .Include(c => c.InverseParent)
+                .ThenInclude(x => x.User)
                 .OrderBy(c => c.CreatedDate)
                 .ToListAsync();
 
@@ -407,7 +481,7 @@ namespace LocalTour.Services.Services
             var topLevelComments = comments.Where(c => c.ParentId == null).ToList();
 
             // Map each top-level comment to a PostCommentRequest with nested child comments
-            var tasks = topLevelComments.Select(parent => MapToRequestWithChildren(parent, comments, userId));
+            var tasks = topLevelComments.Select(parent => MapToRequestWithChildren(parent, comments,userId));
 
             // Wait for all mapping tasks to complete
             var result = await Task.WhenAll(tasks);
@@ -416,13 +490,13 @@ namespace LocalTour.Services.Services
             return result.ToList();
         }
 
-        private async Task<PostCommentRequest> MapToRequestWithChildren(PostComment parent, List<PostComment> comments, Guid userId)
+        private async Task<PostCommentRequest> MapToRequestWithChildren(PostComment parent, List<PostComment> comments, String userId)
         {
             // Use IServiceProvider to create a new scope and get a fresh DbContext instance
             using (var scope = _serviceProvider.CreateScope()) // Create a new scope
             {
                 var scopedContext = scope.ServiceProvider.GetRequiredService<LocalTourDbContext>(); // Get a fresh DbContext
-
+                
                 var parentRequest = _mapper.Map<PostCommentRequest>(parent);
 
                 var childComments = comments
@@ -442,8 +516,9 @@ namespace LocalTour.Services.Services
 
                 // Fetch the like-related information sequentially
                 parentRequest.TotalLikes = await scopedContext.PostCommentLikes.CountAsync(pc => pc.PostCommentId == parent.Id);
-                parentRequest.LikedByUser = await scopedContext.PostCommentLikes.AnyAsync(pc => pc.UserId == userId && pc.PostCommentId == parent.Id);
-
+                parentRequest.LikedByUser = userId != null ? await scopedContext.PostCommentLikes.AnyAsync(pc => pc.UserId == Guid.Parse(userId) && pc.PostCommentId == parent.Id) : false;
+                parentRequest.UserFullName = parent.User.FullName;
+                parentRequest.UserProfilePictureUrl = parent.User.ProfilePictureUrl;
                 return parentRequest;
             }
         }
@@ -463,12 +538,12 @@ namespace LocalTour.Services.Services
             return totalLikes;
         }
 
-        public async Task<List<PostMediumRequest>> GetAllMediaByPostId(int postId)
+        public async Task<List<PostMedium>> GetAllMediaByPostId(int postId)
         {
             var mediaEntities = await _unitOfWork.RepositoryPostMedium.GetAll()
                 .Where(m => m.PostId == postId)
                 .ToListAsync();
-            return _mapper.Map<List<PostMediumRequest>>(mediaEntities);
+            return _mapper.Map<List<PostMedium>>(mediaEntities);
         }
 
     }

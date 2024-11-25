@@ -66,13 +66,23 @@ namespace LocalTour.Services.Services
             return true;
         }
 
-        public async Task<List<Guid>> GetUserLikesByPostIdAsync(int postId)
+        public async Task<List<UserViewModel>> GetUserLikesByPostIdAsync(int postId)
         {
+            var post = await _unitOfWork.RepositoryPost.GetById(postId);
+            if (post == null)
+            {
+                throw new NullReferenceException("Post not found");
+            }
             // Get all likes for the post from repository
-            var likes = await _unitOfWork.RepositoryPostLike.GetData(l => l.PostId == postId);
+            var likes =  _unitOfWork.RepositoryPostLike.GetDataQueryable(l => l.PostId == postId).Include(x => x.User);
 
             // Return list of UserId from filtered likes
-            return likes.Select(l => l.UserId).ToList();
+            return likes.Select(l => new UserViewModel
+            {
+                userId = l.UserId,
+                userName = l.User.UserName,
+                userProfileImage = l.User.ProfilePictureUrl
+            }).ToList();
         }
 
         public async Task<int> GetTotalLikesByPostIdAsync(int postId)

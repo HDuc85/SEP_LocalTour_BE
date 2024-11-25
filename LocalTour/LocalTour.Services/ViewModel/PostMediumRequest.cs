@@ -11,6 +11,5 @@ namespace LocalTour.Services.ViewModel
         public string Type { get; set; } = null!; // Image or Video
         public string Url { get; set; } = null!;
         public DateTime CreateDate { get; set; }
-        public IFormFile File { get; set; }
     }
 }

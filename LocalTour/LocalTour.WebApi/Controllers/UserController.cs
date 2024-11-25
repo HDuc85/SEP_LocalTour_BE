@@ -194,5 +194,77 @@ namespace LocalTour.WebApi.Controllers
             }
             return BadRequest();
         }
+
+        [HttpPut("UpdatePhoneOrEmail")]
+        [Authorize]
+        public async Task<IActionResult> UpdatePhoneOrEmail([FromBody] TokenRequest request)
+        {
+            try
+            {
+                UserRecord userRecord = await FirebaseAuth.DefaultInstance.GetUserAsync(request.Token);
+                string phoneNumber = userRecord.PhoneNumber;
+                string email = userRecord.Email;
+                User user = null;
+
+                if (phoneNumber != null)
+                {
+                    phoneNumber = "0" + phoneNumber.Substring(3);
+                    user = await _userService.FindByPhoneNumber(phoneNumber);
+                }
+                if (user == null && !string.IsNullOrEmpty(email))
+                {
+                    user = await _userService.FindByEmail(email);
+                }
+
+                if (user == null)
+                {
+                    var CurrenUser = await _userService.FindById(User.GetUserId());
+                    if (phoneNumber != null && (CurrenUser.PhoneNumber == null || CurrenUser.PhoneNumber == ""))
+                    {
+                        CurrenUser.PhoneNumber = phoneNumber;
+                        await _userService.UpdatePhoneOrEmail(CurrenUser);
+                        return Ok("Success");
+                    }
+
+                    if (email != null && (CurrenUser.Email == null || CurrenUser.Email == ""))
+                    {
+                        CurrenUser.Email = email;
+                        await _userService.UpdatePhoneOrEmail(CurrenUser);
+                        return Ok("Success");
+                    }
+                    return BadRequest("Nothing to be updated");
+                }
+                return BadRequest("Email or Phone Number have exist in another account");
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
+        [HttpDelete("RemovePhone")]
+        [Authorize]
+        public async Task<IActionResult> RemovePhone()
+        {
+            var result = await _userService.RemovePhone(User.GetUserId());
+            if (result)
+            {
+                return Ok("Success");
+            }
+            return BadRequest();
+        }
+        [HttpDelete("RemoveEmail")]
+        [Authorize]
+        public async Task<IActionResult> RemoveEmail()
+        {
+            var result = await _userService.RemoveEmail(User.GetUserId());
+            if (result)
+            {
+                return Ok("Success");
+            }
+            return BadRequest();
+        }
     }
 }

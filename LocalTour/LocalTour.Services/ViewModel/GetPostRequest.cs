@@ -9,8 +9,6 @@ namespace LocalTour.Services.ViewModel
     public class GetPostRequest : PaginatedQueryParams
     {
         public Guid? UserId { get; set; }
-        public int? PostId { get; set; } 
-        public string? FilterBy { get; set; } 
-
+        public String languageCode { get; set; }
     }
 }

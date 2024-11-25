@@ -67,12 +67,12 @@ namespace LocalTour.Services.Services
             return true;
         }
 
-        public async Task<List<PostMediumRequest>> GetAllMediaByPostId(int postId)
+        public async Task<List<PostMedium>> GetAllMediaByPostId(int postId)
         {
             var mediaEntities = await _unitOfWork.RepositoryPostMedium.GetAll()
                 .Where(m => m.PostId == postId)
                 .ToListAsync();
-            return _mapper.Map<List<PostMediumRequest>>(mediaEntities);
+            return _mapper.Map<List<PostMedium>>(mediaEntities);
         }
     }
 }

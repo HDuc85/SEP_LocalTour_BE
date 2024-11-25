@@ -26,5 +26,8 @@ namespace LocalTour.Services.Abstract
                 Task<bool> IsUserBanned(string userId);
                 Task<User> CreateModerate(CreateUserRequest createUserRequest);
                 Task<ServiceResponseModel<UserProfileVM>> GetProfile(string userId, string currentUserId);
+                Task<bool> UpdatePhoneOrEmail(User user);
+                Task<bool> RemovePhone(String userId);
+                Task<bool> RemoveEmail(String userId);
         }
 }
