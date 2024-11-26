@@ -85,6 +85,8 @@ namespace LocalTour.Infrastructure.Configuration
 
             service.AddScoped<IPlaceFeedbackHelpfulService, PlaceFeedbackHelpfulService>();
             service.AddScoped<ITagService, TagService>();
+            service.AddScoped<IAddressService, AddressService>();
+
         }
 
         public static void RegesterIdentity(this IServiceCollection service, IConfiguration configuration)

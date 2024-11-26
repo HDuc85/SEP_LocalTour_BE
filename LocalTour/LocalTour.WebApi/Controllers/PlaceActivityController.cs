@@ -49,7 +49,7 @@ namespace LocalTour.WebApi.Controllers
             try
             {
                 var activity = await _placeActivityService.UpdateActivity(placeid, activityid, request);
-                return Ok(activity));
+                return Ok(activity);
             }
             catch (Exception ex)
             {
