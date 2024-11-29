@@ -72,7 +72,7 @@ namespace LocalTour.Services.Services
             };
             await _unitOfWork.RepositoryPlaceFeeedback.Insert(feedback);
             await _unitOfWork.CommitAsync();
-            var mediaSaveResult = await _fileService.SaveStaticFiles(request.PlaceFeedbackMedia, "PlaceFeedbackMedia");
+            var mediaSaveResult = await _fileService.SaveStaticFiles(request.PlaceFeedbackMedia);
             if (!mediaSaveResult.Success)
             {
                 throw new Exception(mediaSaveResult.Message);
@@ -168,7 +168,7 @@ namespace LocalTour.Services.Services
                 feedback.Rating = request.Rating;
                 feedback.Content = request.Content;
                 feedback.CreatedDate = DateTime.UtcNow;
-                var mediaSaveResult = await _fileService.SaveStaticFiles(request.PlaceFeedbackMedia, "PlaceFeedbackMedia");
+                var mediaSaveResult = await _fileService.SaveStaticFiles(request.PlaceFeedbackMedia);
                 if (!mediaSaveResult.Success)
                 {
                     throw new Exception(mediaSaveResult.Message);

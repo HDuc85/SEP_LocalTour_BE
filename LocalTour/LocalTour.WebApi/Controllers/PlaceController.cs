@@ -21,7 +21,7 @@ namespace LocalTour.WebApi.Controllers
             _placeService = placeService;
         }
         [HttpPost("create")]
-        public async Task<ActionResult<ApiReponseModel<PlaceRequest>>> CreatePlace(PlaceRequest request)
+        public async Task<ActionResult<ApiReponseModel<PlaceCreateRequest>>> CreatePlace(PlaceRequest request)
         {
             if (request == null)
             {
@@ -64,7 +64,7 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpPut("update")]
-        public async Task<ActionResult<ApiReponseModel<PlaceRequest>>> UpdatePlace(int placeid,PlaceRequest request)
+        public async Task<ActionResult<ApiReponseModel<PlaceCreateRequest>>> UpdatePlace(int placeid,PlaceRequest request)
         {
             if (request == null)
             {

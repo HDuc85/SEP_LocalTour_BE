@@ -10,10 +10,10 @@ namespace LocalTour.Services.Abstract
 {
     public interface IPlaceService
     {
-        Task<PlaceRequest> CreatePlace(PlaceRequest place);
+        Task<PlaceCreateRequest> CreatePlace(PlaceRequest place);
         Task<PaginatedList<PlaceVM>> GetAllPlace(GetPlaceRequest request);
         Task<Place> GetPlaceById(string languageCode, int placeid);
-        Task<PlaceRequest> UpdatePlace(int placeid,PlaceRequest request);
+        Task<PlaceCreateRequest> UpdatePlace(int placeid,PlaceRequest request);
         Task<Place> ChangeStatusPlace(int placeid,string status);
         Task<bool> DeletePlace(int placeid);
         Task<PaginatedList<PlaceVM>> GetAllPlaceByRole(GetPlaceRequest request);

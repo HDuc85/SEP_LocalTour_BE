@@ -38,7 +38,7 @@ namespace LocalTour.Services.Services
             _fileService = fileService;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<PlaceRequest> CreatePlace(PlaceRequest place)
+               public async Task<PlaceCreateRequest> CreatePlace(PlaceRequest place)
         {
             if (place == null)
             {
@@ -49,7 +49,7 @@ namespace LocalTour.Services.Services
             {
                 throw new UnauthorizedAccessException("User not found or invalid User ID.");
             }
-            var photos = await _fileService.SaveImageFile(place.PhotoDisplay, "PlaceMedia");
+            var photos = await _fileService.SaveImageFile(place.PhotoDisplay);
             var placeEntity = new Place
             {
                 WardId = place.WardId,
@@ -74,9 +74,9 @@ namespace LocalTour.Services.Services
                         PlaceId = placeEntity.Id,
                         TagId = tags,
                     };
-                   await _unitOfWork.RepositoryPlaceTag.Insert(placetag);
+                    await _unitOfWork.RepositoryPlaceTag.Insert(placetag);
                 };
-                
+
             }
             foreach (var translation in place.PlaceTranslation)
             {
@@ -91,7 +91,7 @@ namespace LocalTour.Services.Services
                 };
                 await _unitOfWork.RepositoryPlaceTranslation.Insert(translationEntity);
             }
-            var photoSaveResult = await _fileService.SaveStaticFiles(place.PlaceMedia, "PlaceMedia");
+            var photoSaveResult = await _fileService.SaveStaticFiles(place.PlaceMedia) ;
             if (!photoSaveResult.Success)
             {
                 throw new Exception(photoSaveResult.Message);
@@ -120,7 +120,20 @@ namespace LocalTour.Services.Services
                 await _unitOfWork.RepositoryPlaceMedium.Insert(media);
             }
             await _unitOfWork.CommitAsync();
-            return place;
+            var created = new PlaceCreateRequest
+            {
+                WardId = place.WardId,
+                TimeOpen = place.TimeOpen,
+                TimeClose = place.TimeClose,
+                Longitude = place.Longitude,
+                Latitude = place.Latitude,
+                PhotoDisplay = photos.Data,
+                ContactLink = place.ContactLink,
+                Tags =place.Tags,
+                PlaceMedia = place.PlaceMedia,
+                PlaceTranslation = place.PlaceTranslation,
+            };
+            return created;
         }
 
         public async Task<PaginatedList<PlaceVM>> GetAllPlace(GetPlaceRequest request)
@@ -217,7 +230,7 @@ namespace LocalTour.Services.Services
             .ToList();
             return placeEntity;
         }
-        public async Task<PlaceRequest> UpdatePlace(int placeid, PlaceRequest request)
+        public async Task<PlaceCreateRequest> UpdatePlace(int placeid, PlaceRequest request)
         {
             var existingPlace = await _unitOfWork.RepositoryPlace.GetById(placeid);
             if (existingPlace == null)
@@ -228,7 +241,7 @@ namespace LocalTour.Services.Services
             {
                 await _fileService.DeleteFile(existingPlace.PhotoDisplay);
             }
-            var photos = await _fileService.SaveImageFile(request.PhotoDisplay, "PlaceMedia");
+            var photos = await _fileService.SaveImageFile(request.PhotoDisplay);
             existingPlace.WardId = request.WardId;  
             existingPlace.TimeOpen = request.TimeOpen;
             existingPlace.TimeClose = request.TimeClose;
@@ -287,7 +300,7 @@ namespace LocalTour.Services.Services
                 };
                 await _unitOfWork.RepositoryPlaceTranslation.Insert(translationEntity);
             }
-            var photoSaveResult = await _fileService.SaveStaticFiles(request.PlaceMedia, "PlaceMedia");
+            var photoSaveResult = await _fileService.SaveStaticFiles(request.PlaceMedia);
             if (!photoSaveResult.Success)
             {
                 throw new Exception(photoSaveResult.Message);
@@ -317,7 +330,20 @@ namespace LocalTour.Services.Services
             }
             _unitOfWork.RepositoryPlace.Update(existingPlace);
             await _unitOfWork.CommitAsync();
-            return request;
+            var created = new PlaceCreateRequest
+            {
+                WardId = request.WardId,
+                TimeOpen = request.TimeOpen,
+                TimeClose = request.TimeClose,
+                Longitude = request.Longitude,
+                Latitude = request.Latitude,
+                PhotoDisplay = photos.Data,
+                ContactLink = request.ContactLink,
+                Tags = request.Tags,
+                PlaceMedia = request.PlaceMedia,
+                PlaceTranslation = request.PlaceTranslation,
+            };
+            return created;
         }
 
         public async Task<Place> ChangeStatusPlace(int placeid, string status)

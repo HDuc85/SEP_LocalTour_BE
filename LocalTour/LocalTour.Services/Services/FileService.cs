@@ -1,32 +1,33 @@
 ﻿using LocalTour.Domain.Common;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
+using LocalTour.Services.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LocalTour.Services.Services
 {
     public class FileService : IFileService
     {
         private readonly IConfiguration _configuration;
-
-        public FileService(IConfiguration configuration)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public FileService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             _configuration = configuration;
+            _httpContextAccessor = httpContextAccessor;
         }
 
+        private string getRequestUrl()
+        {
+            return $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}";
+        }
         public async Task<ServiceResponseModel<bool>> DeleteFile(string fileName)
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Media", fileName);
 
             if (!File.Exists(filePath))
             {
-                return new 
+                return new
                 (
                     false,
                     $"File '{fileName}' not found."
@@ -37,7 +38,7 @@ namespace LocalTour.Services.Services
             try
             {
                 File.Delete(filePath);
-                return new 
+                return new
                 (
                     true,
                     $"File '{fileName}' successfully deleted."
@@ -45,8 +46,8 @@ namespace LocalTour.Services.Services
             }
             catch (Exception ex)
             {
-                
-                return new 
+
+                return new
                 (
                     false,
                     $"Error deleting file: {ex.Message}"
@@ -81,22 +82,23 @@ namespace LocalTour.Services.Services
             if (failedDeletions.Count > 0)
             {
                 var message = $"Failed to delete: {string.Join(", ", failedDeletions)}";
-                return new 
+                return new
                 (
                     failedDeletions.Count < fileNames.Count,
                     message
                 );
             }
 
-            return new 
+            return new
             (
                 true,
                 "All files deleted successfully."
             );
         }
 
-        public async Task<ServiceResponseModel<MediaFileStaticVM>> SaveStaticFiles(List<IFormFile> files,string requestUrl)
+        public async Task<ServiceResponseModel<MediaFileStaticVM>> SaveStaticFiles(List<IFormFile> files)
         {
+
             int maxFileCount = _configuration.GetValue<int>("FileUploadSettings:MaxFileCount");
             int maxImageCount = _configuration.GetValue<int>("FileUploadSettings:MaxImageCount");
             int maxVideoCount = _configuration.GetValue<int>("FileUploadSettings:MaxVideoCount");
@@ -120,21 +122,21 @@ namespace LocalTour.Services.Services
                 }
                 else
                 {
-                    return new 
+                    return new
                         (
-                            false, 
+                            false,
                             $"Invalid file type: {file.FileName}. Only image and video files are allowed."
                         );
                 }
             }
 
             if (imageCount > maxImageCount)
-                return new (false,$"You can upload a maximum of {maxImageCount} images.");
+                return new(false, $"You can upload a maximum of {maxImageCount} images.");
 
             if (videoCount > maxVideoCount)
-                return new 
+                return new
                     (
-                        false, 
+                        false,
                         $"You can upload a maximum of {maxVideoCount} videos."
                     );
 
@@ -147,7 +149,7 @@ namespace LocalTour.Services.Services
             foreach (var file in files)
             {
                 if (file.Length > maxFileSize)
-                    return new 
+                    return new
                         (
                             false,
                             $"File {file.FileName} exceeds the maximum allowed size of {maxFileSize / (1024 * 1024)}MB."
@@ -175,8 +177,8 @@ namespace LocalTour.Services.Services
                     await file.CopyToAsync(stream);
                 }
 
-                var fileUrl = $"{requestUrl}/Media/{fileName}";
-                if(media == "images")
+                var fileUrl = $"{getRequestUrl()}/Media/{fileName}";
+                if (media == "image")
                 {
                     imageUrls.Add(fileUrl);
                 }
@@ -185,18 +187,18 @@ namespace LocalTour.Services.Services
                     videoUrls.Add(fileUrl);
                 }
             }
-            var uploadedUrls = new MediaFileStaticVM() 
+            var uploadedUrls = new MediaFileStaticVM()
             {
                 videoUrls = videoUrls,
                 imageUrls = imageUrls
             };
 
-            return new (uploadedUrls);
+            return new(uploadedUrls);
 
 
         }
 
-        public async Task<ServiceResponseModel<string>> SaveVideoFile(IFormFile file, string requestUrl)
+        public async Task<ServiceResponseModel<string>> SaveVideoFile(IFormFile file)
         {
             string fileExtension = Path.GetExtension(file.FileName).ToLower();
 
@@ -210,7 +212,7 @@ namespace LocalTour.Services.Services
                     await file.CopyToAsync(stream);
                 }
 
-                return new ServiceResponseModel<string>($"{requestUrl}/Media/{fileName}");
+                return new ServiceResponseModel<string>($"{getRequestUrl()}/Media/{fileName}");
             }
             else
             {
@@ -222,7 +224,7 @@ namespace LocalTour.Services.Services
             }
         }
 
-        public async Task<ServiceResponseModel<string>> SaveImageFile(IFormFile file, string requestUrl)
+        public async Task<ServiceResponseModel<string>> SaveImageFile(IFormFile file)
         {
             string fileExtension = Path.GetExtension(file.FileName).ToLower();
 
@@ -236,7 +238,7 @@ namespace LocalTour.Services.Services
                     await file.CopyToAsync(stream);
                 }
 
-                return new ServiceResponseModel<string>($"{requestUrl}/Media/{fileName}");
+                return new ServiceResponseModel<string>($"{getRequestUrl()}/Media/{fileName}");
             }
             else
             {

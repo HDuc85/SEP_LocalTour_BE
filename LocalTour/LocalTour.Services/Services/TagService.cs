@@ -31,7 +31,7 @@ namespace LocalTour.Services.Services
 
         public async Task<TagRequest> CreateTag(TagRequest request)
         {
-            var photoSaveResult = await _fileService.SaveImageFile(request.TagPhotoUrl, "Tag");
+            var photoSaveResult = await _fileService.SaveImageFile(request.TagPhotoUrl);
             if (!photoSaveResult.Success)
             {
                 throw new Exception(photoSaveResult.Message);
@@ -111,7 +111,7 @@ namespace LocalTour.Services.Services
             {
                 await _fileService.DeleteFile(existingTag.TagPhotoUrl);
             }
-            var photoSaveResult = await _fileService.SaveImageFile(request.TagPhotoUrl, "Tag");
+            var photoSaveResult = await _fileService.SaveImageFile(request.TagPhotoUrl);
             if (!photoSaveResult.Success)
             {
                 throw new Exception(photoSaveResult.Message);

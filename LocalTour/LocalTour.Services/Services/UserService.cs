@@ -143,7 +143,7 @@ namespace LocalTour.Services.Services
 
             if(updateUserRequest.ProfilePicture != null)
             {
-                var url = await _fileService.SaveImageFile(updateUserRequest.ProfilePicture, requestUrl);
+                var url = await _fileService.SaveImageFile(updateUserRequest.ProfilePicture);
                 user.ProfilePictureUrl = url.Data;
             }
 
