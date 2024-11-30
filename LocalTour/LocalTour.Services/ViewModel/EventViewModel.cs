@@ -29,6 +29,7 @@ namespace LocalTour.Services.ViewModel
         public DateTime CreatedAt { get; set; }
 
         public DateTime? UpdatedAt { get; set; }
+        public string? EventPhotoDisplay { get; set; }
         [JsonIgnore]
 
         public virtual Place Place { get; set; } = null!;

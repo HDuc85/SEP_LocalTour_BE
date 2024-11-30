@@ -11,5 +11,7 @@ public class GetPlaceRequest : PaginatedQueryParams
     public double CurrentLongitude { get; set; }
     public string LanguageCode { get; set; }
     public List<int>? Tags { get; set; }
+    
+    public string? Status { get; set; }
 }
 

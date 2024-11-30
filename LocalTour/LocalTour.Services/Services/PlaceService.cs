@@ -493,6 +493,12 @@ namespace LocalTour.Services.Services
                 places = places.Where(x => x.PlaceTranslations.Any(pt => pt.Name.Contains(request.SearchTerm)) ||
                                            x.PlaceTranslations.Any(pt => pt.Address.Contains(request.SearchTerm)));
             }
+
+            if (request.Status != null)
+            {
+                places = places.Where(p => p.Status == request.Status);
+            }
+            
             return await places
                 .ListPaginateWithSortPlaceAsync<Place, PlaceVM>(
                     request.Page,

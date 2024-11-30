@@ -28,7 +28,7 @@ namespace LocalTour.Services.Services
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<PaginatedList<EventRequest>> GetAllEventByPlaceid(int placeid, GetEventRequest request)
+        public async Task<PaginatedList<EventResponseVM>> GetAllEventByPlaceid(int placeid, GetEventRequest request)
         {
             var events = _unitOfWork.RepositoryEvent.GetAll()
                                                     .Where(e => e.PlaceId == placeid)
@@ -46,7 +46,7 @@ namespace LocalTour.Services.Services
             }
 
             return await events
-                .ListPaginateWithSortAsync<Event, EventRequest>(
+                .ListPaginateWithSortAsync<Event, EventResponseVM>(
                 request.Page,
                 request.Size,
                 request.SortBy,
@@ -173,15 +173,20 @@ namespace LocalTour.Services.Services
                         .ThenInclude(p => p.Ward)
                         .ThenInclude(w => w.DistrictNcity)
                         .AsQueryable();
-            var userTags = await _unitOfWork.RepositoryModTag.GetAll()
+            var userTags =  _unitOfWork.RepositoryModTag.GetAll()
                     .Where(mt => mt.UserId == userId)
                     .Select(mt => mt.DistrictNcityId)
-                    .ToListAsync();
-            events = events.Where(e => userTags.Contains(e.Place.Ward.DistrictNcityId));
+                    .ToList();
+            events = events.Where(e => userTags.Contains(e.Place.Ward.DistrictNcityId)).AsQueryable();
             if (request.SearchTerm is not null)
             {
                 events = events.Where(e => e.EventName.Contains(request.SearchTerm) ||
-                                           e.Description.Contains(request.SearchTerm));
+                                           e.Description.Contains(request.SearchTerm)).AsQueryable();
+            }
+
+            if (request.status != null)
+            {
+                events = events.Where(e => e.EventStatus.Contains(request.status)).AsQueryable();
             }
 
             if (!string.IsNullOrEmpty(request.SortBy))
