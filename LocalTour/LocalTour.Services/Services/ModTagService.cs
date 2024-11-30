@@ -29,7 +29,7 @@ namespace LocalTour.Services.Services
             // Fetch all ModTag entries and include Tag details for TagName
             var modTags = await _unitOfWork.RepositoryModTag
                 .GetAll()
-                .Include(mt => mt.Tag)
+                .Include(mt => mt.DistrictNcity)
                 .ToListAsync();
 
             // Group by UserId and collect detailed Tag information for each UserId
@@ -40,9 +40,8 @@ namespace LocalTour.Services.Services
                     UserId = group.Key,
                     Tags = group.Select(mt => new TagVM
                     {
-                        TagUrl = mt.Tag.TagPhotoUrl,
-                        TagId = mt.TagId,
-                        TagName = mt.Tag.TagName
+                        CityId = mt.DistrictNcity.Id,
+                        CityName = mt.DistrictNcity.Name,
                     }).ToList()
                 });
 
@@ -57,10 +56,10 @@ namespace LocalTour.Services.Services
                 throw new InvalidOperationException("User does not exist.");
             }
 
-            var modTags = request.TagIds.Select(tagId => new ModTag
+            var modTags = request.CityIds.Select(tagId => new ModTag
             {
                 UserId = request.UserId,
-                TagId = tagId
+                DistrictNcityId = tagId
             }).ToList();
 
             foreach (var modTag in modTags)
@@ -73,7 +72,7 @@ namespace LocalTour.Services.Services
             var modTagRequests = modTags.Select(modTag => new ModTagRequest
             {
                 UserId = modTag.UserId,
-                TagIds = new List<int> { modTag.TagId }
+                CityIds = new List<int> { modTag.DistrictNcityId }
             }).ToList();
 
             return modTagRequests;
@@ -84,12 +83,12 @@ namespace LocalTour.Services.Services
             // Fetch all tags associated with the user, including the tag name
             var tagRequest = await _unitOfWork.RepositoryModTag
                 .GetAll()
+                .Include(mt => mt.DistrictNcity)
                 .Where(mt => mt.UserId == userId)
-                .Select(mt => new TagVM
+                .Select(x => new TagVM()
                 {
-                    TagUrl = mt.Tag.TagPhotoUrl,
-                    TagId = mt.Tag.Id,
-                    TagName = mt.Tag.TagName
+                    CityId = x.DistrictNcity.Id,
+                    CityName = x.DistrictNcity.Name,
                 })
                 .ToListAsync();
 
@@ -105,8 +104,8 @@ namespace LocalTour.Services.Services
             // Fetch all ModTag entries associated with the specified TagId and include Tag details
             var modTags = await _unitOfWork.RepositoryModTag
                 .GetAll()
-                .Where(mt => mt.TagId == tagId)
-                .Include(mt => mt.Tag)
+                .Where(mt => mt.DistrictNcityId == tagId)
+                .Include(t => t.DistrictNcity)
                 .ToListAsync();
 
             // Group by UserId and collect Tag information for each UserId
@@ -117,9 +116,8 @@ namespace LocalTour.Services.Services
                     UserId = group.Key,
                     Tags = group.Select(mt => new TagVM
                     {
-                        TagId = mt.TagId,
-                        TagUrl = mt.Tag.TagPhotoUrl,
-                        TagName = mt.Tag.TagName
+                        CityId = mt.DistrictNcity.Id,
+                        CityName = mt.DistrictNcity.Name,
                     }).ToList()
                 });
 
@@ -141,7 +139,7 @@ namespace LocalTour.Services.Services
             }
 
             // Add new tags
-            var newModTags = tagIds.Select(tagId => new ModTag { UserId = userId, TagId = tagId }).ToList();
+            var newModTags = tagIds.Select(tagId => new ModTag { UserId = userId, DistrictNcityId = tagId }).ToList();
             await _unitOfWork.RepositoryModTag.Insert(newModTags);
 
             // Commit changes
@@ -153,7 +151,7 @@ namespace LocalTour.Services.Services
         {
             var modTags = await _unitOfWork.RepositoryModTag
                 .GetAll()
-                .Where(mt => mt.UserId == userId && tagIds.Contains(mt.TagId))
+                .Where(mt => mt.UserId == userId && tagIds.Contains(mt.DistrictNcityId))
                 .ToListAsync();
 
             foreach (var modTag in modTags)

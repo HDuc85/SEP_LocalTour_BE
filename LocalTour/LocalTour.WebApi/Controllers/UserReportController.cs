@@ -27,8 +27,7 @@ namespace LocalTour.WebApi.Controllers
         public async Task<ActionResult<IEnumerable<UserReportRequest>>> GetAllUserReports()
         {
             var reports = await _userReportService.GetAllReports();
-            var reportRequests = _mapper.Map<IEnumerable<UserReportRequest>>(reports);
-            return Ok(reportRequests);
+            return Ok(reports);
         }
 
         [HttpGet("{id}")]

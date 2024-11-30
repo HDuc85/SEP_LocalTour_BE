@@ -305,6 +305,7 @@ where TEntityDto : IMapFrom<TEntity>
    string? sortBy,
    string? sortOrder,
    Guid? userId,
+   string? language,
    AutoMapper.IConfigurationProvider mapperConfiguration
   )
    where TEntityDto : IMapFrom<TEntity>
@@ -377,6 +378,11 @@ where TEntityDto : IMapFrom<TEntity>
             if (result[i] is PlaceFeedbackRequest vm)
             {
                 var feedbackWithLikes = placesWithFeedback[i];
+                PlaceTranslation placeTranslation = null;
+                if (language != null)
+                {
+                    placeTranslation = feedbackWithLikes.Feedback.Place.PlaceTranslations.Where(x => x.LanguageCode == language).FirstOrDefault();
+                }
                 vm.Id = feedbackWithLikes.Feedback.Id;
                 vm.TotalLike = feedbackWithLikes.TotalLike;
                 vm.isLiked = feedbackWithLikes.IsLike;
@@ -387,6 +393,10 @@ where TEntityDto : IMapFrom<TEntity>
                 vm.ProfileUrl = feedbackWithLikes.Feedback.User.ProfilePictureUrl;
                 vm.Content = feedbackWithLikes.Feedback.Content;
                 vm.UpdateDate = feedbackWithLikes.Feedback.UpdatedDate;
+                vm.PlaceId = feedbackWithLikes.Feedback.PlaceId;
+                vm.PlacePhotoDisplay = feedbackWithLikes.Feedback.Place.PhotoDisplay;
+                vm.PlaceId = feedbackWithLikes.Feedback.PlaceId;
+                vm.PlaceName = placeTranslation != null ? placeTranslation.Name : "";
             }
         }
         

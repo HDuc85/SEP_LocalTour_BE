@@ -20,8 +20,10 @@ namespace LocalTour.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public EventService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        private readonly IFileService _fileService;
+        public EventService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IFileService fileService)
         {
+            _fileService = fileService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
@@ -77,6 +79,86 @@ namespace LocalTour.Services.Services
                     request.SortOrder,
                     _mapper.ConfigurationProvider);
         }
+
+        public async Task<PaginatedList<EventSearchResponse>> SearchEvent(int? placeId, GetEventRequest request)  
+        {
+            var events = _unitOfWork.RepositoryEvent.GetAll()
+                .Include(e => e.Place)
+                .ThenInclude(ee => ee.PlaceTranslations)
+                .ToList();
+            events = events.Where(x => x.EventStatus == "Approved").ToList();
+
+            if (placeId is not null)
+            {
+                events = events.Where(e => e.PlaceId == placeId).ToList();
+            }
+            
+            if (request.SearchTerm is not null)
+            {
+                events = events.Where(e => e.EventName.ToLower().Contains(request.SearchTerm.ToLower()) 
+                        || e.Description.ToLower().Contains(request.SearchTerm)
+                        || e.Place.PlaceTranslations.Any(x => x.Name.ToLower().Contains(request.SearchTerm.ToLower()))).ToList();
+            }
+            events = events.Where(e => e.Place.PlaceTranslations.Any(x => x.LanguageCode == request.languageCode)).ToList();
+
+            List<EventSearchResponse> eventSearchResponses = events.Select(x =>
+            new EventSearchResponse
+            {
+                EventName = x.EventName,
+                Description = x.Description,
+                PlaceId = x.PlaceId,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+                EventStatus = x.EventStatus,
+                Longitude = x.Place.Longitude,
+                Latitude = x.Place.Latitude,
+                EventPhoto = x.EventPhotoDisplay,
+                PlaceName = x.Place.PlaceTranslations.FirstOrDefault().Name,
+                Distance = CalculateDistance(request.latitude, request.longitude, x.Place.Latitude, x.Place.Longitude)
+            }).ToList();
+            
+
+            if (request.SortBy is not null)
+            {
+                if (request.SortBy.ToLower() == "distance")
+                {
+                    if (request.SortOrder.ToLower() == "asc")
+                    {
+                        eventSearchResponses = eventSearchResponses.OrderBy(x => x.Distance).ToList();
+                    }
+                    else
+                    {
+                        eventSearchResponses = eventSearchResponses.OrderByDescending(x => x.Distance).ToList();
+                    }
+                }
+
+                if (request.SortOrder.ToLower() == "created_by")
+                {
+                    if (request.SortOrder.ToLower() == "asc")
+                    {
+                        eventSearchResponses = eventSearchResponses.OrderByDescending(x => x.StartDate).ToList();
+                    }
+                    else
+                    {
+                        eventSearchResponses = eventSearchResponses.OrderBy(x => x.StartDate).ToList();
+                    }
+                }
+            }
+            int length = eventSearchResponses.Count;
+            if (request.Size != null && request.Page != null)
+            {
+                int pageSize = request.Size??1;
+                int pageNumber = request.Page ?? 10;
+                eventSearchResponses = eventSearchResponses.
+                    Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+            }
+
+            var result = new PaginatedList<EventSearchResponse>(eventSearchResponses, eventSearchResponses.Count, request.Page ?? 1, length);
+            return result;
+        }
+
         public async Task<PaginatedList<EventViewModel>> GetAllEvent(GetEventRequest request)
         {
             var user = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -87,13 +169,15 @@ namespace LocalTour.Services.Services
             var events = _unitOfWork.RepositoryEvent.GetAll()
                         .Include(e => e.Place)
                         .ThenInclude(p => p.PlaceTranslations)
-                        .Include(e => e.Place.PlaceTags)
+                        .Include(e => e.Place)
+                        .ThenInclude(p => p.Ward)
+                        .ThenInclude(w => w.DistrictNcity)
                         .AsQueryable();
             var userTags = await _unitOfWork.RepositoryModTag.GetAll()
                     .Where(mt => mt.UserId == userId)
-                    .Select(mt => mt.TagId)
+                    .Select(mt => mt.DistrictNcityId)
                     .ToListAsync();
-            events = events.Where(e => e.Place.PlaceTags.Any(pt => userTags.Contains(pt.TagId)));
+            events = events.Where(e => userTags.Contains(e.Place.Ward.DistrictNcityId));
             if (request.SearchTerm is not null)
             {
                 events = events.Where(e => e.EventName.Contains(request.SearchTerm) ||
@@ -123,6 +207,9 @@ namespace LocalTour.Services.Services
             {
                 throw new ArgumentNullException(nameof(request));
             }
+
+            
+            
             var events = new Event
             {
                 EventName = request.EventName,
@@ -134,6 +221,13 @@ namespace LocalTour.Services.Services
                 //UpdatedAt = DateTime.Now,
                 PlaceId = placeid,
             };
+            
+            if (request.EventPhoto != null)
+            {
+                var photoUrl = await _fileService.SaveImageFile(request.EventPhoto);
+                events.EventPhotoDisplay = photoUrl.Data;
+            }
+            
             await _unitOfWork.RepositoryEvent.Insert(events);
             await _unitOfWork.CommitAsync();
             return request;
@@ -166,6 +260,13 @@ namespace LocalTour.Services.Services
             existingEvent.EndDate = request.EndDate;
             existingEvent.EventStatus = "Pending";
             existingEvent.UpdatedAt = DateTime.Now;
+            
+            if (request.EventPhoto != null)
+            {
+                var photoUrl = await _fileService.SaveImageFile(request.EventPhoto);
+                existingEvent.EventPhotoDisplay = photoUrl.Data;
+            }
+            
             _unitOfWork.RepositoryEvent.Update(existingEvent);
             await _unitOfWork.CommitAsync();
             return request;
@@ -221,6 +322,18 @@ namespace LocalTour.Services.Services
             _unitOfWork.RepositoryEvent.Update(existingEvent);
             await _unitOfWork.CommitAsync();
             return existingEvent;
+        }
+        
+        public static double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
+        {
+            var R = 6371; // Radius of Earth in kilometers
+            var dLat = (lat2 - lat1) * Math.PI / 180;
+            var dLon = (lon2 - lon1) * Math.PI / 180;
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Cos(lat1 * Math.PI / 180) * Math.Cos(lat2 * Math.PI / 180) *
+                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            return R * c; // Distance in kilometers
         }
     }
 }

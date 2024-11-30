@@ -36,7 +36,7 @@ public class NotificaitonService : INotificationService
                UserNotifications = notification.Notification.UserNotifications
            });
        }
-       return result;
+       return result.ToList();
     }
     public async Task<bool> ReadedNotification(string userId, int notificationId)
     {

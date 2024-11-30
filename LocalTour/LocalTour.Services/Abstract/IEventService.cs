@@ -12,6 +12,7 @@ namespace LocalTour.Services.Abstract
     {
         Task<PaginatedList<EventRequest>> GetAllEventByPlaceid(int placeid, GetEventRequest request);
         Task<PaginatedList<EventResponse>> GetAllEventByVisitor(int placeid, GetEventRequest request);
+        Task<PaginatedList<EventSearchResponse>> SearchEvent(int? placeid,GetEventRequest request);
         Task<Event> GetEventById(int placeid, int eventid);
         Task<EventRequest> CreateEvent(int placeid, EventRequest request);
         Task<EventRequest> UpdateEvent(int placeid, int eventid, EventRequest request);

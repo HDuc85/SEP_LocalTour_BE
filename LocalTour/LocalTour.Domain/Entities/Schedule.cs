@@ -15,7 +15,7 @@ public partial class Schedule
 
     public DateTime CreatedDate { get; set; }
 
-    public string Status { get; set; } = null!;
+    public string? Status { get; set; }
 
     public bool? IsPublic { get; set; }
     public virtual ICollection<Destination> Destinations { get; set; } = new List<Destination>();

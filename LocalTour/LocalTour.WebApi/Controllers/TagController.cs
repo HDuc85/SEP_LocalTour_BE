@@ -17,7 +17,7 @@ namespace LocalTour.WebApi.Controllers
             _tagService = tagService;
         }
         [HttpGet("getAll")]
-        public async Task<ActionResult<PaginatedList<TagViewModel>>> GetAllTag([FromQuery] GetEventRequest request)
+        public async Task<ActionResult<PaginatedList<TagViewModel>>> GetAllTag([FromQuery] PaginatedQueryParams request)
         {
             var tags = await _tagService.GetAllTag(request);
             return Ok(tags);

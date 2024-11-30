@@ -162,6 +162,7 @@ namespace LocalTour.Services.Services
                            .Include(z => z.PlaceActivities)
                            .Include(r => r.PlaceMedia)
                            .Include(w => w.Ward)
+                           .Where(r => r.Status == "1")
                            .AsQueryable();
 
             }
@@ -451,7 +452,7 @@ namespace LocalTour.Services.Services
                 .ToListAsync();
             var modTags = await _unitOfWork.RepositoryModTag.GetAll()
                 .Where(mt => mt.UserId == userId)
-                .Select(mt => mt.TagId)
+                .Select(s => s.DistrictNcityId)
                 .ToListAsync();
             var roles = _httpContextAccessor.HttpContext.User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
             if (!roles.Any())
@@ -473,10 +474,10 @@ namespace LocalTour.Services.Services
             else if (roles.Contains("Moderator"))
             {
                 places = _unitOfWork.RepositoryPlace.GetAll().Include(x => x.PlaceTranslations.Where(pt => pt.LanguageCode == request.LanguageCode))
-                           .Where(y => y.PlaceTags.Any(pt => modTags.Contains(pt.TagId)))
                            .Include(z => z.PlaceActivities)
                            .Include(r => r.PlaceMedia)
                            .Include(w => w.Ward)
+                           .Where(y => modTags.Contains(y.Ward.DistrictNcityId))
                            .AsQueryable();
 
             } else

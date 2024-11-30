@@ -235,17 +235,27 @@ namespace LocalTour.Services.Services
             return request;
         }
 
-        public async Task<PaginatedList<PlaceFeedbackRequest>> GetAllFeedbackByPlace(int placeid, GetPlaceFeedbackRequest request)
+        public async Task<PaginatedList<PlaceFeedbackRequest>> GetAllFeedbackByPlace(GetPlaceFeedbackRequest request)
         {
             var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
+            
             
             var feedbacks = _unitOfWork.RepositoryPlaceFeeedback.GetAll()
-                                                        .Where(e => e.PlaceId == placeid)
                                                         .Include(y => y.PlaceFeeedbackMedia)
                                                         .Include(z => z.User)
+                                                        .Include(p => p.Place)
+                                                        .ThenInclude(pt => pt.PlaceTranslations)
                                                         .AsQueryable();
-         
+
+                if (request.PlaceId != null)
+                {
+                    feedbacks = feedbacks.Where(x => x.PlaceId == request.PlaceId);
+                }
+
+                if (request.UserId != null)
+                {
+                    feedbacks = feedbacks.Where(x => x.UserId == request.UserId);
+                }
                 if (request.SearchTerm is not null)
                 {
                     feedbacks = feedbacks.Where(e => e.Content.Contains(request.SearchTerm));
@@ -255,7 +265,7 @@ namespace LocalTour.Services.Services
                 {
                     feedbacks = feedbacks.OrderByCustom(request.SortBy, request.SortOrder);
                 }*/
-                User user = new User();
+                User user = null;
             
                 if (!string.IsNullOrEmpty(userId))
                 {
@@ -270,7 +280,8 @@ namespace LocalTour.Services.Services
                     request.Size,
                     request.SortBy,
                     request.SortOrder,
-                    user.Id, 
+                    user != null? user.Id: null, 
+                    request.LanguageCode??"",
                     _mapper.ConfigurationProvider);
             }
         

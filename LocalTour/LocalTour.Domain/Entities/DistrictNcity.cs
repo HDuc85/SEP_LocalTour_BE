@@ -12,6 +12,6 @@ public partial class DistrictNcity
     public string Name { get; set; } = null!;
 
     public virtual ProvinceNcity ProvinceNcity { get; set; } = null!;
-
+    public virtual ICollection<ModTag> ModTags { get; set; } = null!;
     public virtual ICollection<Ward> Wards { get; set; } = new List<Ward>();
 }

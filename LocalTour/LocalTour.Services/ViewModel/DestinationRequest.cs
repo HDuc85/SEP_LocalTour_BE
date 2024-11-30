@@ -17,7 +17,7 @@ namespace LocalTour.Services.ViewModel
         public DateTime? EndDate { get; set; }
         public string? Detail { get; set; }
         public bool IsArrived { get; set; }
-        public string PlacePhotoDisplay { get; set; }
-        public string PlaceName { get; set; }
+        public string? PlacePhotoDisplay { get; set; }
+        public string? PlaceName { get; set; }
     }
 }

@@ -122,9 +122,9 @@ namespace LocalTour.Services.Services
         public async Task<Destination> CreateDestinationAsync(CreateDestinationRequest request)
         {
             // Ensure StartDate is not in the future
-            if (request.StartDate > DateTime.UtcNow)
+            if (request.StartDate < DateTime.UtcNow)
             {
-                throw new ArgumentException("StartDate cannot be in the future.");
+                throw new ArgumentException("StartDate cannot be in the past.");
             }
 
             // Ensure EndDate is greater than or equal to StartDate
@@ -142,15 +142,30 @@ namespace LocalTour.Services.Services
 
             // Validate StartDate and EndDate with the schedule
             var schedule = await _unitOfWork.RepositorySchedule.GetById(request.ScheduleId);
-            if (schedule == null)
+            if (schedule.StartDate != null)
             {
-                throw new Exception("Schedule not found.");
+                if (request.StartDate != null)
+                {
+                    if (request.StartDate < schedule.StartDate)
+                    {
+                        throw new ArgumentException("Destination dates must fall within the schedule dates.");
+                    }
+                }
+               
+            }
+            
+            if (schedule.EndDate != null)
+            {
+                if (request.EndDate != null)
+                {
+                    if (request.EndDate > schedule.EndDate)
+                    {
+                        throw new ArgumentException("Destination dates must fall within the schedule dates.");
+                    }
+                }
+               
             }
 
-            if (request.StartDate < schedule.StartDate || request.EndDate > schedule.EndDate)
-            {
-                throw new ArgumentException("Destination dates must fall within the schedule dates.");
-            }
 
             // Get the UserId from the token
             var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -163,6 +178,16 @@ namespace LocalTour.Services.Services
 
             // Map and save the destination
             var destination = _mapper.Map<Destination>(request);
+            
+            if (request.StartDate != null)
+            {
+                destination.StartDate = request.StartDate;
+            }
+
+            if (request.EndDate != null)
+            {
+                destination.EndDate = request.EndDate;
+            }
             await _unitOfWork.RepositoryDestination.Insert(destination);
             await _unitOfWork.CommitAsync();
 
@@ -174,16 +199,22 @@ namespace LocalTour.Services.Services
             var destination = await _unitOfWork.RepositoryDestination.GetById(id);
             if (destination == null) return false;
 
-            // Ensure StartDate is not in the future
-            if (request.StartDate > DateTime.UtcNow)
+            
+            
+            if (request.StartDate != null)
             {
-                throw new ArgumentException("StartDate cannot be in the future.");
+                if (request.StartDate <= DateTime.UtcNow)
+                {
+                    throw new ArgumentException("StartDate cannot be in the past.");
+                }
             }
 
-            // Ensure EndDate is greater than or equal to StartDate
-            if (request.EndDate < request.StartDate)
+            if (request.EndDate != null)
             {
-                throw new ArgumentException("EndDate cannot be earlier than StartDate.");
+                if (request.StartDate >= request.EndDate)
+                {
+                    throw new ArgumentException("StartDate must be less than EndDate.");
+                }
             }
 
             // Validate StartDate and EndDate with the schedule
@@ -193,10 +224,31 @@ namespace LocalTour.Services.Services
                 throw new Exception("Schedule not found.");
             }
 
-            if (request.StartDate < schedule.StartDate || request.EndDate > schedule.EndDate)
+            if (schedule.StartDate != null)
             {
-                throw new ArgumentException("Destination dates must fall within the schedule dates.");
+                if (request.StartDate != null)
+                {
+                    if (request.StartDate < schedule.StartDate)
+                    {
+                        throw new ArgumentException("Destination dates must fall within the schedule dates.");
+                    }
+                }
+               
             }
+            
+            if (schedule.EndDate != null)
+            {
+                if (request.EndDate != null)
+                {
+                    if (request.EndDate > schedule.EndDate)
+                    {
+                        throw new ArgumentException("Destination dates must fall within the schedule dates.");
+                    }
+                }
+               
+            }
+
+          
 
             // Check if the place exists
             var place = await _unitOfWork.RepositoryPlace.GetById(request.PlaceId);
@@ -205,8 +257,19 @@ namespace LocalTour.Services.Services
                 throw new ArgumentException("Place with the given PlaceId does not exist.");
             }
 
-            _mapper.Map(request, destination);
+            //_mapper.Map(request, destination);
+            
+            if (request.StartDate != null)
+            {
+                destination.StartDate = request.StartDate;
+            }
 
+            if (request.EndDate != null)
+            {
+                destination.EndDate = request.EndDate;
+            }
+            
+            destination.IsArrived = request.IsArrived;
             _unitOfWork.RepositoryDestination.Update(destination);
             await _unitOfWork.CommitAsync();
 

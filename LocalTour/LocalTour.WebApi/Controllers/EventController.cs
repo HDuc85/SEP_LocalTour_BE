@@ -43,6 +43,12 @@ namespace LocalTour.WebApi.Controllers
             var events = await _eventService.GetAllEventByVisitor(placeid, request);
             return Ok(events);
         }
+        [HttpGet("SearchEvent")]
+        public async Task<ActionResult<PaginatedList<EventRequest>>> GetAllSearch([FromQuery]int? placeid, [FromQuery] GetEventRequest request)
+        {
+            var events = await _eventService.SearchEvent(placeid,request);
+            return Ok(events);
+        }
         [HttpPost("create")]
         public async Task<ActionResult<ServiceResponseModel<EventRequest>>> CreateEvent([FromForm] int placeid, [FromForm] EventRequest request)
         {

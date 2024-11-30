@@ -27,7 +27,7 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpPost("createDestination")]
-        public async Task<ActionResult<Destination>> CreateDestination([FromForm] CreateDestinationRequest request)
+        public async Task<ActionResult<Destination>> CreateDestination([FromBody] CreateDestinationRequest request)
         {
             try
             {
@@ -105,7 +105,7 @@ namespace LocalTour.WebApi.Controllers
 
         [Authorize]
         [HttpPut("updateDestination/{id}")]
-        public async Task<IActionResult> UpdateDestination(int id, [FromForm] CreateDestinationRequest request)
+        public async Task<IActionResult> UpdateDestination(int id, [FromBody] CreateDestinationRequest request)
         {
             try
             {

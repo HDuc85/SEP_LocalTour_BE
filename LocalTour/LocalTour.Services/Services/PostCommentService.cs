@@ -49,15 +49,15 @@ namespace LocalTour.Services.Services
             {
                 PostId = request.PostId,
                 ParentId = parentId,
-                UserId = parsedUserId, // User ID is automatically passed here
+                UserId = parsedUserId, 
                 Content = request.Content,
                 CreatedDate = DateTime.UtcNow
             };
 
-            _unitOfWork.RepositoryPostComment.Insert(newComment);
+            await _unitOfWork.RepositoryPostComment.Insert(newComment);
             await _unitOfWork.CommitAsync();
 
-            return newComment;
+            return new PostComment();
         }
 
         public async Task<List<PostCommentRequest>> GetCommentsByPostIdAsync(int postId, int? parentId, Guid userId)
@@ -159,6 +159,7 @@ namespace LocalTour.Services.Services
 
             // Xóa comment cha
             _unitOfWork.RepositoryPostComment.Delete(commentEntity);
+            _unitOfWork.RepositoryPostCommentLike.Delete(x => x.PostCommentId == id);
 
             // Lưu thay đổi vào database
             await _unitOfWork.CommitAsync();

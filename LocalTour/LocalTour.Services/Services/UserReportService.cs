@@ -63,7 +63,7 @@ namespace LocalTour.Services.Services
                 UserReportId = xserReportId,
                 ReportDate = DateTime.Now,
                 UserId = report.UserId,
-                Content = report.Message,
+                Content = report.Content,
                 Status = "Pending",
             };
             await _unitOfWork.RepositoryUserReport.Insert(reportEntity);

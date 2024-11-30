@@ -21,6 +21,12 @@ namespace LocalTour.Services.ViewModel
         public DateTime CreateDate { get; set; }
         public DateTime? UpdateDate { get; set; }
         public bool isLiked { get; set; }
+        
+        public String? PlaceName { get; set; }
+        
+        public String? PlacePhotoDisplay { get; set; }
+        
+        public int PlaceId { get; set; }
         public virtual ICollection<PlaceFeeedbackMedium> PlaceFeeedbackMedia { get; set; } = new List<PlaceFeeedbackMedium>();
     }
 }

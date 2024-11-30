@@ -18,7 +18,7 @@ namespace LocalTour.WebApi.Controllers
             _placeFeedbackService = placeFeedbackService;
         }
         [HttpGet("getAllFeedback")]
-        public async Task<ActionResult<PaginatedList<PlaceFeedbackRequest>>> GetAllFeedbacksByPlaceid([FromQuery] int placeid, [FromQuery] GetPlaceFeedbackRequest request)
+        public async Task<ActionResult<PaginatedList<PlaceFeedbackRequest>>> GetAllFeedbacksByPlaceid([FromQuery]GetPlaceFeedbackRequest request)
         {
             if (request == null)
             {
@@ -26,7 +26,7 @@ namespace LocalTour.WebApi.Controllers
             }
             try
             {
-                var feedback = await _placeFeedbackService.GetAllFeedbackByPlace(placeid, request);
+                var feedback = await _placeFeedbackService.GetAllFeedbackByPlace(request);
                 return Ok(feedback);
             }
             catch (Exception ex)

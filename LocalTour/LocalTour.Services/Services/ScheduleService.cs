@@ -7,8 +7,11 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 using LocalTour.Services.Model;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -19,10 +22,13 @@ namespace LocalTour.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
         private double ToRadians(double deg) => deg * (Math.PI / 180);
 
-        public ScheduleService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration)
+        public ScheduleService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
+            _httpContextAccessor = httpContextAccessor;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _configuration = configuration;
@@ -62,6 +68,15 @@ namespace LocalTour.Services.Services
                     ? schedulesQuery.OrderBy(s => s.CreatedDate).ToList()
                     : schedulesQuery.OrderByDescending(s => s.CreatedDate).ToList();
             }
+            var exsitUserId =  _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (exsitUserId != null)
+            {
+                if (exsitUserId != request.UserId.ToString())
+                {
+                    schedulesQuery = schedulesQuery.Where(x => x.IsPublic == true).ToList();
+                }
+            }
 
             var totalCount = schedulesQuery.Count;
             var items =  schedulesQuery
@@ -71,10 +86,11 @@ namespace LocalTour.Services.Services
 
             // Map the result to ScheduleRequest DTO
            // var scheduleRequests = _mapper.Map<List<ScheduleRequest>>(items);
-            var author = await _unitOfWork.RepositoryUser.GetById(request.UserId);
             List<ScheduleRequest> scheduleRequests = new List<ScheduleRequest>();
             foreach (var scheduleRequest in items)
             {
+                var author = await _unitOfWork.RepositoryUser.GetById(scheduleRequest.UserId);
+
                 scheduleRequests.Add( new ScheduleRequest()
                 {
                     Id = scheduleRequest.Id,
@@ -86,7 +102,7 @@ namespace LocalTour.Services.Services
                     IsPublic = scheduleRequest.IsPublic,
                     Status = scheduleRequest.Status,
                     TotalLikes = scheduleRequest.ScheduleLikes.Count,
-                    UserProfileImage = author.ProfilePictureUrl,
+                    UserProfileImage = author.ProfilePictureUrl??"",
                     UserId = author.Id,
                     IsLiked = userId != null ? schedulesQuery.Any(x => x.ScheduleLikes.Any(y => y.ScheduleId == scheduleRequest.Id && y.UserId.ToString() == userId)) : false,
                     Destinations = scheduleRequest.Destinations.Select(x => new DestinationRequest()
@@ -98,7 +114,7 @@ namespace LocalTour.Services.Services
                         IsArrived = x.IsArrived,
                         ScheduleId = x.ScheduleId,
                         Id = x.Id,
-                        PlaceName = x.Place.PlaceTranslations.FirstOrDefault(y => y.LanguageCode == request.languageCode).Name,
+                        PlaceName = x.Place.PlaceTranslations.Count>0 ? x.Place.PlaceTranslations.FirstOrDefault(y => y.LanguageCode == request.languageCode).Name : "",
                         PlacePhotoDisplay = x.Place.PhotoDisplay
                     }).ToList(),
                 });
@@ -152,23 +168,28 @@ namespace LocalTour.Services.Services
             return scheduleRequests;
         }
 
-        public async Task<ScheduleRequest> CreateScheduleAsync(CreateScheduleRequest request)
+        public async Task<ScheduleRequest> CreateScheduleAsync(CreateScheduleRequest request, string userId)
         {
 
             // Validate StartDate is not in the past
-            if (request.StartDate <= DateTime.UtcNow)
+            if (request.StartDate != null)
             {
-                throw new ArgumentException("StartDate cannot be in the past.");
+                if (request.StartDate <= DateTime.UtcNow)
+                {
+                    throw new ArgumentException("StartDate cannot be in the past.");
+                }
             }
 
-            // Validate StartDate < EndDate
-            if (request.StartDate >= request.EndDate)
+            if (request.EndDate != null)
             {
-                throw new ArgumentException("StartDate must be less than EndDate.");
+                if (request.StartDate >= request.EndDate)
+                {
+                    throw new ArgumentException("StartDate must be less than EndDate.");
+                }
             }
 
             var schedule = _mapper.Map<Schedule>(request);
-
+            schedule.UserId = Guid.Parse(userId);
             schedule.CreatedDate = DateTime.UtcNow;
             await _unitOfWork.RepositorySchedule.Insert(schedule);
             await _unitOfWork.CommitAsync();
@@ -176,37 +197,62 @@ namespace LocalTour.Services.Services
             return _mapper.Map<ScheduleRequest>(schedule);
         }
 
-        public async Task<bool> UpdateScheduleAsync(int id, CreateScheduleRequest request)
+        public async Task<bool> UpdateScheduleAsync(UpdateScheduleRequest request, string userId)
         {
-            var schedule = await _unitOfWork.RepositorySchedule.GetById(id);
+            var schedule = await _unitOfWork.RepositorySchedule.GetById(request.ScheduleId);
             if (schedule == null) return false;
-
-            // Validate StartDate is not in the past
-            if (request.StartDate <= DateTime.UtcNow)
+            if (schedule.UserId != Guid.Parse(userId))
             {
-                throw new ArgumentException("StartDate cannot be in the past.");
+                return false;
+            }
+            if (request.StartDate != null)
+            {
+                if (request.StartDate <= DateTime.UtcNow)
+                {
+                    throw new ArgumentException("StartDate cannot be in the past.");
+                }
+            }
+            else
+            {
+                schedule.StartDate = request.StartDate;
             }
 
-            // Validate StartDate < EndDate
-            if (request.StartDate >= request.EndDate)
+            if (request.EndDate != null)
             {
-                throw new ArgumentException("StartDate must be less than EndDate.");
+                if (request.StartDate >= request.EndDate)
+                {
+                    throw new ArgumentException("StartDate must be less than EndDate.");
+                }
+            }
+            else
+            {
+                schedule.EndDate = request.EndDate;
             }
 
-            _mapper.Map(request, schedule);
+            if (request.ScheduleName != null)
+            {
+                schedule.ScheduleName = request.ScheduleName;
+            }
+            schedule.IsPublic = request.IsPublic;
+          
+            
 
             _unitOfWork.RepositorySchedule.Update(schedule);
-            schedule.CreatedDate = DateTime.UtcNow;
             await _unitOfWork.CommitAsync();
             return true;
         }
 
-        public async Task<bool> DeleteScheduleAsync(int id)
+        public async Task<bool> DeleteScheduleAsync(int id, string userId)
         {
             var schedule = await _unitOfWork.RepositorySchedule.GetById(id);
             if (schedule == null)
             {
                 throw new KeyNotFoundException("Schedule not found.");
+            }
+
+            if (schedule.UserId != Guid.Parse(userId))
+            {
+                return false;
             }
 
             // Delete all related destinations
@@ -215,7 +261,9 @@ namespace LocalTour.Services.Services
             {
                 _unitOfWork.RepositoryDestination.Delete(destination);
             }
-
+            
+             _unitOfWork.RepositoryScheduleLike.Delete(l => l.ScheduleId == schedule.Id);
+             _unitOfWork.RepositoryPost.Delete(p => p.ScheduleId == schedule.Id);
             _unitOfWork.RepositorySchedule.Delete(schedule);
             await _unitOfWork.CommitAsync();
             return true;
@@ -279,9 +327,19 @@ namespace LocalTour.Services.Services
             }
             var userTagIds = userTags.Select(ut => ut.TagId).ToList();
             int maxRange = int.Parse(_configuration.GetValue<int>("SuggestPlace:Distance").ToString());
+            
+            var places = _unitOfWork.RepositoryPlace.GetDataQueryable()
+                        .Include(y => y.PlaceTags)
+                        .Include(z => z.PlaceTranslations)
+                        .ToList();
+            places = places.Where(place => place.PlaceTranslations.Any(x => x.LanguageCode == request.languageCode)).ToList();
 
-            var places = _unitOfWork.RepositoryPlace.GetDataQueryable().Include(y => y.PlaceTags).ToList();
+            var userTag =  _unitOfWork.RepositoryUserPreferenceTags.GetAll()
+                .Where(x => x.UserId == Guid.Parse(userId))
+                .Include(y => y.Tag).ToList();
+            
 
+            
             places = places.Where(place => CalculateDistance(request.userLatitude,
                 request.userLongitude,
                 place.Latitude,
@@ -324,10 +382,12 @@ namespace LocalTour.Services.Services
                             selectedPlaceIds.Add(selectedPlace.Id);
                             schedule.Add(new DestinationVM()
                             {
+                                PlaceName = selectedPlace.PlaceTranslations.FirstOrDefault().Name,
+                                PlacePhotoDisplay = selectedPlace.PhotoDisplay,
                                 PlaceId = selectedPlace.Id,
                                 StartDate = dayStart.AddHours(timeSlot.Start),
                                 EndDate = dayStart.AddHours(timeSlot.End),
-                                IsArrived = false
+                                IsArrived = false,
                             });
                         }
                     }

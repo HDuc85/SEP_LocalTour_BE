@@ -153,7 +153,8 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
             entity.Property(e => e.EventStatus).HasMaxLength(50);
             entity.Property(e => e.StartDate).HasColumnType("datetime");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
-
+            entity.Property(e => e.EventPhotoDisplay).HasMaxLength(500);
+            
             entity.HasOne(d => d.Place).WithMany(p => p.Events)
                 .HasForeignKey(d => d.PlaceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -652,7 +653,8 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
         
         modelBuilder.Entity<ModTag>(entity => { 
             entity.ToTable("ModTag");
-            entity.HasKey(e => new { e.UserId, e.TagId });
+
+            entity.HasKey(e => new { e.UserId, e.DistrictNcityId });
         });
 
         modelBuilder.Entity<User>(entity =>

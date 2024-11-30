@@ -10,7 +10,7 @@ namespace LocalTour.Services.Abstract
 {
     public interface ITagService
     {
-        Task<PaginatedList<TagViewModel>> GetAllTag( GetEventRequest request);
+        Task<PaginatedList<TagViewModel>> GetAllTag( PaginatedQueryParams request);
         Task<Tag> GetTagById( int tagid);
         Task<TagRequest> CreateTag(TagRequest request);
         Task<TagRequest> UpdateTag(int tagid, TagRequest request);

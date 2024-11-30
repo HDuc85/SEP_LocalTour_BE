@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LocalTour.Domain.Entities;
 using LocalTour.WebApi.Helper;
 using Microsoft.AspNetCore.Authorization;
 
@@ -104,7 +105,8 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpPost("createSchedule")]
-        public async Task<IActionResult> CreateSchedule([FromForm] CreateScheduleRequest request)
+        [Authorize]
+        public async Task<IActionResult> CreateSchedule([FromBody] CreateScheduleRequest request)
         {
             try
             {
@@ -113,7 +115,7 @@ namespace LocalTour.WebApi.Controllers
                     return BadRequest(new { statusCode = 400, message = "Schedule data is missing." });
                 }
 
-                var createdSchedule = await _scheduleService.CreateScheduleAsync(request);
+                var createdSchedule = await _scheduleService.CreateScheduleAsync(request, User.GetUserId());
                 if (createdSchedule == null)
                 {
                     return StatusCode(500, new { statusCode = 500, message = "An error occurred while creating the schedule." });
@@ -127,17 +129,13 @@ namespace LocalTour.WebApi.Controllers
             }
         }
 
-        [HttpPut("updateSchedule/{id}")]
-        public async Task<IActionResult> UpdateSchedule(int id, [FromForm] CreateScheduleRequest request)
+        [HttpPut("updateSchedule")]
+        [Authorize]
+        public async Task<IActionResult> UpdateSchedule([FromBody] UpdateScheduleRequest request)
         {
             try
             {
-                if (id <= 0 || request == null)
-                {
-                    return BadRequest(new { statusCode = 400, message = "Invalid input data." });
-                }
-
-                var result = await _scheduleService.UpdateScheduleAsync(id, request);
+                var result = await _scheduleService.UpdateScheduleAsync(request, User.GetUserId());
                 if (!result)
                 {
                     return NotFound(new { statusCode = 404, message = "Schedule not found or failed to update." });
@@ -152,6 +150,7 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpDelete("deleteSchedule/{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteSchedule(int id)
         {
             try
@@ -161,7 +160,7 @@ namespace LocalTour.WebApi.Controllers
                     return BadRequest(new { statusCode = 400, message = "Invalid schedule ID." });
                 }
 
-                var result = await _scheduleService.DeleteScheduleAsync(id);
+                var result = await _scheduleService.DeleteScheduleAsync(id, User.GetUserId());
                 if (!result)
                 {
                     return NotFound(new { statusCode = 404, message = "Schedule not found or already deleted." });
@@ -176,16 +175,17 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpPost("cloneSchedule")]
-        public async Task<IActionResult> CloneSchedule(int scheduleId, [FromQuery] Guid userId)
+        [Authorize]
+        public async Task<IActionResult> CloneSchedule(int scheduleId)
         {
             try
             {
-                if (scheduleId <= 0 || userId == Guid.Empty)
+                if (scheduleId <= 0 )
                 {
-                    return BadRequest(new { statusCode = 400, message = "Invalid schedule or user ID." });
+                    return BadRequest(new { statusCode = 400, message = "Invalid schedule ." });
                 }
 
-                var clonedSchedule = await _scheduleService.CloneScheduleFromOtherUserAsync(scheduleId, userId);
+                var clonedSchedule = await _scheduleService.CloneScheduleFromOtherUserAsync(scheduleId, Guid.Parse(User.GetUserId()));
 
                 if (clonedSchedule == null)
                 {
@@ -201,6 +201,7 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpPost("saveSuggestedSchedule")]
+        [Authorize]
         public async Task<IActionResult> SaveSuggestedSchedule([FromBody] ScheduleWithDestinationsRequest request, Guid userId)
         {
             try

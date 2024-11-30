@@ -8,5 +8,8 @@ namespace LocalTour.Services.ViewModel
 {
     public class GetPlaceFeedbackRequest : PaginatedQueryParams
     {
+        public int? PlaceId { get; set; }
+        public Guid? UserId { get; set; }
+        public string? LanguageCode { get; set; }
     }
 }

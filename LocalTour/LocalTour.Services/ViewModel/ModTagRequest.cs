@@ -9,7 +9,7 @@ namespace LocalTour.Services.ViewModel
     public class ModTagRequest
     {
         public Guid UserId { get; set; }
-        public List<int> TagIds { get; set; } = new List<int>();
+        public List<int> CityIds { get; set; } = new List<int>();
     }
 
 }

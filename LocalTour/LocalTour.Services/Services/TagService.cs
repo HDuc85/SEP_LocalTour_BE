@@ -55,7 +55,7 @@ namespace LocalTour.Services.Services
             return true;
         }
 
-        public async Task<PaginatedList<TagViewModel>> GetAllTag(GetEventRequest request)
+        public async Task<PaginatedList<TagViewModel>> GetAllTag(PaginatedQueryParams request)
         {
             var tags = _unitOfWork.RepositoryTag.GetAll()
                                                    .AsQueryable();

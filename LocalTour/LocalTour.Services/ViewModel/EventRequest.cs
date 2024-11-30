@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace LocalTour.Services.ViewModel
 {
@@ -17,7 +18,7 @@ namespace LocalTour.Services.ViewModel
         public DateTime StartDate { get; set; }
 
         public DateTime EndDate { get; set; }
-
+        public IFormFile? EventPhoto { get; set; }
         //public string EventStatus { get; set; } = null!;
     }
 }

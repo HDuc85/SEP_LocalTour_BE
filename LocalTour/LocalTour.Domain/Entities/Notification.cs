@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace LocalTour.Domain.Entities;
 
@@ -20,6 +21,6 @@ public partial class Notification
     public DateTime DateCreated { get; set; }
 
     public virtual User User { get; set; } = null!;
-    
+    [JsonIgnore]
     public virtual ICollection<UserNotification> UserNotifications { get; set; } = null!;
 }
