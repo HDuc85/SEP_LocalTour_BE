@@ -104,6 +104,7 @@ namespace LocalTour.Services.Services
             List<EventSearchResponse> eventSearchResponses = events.Select(x =>
             new EventSearchResponse
             {
+                PlacePhoto  = x.Place.PhotoDisplay,
                 EventName = x.EventName,
                 Description = x.Description,
                 PlaceId = x.PlaceId,

@@ -61,7 +61,7 @@ namespace LocalTour.Services.Services
                 PhotoDisplay = photos.Data,
                 ContactLink = place.ContactLink,
                 AuthorId = userId,
-                Status = "0",
+                Status = "Pending",
             };
             await _unitOfWork.RepositoryPlace.Insert(placeEntity);
             await _unitOfWork.CommitAsync();
@@ -151,7 +151,7 @@ namespace LocalTour.Services.Services
                         .Include(z => z.PlaceActivities)
                         .Include(r => r.PlaceMedia)
                         .Include(w => w.Ward)
-                        .Where(r => r.Status == "1")
+                        .Where(r => r.Status == "Approved")
                         .AsQueryable();
 
             }
@@ -162,7 +162,7 @@ namespace LocalTour.Services.Services
                            .Include(z => z.PlaceActivities)
                            .Include(r => r.PlaceMedia)
                            .Include(w => w.Ward)
-                           .Where(r => r.Status == "1")
+                           .Where(r => r.Status == "Approved")
                            .AsQueryable();
 
             }
@@ -299,7 +299,7 @@ namespace LocalTour.Services.Services
             existingPlace.Longitude = request.Longitude;
             existingPlace.Latitude = request.Latitude;
             existingPlace.PhotoDisplay = photos.Data;
-            existingPlace.Status = "0";
+            existingPlace.Status = "Pending";
             existingPlace.ContactLink = request.ContactLink;
             var existingMedia = await _unitOfWork.RepositoryPlaceMedium.GetAll()
                                                                  .Where(e => e.PlaceId == placeid)
