@@ -292,6 +292,7 @@ namespace LocalTour.Services.Services
             var totalFollowed = await _unitOfWork.RepositoryFollowUser.GetData(x => x.UserFollow == user.Id);
             var totalReviews = await _unitOfWork.RepositoryPlaceFeeedback.GetData(x => x.UserId == user.Id);
             var totalSchedules = await _unitOfWork.RepositorySchedule.GetData(x => x.UserId == user.Id);
+            var roles = (List<string>)await _userManager.GetRolesAsync(user);
 
             return new ServiceResponseModel<UserProfileVM>(true, new UserProfileVM
             {
@@ -310,6 +311,7 @@ namespace LocalTour.Services.Services
                 dateOfBirth = user.DateOfBirth,
                 isHasPassword = user.PasswordHash != null,
                 isFollowed = totalFollowers.Any(x => x.UserFollow.ToString() == currentUserId),
+                roles = roles,
             });
         }
 

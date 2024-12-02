@@ -18,4 +18,5 @@ public class UserProfileVM
     public int? totalFollowers { get; set; }
     public bool? isFollowed { get; set; }
     public bool? isHasPassword { get; set; }
+    public List<string> roles { get; set; }
 }
