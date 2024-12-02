@@ -201,6 +201,7 @@ namespace LocalTour.Services.Services
 
             
             
+            /*
             if (request.StartDate != null)
             {
                 if (request.StartDate <= DateTime.UtcNow)
@@ -246,7 +247,7 @@ namespace LocalTour.Services.Services
                     }
                 }
                
-            }
+            }*/
 
           
 
@@ -270,6 +271,11 @@ namespace LocalTour.Services.Services
             }
             
             destination.IsArrived = request.IsArrived;
+            destination.PlaceId = request.PlaceId;
+            destination.ScheduleId = request.ScheduleId;
+            destination.StartDate = request.StartDate;
+            destination.EndDate = request.EndDate;
+            destination.Detail = request.Detail;
             _unitOfWork.RepositoryDestination.Update(destination);
             await _unitOfWork.CommitAsync();
 

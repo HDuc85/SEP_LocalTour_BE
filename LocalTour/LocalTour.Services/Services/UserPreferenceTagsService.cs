@@ -107,6 +107,7 @@ namespace LocalTour.Services.Services
             {
                 _unitOfWork.RepositoryUserPreferenceTags.Delete(userTag);
             }
+            await _unitOfWork.CommitAsync();
 
             var newUserTags = tagIds.Select(tagId => new UserPreferenceTags
             {
