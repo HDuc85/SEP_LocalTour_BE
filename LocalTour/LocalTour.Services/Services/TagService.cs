@@ -33,6 +33,7 @@ namespace LocalTour.Services.Services
             var tagEntity = new Tag
             {
                 TagName = request.TagName,
+                TagVi = request.TagVi,
                 TagPhotoUrl = photoSaveResult.Data,
             };
             await _unitOfWork.RepositoryTag.Insert(tagEntity);
@@ -111,7 +112,7 @@ namespace LocalTour.Services.Services
             }
             existingTag.TagName = request.TagName;
             existingTag.TagPhotoUrl = photoSaveResult.Data;
-
+            existingTag.TagVi = request.TagVi;
             _unitOfWork.RepositoryTag.Update(existingTag);
             await _unitOfWork.CommitAsync();
             return request;
@@ -154,6 +155,7 @@ namespace LocalTour.Services.Services
                     Id = tag.TagId,
                     TagPhotoUrl = tags.Single(x => x.Id == tag.TagId).TagPhotoUrl,
                     TagName = tags.Single(x => x.Id == tag.TagId).TagName,
+                    TagVi = tags.Single(x => x.Id == tag.TagId).TagVi,
                 })
                 .ToList();
             return result;

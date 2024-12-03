@@ -558,6 +558,7 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
             entity.ToTable("Tag");
 
             entity.Property(e => e.TagName).HasMaxLength(256);
+            entity.Property(e => e.TagVi).HasMaxLength(256);
         });
 
         modelBuilder.Entity<UserNotification>(entity =>

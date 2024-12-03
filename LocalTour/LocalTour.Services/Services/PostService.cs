@@ -414,7 +414,7 @@ namespace LocalTour.Services.Services
             {
                 throw new UnauthorizedAccessException("You do not have permission to delete this post.");
             }
-
+             _unitOfWork.RepositoryPostLike.Delete(x => x.PostId == postId);
             // Xóa tất cả media liên quan đến bài viết
             var existingMedia = await _unitOfWork.RepositoryPostMedium.GetAll()
                 .Where(m => m.PostId == postEntity.Id)
@@ -438,6 +438,7 @@ namespace LocalTour.Services.Services
 
                 foreach (var childComment in childComments)
                 {
+                    _unitOfWork.RepositoryPostCommentLike.Delete(x => x.PostCommentId == childComment.Id);
                     _unitOfWork.RepositoryPostComment.Delete(childComment);
                 }
 

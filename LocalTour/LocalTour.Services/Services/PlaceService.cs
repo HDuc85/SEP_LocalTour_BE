@@ -277,6 +277,7 @@ namespace LocalTour.Services.Services
                 {
                     Id = p.TagId,
                     TagName = p.Tag.TagName,
+                    TagVi = p.Tag.TagVi,
                     TagPhotoUrl = p.Tag.TagPhotoUrl
                 }).ToListAsync();
             return places;
@@ -410,7 +411,6 @@ namespace LocalTour.Services.Services
             {
                 throw new ArgumentException($"Place with id {placeid} not found.");
             }
-            _unitOfWork.RepositoryPlace.Delete(places);
             var events = await _unitOfWork.RepositoryEvent.GetData(e => e.PlaceId == placeid);
             if (events != null && events.Any())
             {
@@ -419,11 +419,14 @@ namespace LocalTour.Services.Services
                     _unitOfWork.RepositoryEvent.Delete(eventEntity);
                 }
             }
+            
             var activity = await _unitOfWork.RepositoryPlaceActivity.GetData(e => e.PlaceId == placeid);
             if (activity != null && activity.Any())
             {
                 foreach (var activityEntity in activity)
                 {
+                    _unitOfWork.RepositoryPlaceActivityTranslation.Delete(x => x.PlaceActivityId == activityEntity.PlaceId);
+                    _unitOfWork.RepositoryPlaceActivityMedium.Delete(x => x.PlaceActivityId == activityEntity.PlaceId);
                     _unitOfWork.RepositoryPlaceActivity.Delete(activityEntity);
                 }
             }
@@ -435,6 +438,26 @@ namespace LocalTour.Services.Services
                     _unitOfWork.RepositoryPlaceTag.Delete(tagEntity);
                 }
             }
+            
+            var feedback = await _unitOfWork.RepositoryPlaceFeeedback.GetData(e => e.PlaceId == placeid);
+            if (feedback != null && feedback.Any())
+            {
+                foreach (var item in feedback)
+                {
+                    _unitOfWork.RepositoryPlaceFeeedbackHelpful.Delete(x => x.Id == item.PlaceId);
+                    _unitOfWork.RepositoryPlaceFeeedbackMedium.Delete(x => x.Id == item.PlaceId);
+                }
+            }
+            
+            _unitOfWork.RepositoryPlaceFeeedback.Delete(e => e.PlaceId == placeid);
+            _unitOfWork.RepositoryPlaceMedium.Delete(x => x.PlaceId == placeid);
+            _unitOfWork.RepositoryMarkPlace.Delete(x => x.PlaceId == placeid);
+            _unitOfWork.RepositoryPlaceReport.Delete(x => x.PlaceId == placeid);
+            _unitOfWork.RepositoryTraveledPlace.Delete(x => x.PlaceId == placeid);
+            _unitOfWork.RepositoryPlaceTranslation.Delete(x => x.PlaceId == placeid);
+            
+            _unitOfWork.RepositoryPlace.Delete(places);
+            
             await _unitOfWork.CommitAsync();
             return true;
 
@@ -454,6 +477,12 @@ namespace LocalTour.Services.Services
                 .Where(mt => mt.UserId == userId)
                 .Select(s => s.DistrictNcityId)
                 .ToListAsync();
+
+            if (request.DistrictNCityIds != null && request.DistrictNCityIds.Any())
+            {
+                modTags = modTags.Where(x => request.DistrictNCityIds.Contains(x)).ToList();
+            }
+            
             var roles = _httpContextAccessor.HttpContext.User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
             if (!roles.Any())
             {

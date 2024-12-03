@@ -13,7 +13,6 @@ namespace LocalTour.Services.ViewModel
     {
         public int Id { get; set; }
         public int PlaceId { get; set; }
-
         public string PlaceName { get; set; }
 
         public string EventName { get; set; } = null!;

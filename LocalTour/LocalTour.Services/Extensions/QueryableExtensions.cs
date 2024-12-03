@@ -51,6 +51,7 @@ public static class QueryableExtensions
 
         var mapper = mapperConfiguration.CreateMapper();
         var result = mapper.Map<List<TEntityDto>>(list);
+        
         return new PaginatedList<TEntityDto>(result, count, pageNumber, sizeNumber);
     }
 

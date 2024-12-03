@@ -8,6 +8,8 @@ public partial class Tag
     public int Id { get; set; }
 
     public string TagName { get; set; } = null!;
+    
+    public string TagVi {get; set;} = null!;
 
     public string TagPhotoUrl { get; set; } = null!;
 

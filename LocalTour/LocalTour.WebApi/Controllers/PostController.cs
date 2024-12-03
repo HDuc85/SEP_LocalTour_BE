@@ -139,7 +139,7 @@ namespace LocalTour.WebApi.Controllers
         {
             try
             {
-                // Thực hiện xóa bài viết
+                
                 var result = await _postService.DeletePost(postId, Guid.Parse(User.GetUserId()));
                 if (!result)
                 {

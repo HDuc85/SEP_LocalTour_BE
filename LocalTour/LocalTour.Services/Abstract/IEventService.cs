@@ -10,7 +10,7 @@ namespace LocalTour.Services.Abstract
 {
     public interface IEventService
     {
-        Task<PaginatedList<EventResponseVM>> GetAllEventByPlaceid(int placeid, GetEventRequest request);
+        Task<PaginatedList<EventViewModel>> GetAllEventByPlaceid(int placeid, GetEventRequest request);
         Task<PaginatedList<EventResponse>> GetAllEventByVisitor(int placeid, GetEventRequest request);
         Task<PaginatedList<EventSearchResponse>> SearchEvent(int? placeid,GetEventRequest request);
         Task<Event> GetEventById(int placeid, int eventid);
