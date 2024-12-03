@@ -13,6 +13,7 @@ namespace LocalTour.Services.ViewModel
     {
 
         public string TagName { get; set; } = null!;
+        public string TagVi { get; set; } = null!;
 
         public IFormFile TagPhotoUrl { get; set; } = null!;
     }

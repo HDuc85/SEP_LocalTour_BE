@@ -6,7 +6,8 @@ public class DestinationVM
     public string PlaceName { get; set; }
     public string PlacePhotoDisplay { get; set; }
     public DateTime? StartDate { get; set; }
-
+    public double? Longitude { get; set; }
+    public double? Latitude { get; set; }   
     public DateTime? EndDate { get; set; }
 
     public string? Detail { get; set; }

@@ -12,9 +12,8 @@ namespace LocalTour.Services.ViewModel
     public class TagViewModel : IMapFrom<Tag>
     {
         public int Id { get; set; }
-
         public string TagName { get; set; } = null!;
-
+        public string TagVi { get; set; } = null!;
         public string TagPhotoUrl { get; set; } = null!;
     }
 }

@@ -5,6 +5,7 @@ using LocalTour.Services.Model;
 using LocalTour.Services.ViewModel;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace LocalTour.Services.Services
@@ -361,5 +362,64 @@ namespace LocalTour.Services.Services
                 return false;
             }
         }
+
+        public async Task<List<GetUserRequest>> GetAllUsersAsync()
+        {
+            var users = await _unitOfWork.RepositoryUser.GetDataQueryable().ToListAsync();
+
+            var userRequests = new List<GetUserRequest>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);  // Lấy các vai trò của người dùng từ UserManager
+
+                userRequests.Add(new GetUserRequest
+                {
+                    Id = user.Id,
+                    Username = user.UserName,
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    PhoneNumber = user.PhoneNumber,
+                    DateOfBirth = user.DateOfBirth,
+                    ProfilePictureUrl = user.ProfilePictureUrl,
+                    Gender = user.Gender,
+                    Address = user.Address,
+                    DateCreated = user.DateCreated,
+                    DateUpdated = user.DateUpdated,
+                    Roles = roles.ToList()  // Gán danh sách vai trò cho người dùng
+                });
+            }
+
+            return userRequests;
+        }
+
+        public async Task<bool> UnbanUser(string userId)
+        {
+            try
+            {
+                var userBan = await _unitOfWork.RepositoryUserBan
+                    .GetDataQueryable(ub => ub.UserId == Guid.Parse(userId))
+                    .FirstOrDefaultAsync();
+
+                if (userBan == null)
+                {
+                    return false; // Không có gì để xóa
+                }
+
+                _unitOfWork.RepositoryUserBan.Delete(userBan);
+
+                // Commit thay đổi
+                await _unitOfWork.CommitAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message); // Hoặc sử dụng logger
+                return false;
+            }
+        }
+
+
     }
 }

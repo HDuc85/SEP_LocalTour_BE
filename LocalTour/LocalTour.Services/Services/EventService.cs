@@ -104,6 +104,7 @@ namespace LocalTour.Services.Services
             List<EventSearchResponse> eventSearchResponses = events.Select(x =>
             new EventSearchResponse
             {
+                PlacePhoto  = x.Place.PhotoDisplay,
                 EventName = x.EventName,
                 Description = x.Description,
                 PlaceId = x.PlaceId,
@@ -173,15 +174,20 @@ namespace LocalTour.Services.Services
                         .ThenInclude(p => p.Ward)
                         .ThenInclude(w => w.DistrictNcity)
                         .AsQueryable();
-            var userTags = await _unitOfWork.RepositoryModTag.GetAll()
+            var userTags =  _unitOfWork.RepositoryModTag.GetAll()
                     .Where(mt => mt.UserId == userId)
                     .Select(mt => mt.DistrictNcityId)
-                    .ToListAsync();
-            events = events.Where(e => userTags.Contains(e.Place.Ward.DistrictNcityId));
+                    .ToList();
+            events = events.Where(e => userTags.Contains(e.Place.Ward.DistrictNcityId)).AsQueryable();
             if (request.SearchTerm is not null)
             {
                 events = events.Where(e => e.EventName.Contains(request.SearchTerm) ||
-                                           e.Description.Contains(request.SearchTerm));
+                                           e.Description.Contains(request.SearchTerm)).AsQueryable();
+            }
+
+            if (request.status != null)
+            {
+                events = events.Where(e => e.EventStatus.Contains(request.status)).AsQueryable();
             }
 
             if (!string.IsNullOrEmpty(request.SortBy))

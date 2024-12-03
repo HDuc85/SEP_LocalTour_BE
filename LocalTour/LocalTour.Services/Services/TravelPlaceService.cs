@@ -35,7 +35,7 @@ public class TraveledPlaceService : ITraveledPlaceService
             PlaceId = place.Id,
             TimeArrive = DateTime.Now,
         });
-        
+        await _unitOfWork.CommitAsync();
         return true;
     }
 

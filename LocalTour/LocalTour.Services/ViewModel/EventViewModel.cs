@@ -13,7 +13,6 @@ namespace LocalTour.Services.ViewModel
     {
         public int Id { get; set; }
         public int PlaceId { get; set; }
-
         public string PlaceName { get; set; }
 
         public string EventName { get; set; } = null!;
@@ -29,6 +28,7 @@ namespace LocalTour.Services.ViewModel
         public DateTime CreatedAt { get; set; }
 
         public DateTime? UpdatedAt { get; set; }
+        public string? EventPhotoDisplay { get; set; }
         [JsonIgnore]
 
         public virtual Place Place { get; set; } = null!;

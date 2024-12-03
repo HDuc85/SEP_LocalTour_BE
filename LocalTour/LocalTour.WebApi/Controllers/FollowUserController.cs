@@ -20,7 +20,6 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpGet("followed")]
-        [Authorize]
         public async Task<IActionResult> GetUserFollowed(Guid userId)
         {
             var user = await _userService.FindById(userId.ToString());
@@ -47,7 +46,6 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpGet("follow")]
-        [Authorize]
         public async Task<IActionResult> GetUserFollow(Guid userId)
         {
             var user = await _userService.FindById(userId.ToString());

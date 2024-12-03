@@ -19,5 +19,8 @@ namespace LocalTour.Services.ViewModel
         public bool IsArrived { get; set; }
         public string? PlacePhotoDisplay { get; set; }
         public string? PlaceName { get; set; }
+        
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
     }
 }

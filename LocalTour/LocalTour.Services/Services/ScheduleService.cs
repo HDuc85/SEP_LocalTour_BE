@@ -115,7 +115,9 @@ namespace LocalTour.Services.Services
                         ScheduleId = x.ScheduleId,
                         Id = x.Id,
                         PlaceName = x.Place.PlaceTranslations.Count>0 ? x.Place.PlaceTranslations.FirstOrDefault(y => y.LanguageCode == request.languageCode).Name : "",
-                        PlacePhotoDisplay = x.Place.PhotoDisplay
+                        PlacePhotoDisplay = x.Place.PhotoDisplay,
+                        Longitude = x.Place.Longitude,
+                        Latitude = x.Place.Latitude,
                     }).ToList(),
                 });
             }
@@ -388,6 +390,8 @@ namespace LocalTour.Services.Services
                                 StartDate = dayStart.AddHours(timeSlot.Start),
                                 EndDate = dayStart.AddHours(timeSlot.End),
                                 IsArrived = false,
+                                Longitude = selectedPlace.Longitude,
+                                Latitude = selectedPlace.Latitude,
                             });
                         }
                     }

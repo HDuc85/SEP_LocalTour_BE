@@ -29,5 +29,7 @@ namespace LocalTour.Services.Abstract
                 Task<bool> UpdatePhoneOrEmail(User user);
                 Task<bool> RemovePhone(String userId);
                 Task<bool> RemoveEmail(String userId);
-        }
+                Task<bool> UnbanUser(String userId);
+                Task<List<GetUserRequest>> GetAllUsersAsync();
+    }
 }

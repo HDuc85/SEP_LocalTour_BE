@@ -266,5 +266,33 @@ namespace LocalTour.WebApi.Controllers
             }
             return BadRequest();
         }
+
+        [HttpPost("UnBan/{userId}")]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> UnbanUser(String userId)
+        {
+            var result = await _userService.UnbanUser(userId);
+
+            if (result)
+            {
+                return Ok(new { message = "User has been unbanned successfully." });
+            }
+            return BadRequest(new { message = "Failed to unban user. User may not exist in the ban list." });
+        }
+
+        [HttpGet("getlist")]
+        [Authorize(Roles = "Administrator")]
+        public async Task<ActionResult<List<GetUserRequest>>> GetListUsers()
+        {
+            try
+            {
+                var users = await _userService.GetAllUsersAsync();
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
