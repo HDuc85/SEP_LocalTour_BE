@@ -28,7 +28,7 @@ namespace LocalTour.Services.Services
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<PaginatedList<EventRequest>> GetAllEventByPlaceid(int placeid, GetEventRequest request)
+        public async Task<PaginatedList<EventViewModel>> GetAllEventByPlaceid(int placeid, GetEventRequest request)
         {
             var events = _unitOfWork.RepositoryEvent.GetAll()
                                                     .Where(e => e.PlaceId == placeid)
@@ -46,7 +46,7 @@ namespace LocalTour.Services.Services
             }
 
             return await events
-                .ListPaginateWithSortAsync<Event, EventRequest>(
+                .ListPaginateWithSortAsync<Event, EventViewModel>(
                 request.Page,
                 request.Size,
                 request.SortBy,
