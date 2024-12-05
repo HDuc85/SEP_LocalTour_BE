@@ -63,5 +63,35 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
             }
         }
+        [HttpGet("getDistrictByWardId")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetDistrictByWardId(int wardId)
+        {
+            try
+            {
+                var result = await _addressService.GetDistrictByWardId(wardId);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
+            }
+        }
+        [HttpGet("getProvinceByDistrictId")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetProvinceByDistrictId(int districtId)
+        {
+            try
+            {
+                var result = await _addressService.GetProvinceByDistrictId(districtId);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
+            }
+        }
     }
 }
