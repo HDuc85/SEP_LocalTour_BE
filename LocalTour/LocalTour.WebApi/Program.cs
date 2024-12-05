@@ -1,3 +1,4 @@
+using System.Globalization;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using LocalTour.Infrastructure.Configuration;
@@ -74,6 +75,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+var defaultCulture = new CultureInfo("en-US"); // Thay bằng mã văn hóa mong muốn
+CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
+CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
+
+app.MapGet("/culture-info", () => new
+{
+  CurrentCulture = CultureInfo.CurrentCulture.Name,
+  DateFormat = CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern,
+  DecimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator
+});
 
 // Configure the HTTP request pipeline.
 

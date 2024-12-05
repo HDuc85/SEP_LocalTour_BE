@@ -22,6 +22,7 @@ public class PlaceRequest
     public string ContactLink { get; set; }
     public List<int> Tags { get; set; }
     public List<IFormFile>? PlaceMedia { get; set; }
+    [ModelBinder(BinderType = typeof(FromJsonBinder))]
     public List<PlaceTranslationRequest> PlaceTranslation { get; set; }
 
 }
