@@ -51,7 +51,7 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpGet("getPlaceById")]
-        public async Task<ActionResult<ApiReponseModel<Place>>> GetPlaceById(string languageCode, int placeid)
+        public async Task<ActionResult<ApiReponseModel<Place>>> GetPlaceById(string? languageCode, int placeid)
         {
             try
             {

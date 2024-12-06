@@ -19,16 +19,17 @@ builder.Services.RegesterTokenBearer(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddMemoryCache();
 builder.Services.AddControllers();
-
 //add
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
 builder.Services.AddCors(options =>
 {
-  options.AddPolicy("AllowSpecificOrigins",
-      builder => builder.AllowAnyOrigin()
-                        .AllowAnyHeader()
-                        .AllowAnyMethod());
+  options.AddPolicy("AllowSpecificOrigins", policy =>
+  {
+    policy.AllowAnyOrigin()
+      .AllowAnyHeader()
+      .AllowAnyMethod();
+  });
 });
 
 builder.Services.AddSwaggerGen(options =>
@@ -74,7 +75,9 @@ FirebaseApp.Create(new AppOptions()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var app = builder.Build();
+var app = builder.Build(); app.UseCors("AllowSpecificOrigins");
+  
+
 
 var defaultCulture = new CultureInfo("en-US"); // Thay bằng mã văn hóa mong muốn
 CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
@@ -92,7 +95,6 @@ app.MapGet("/culture-info", () => new
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseCors("AllowSpecificOrigins");
 //Middleware
 app.UseMiddleware<CheckUserBanMiddleware>();
 
@@ -109,5 +111,21 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.MapControllers();
-
+app.Use(async (context, next) =>
+{
+  context.Response.OnStarting(() =>
+  {
+    var headers = context.Response.Headers;
+    if (headers.ContainsKey("Access-Control-Allow-Origin"))
+    {
+      Console.WriteLine($"CORS Header: {headers["Access-Control-Allow-Origin"]}");
+    }
+    else
+    {
+      Console.WriteLine("CORS Header not set.");
+    }
+    return Task.CompletedTask;
+  });
+  await next();
+});
 app.Run();

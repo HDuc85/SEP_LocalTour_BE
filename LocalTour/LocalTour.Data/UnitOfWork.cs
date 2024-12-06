@@ -45,13 +45,27 @@ namespace LocalTour.Data
         Repository<ModTag> _repositoryModTag;
         Repository<UserNotification> _repositoryUserNotification;
         Repository<UserReport> _repositoryUserReport;
+        Repository<Banner> _repositoryBanner;
+        Repository<BannerHistory> _repositoryBannerHistory;
 
 
         public UnitOfWork(LocalTourDbContext db)
         {
             _db = db;
         }
-
+        public Repository<Banner> RepositoryBanner
+        {
+            get
+            {
+                return _repositoryBanner ??= new Repository<Banner>(_db);
+            }
+        }public Repository<BannerHistory> RepositoryBannerHistory
+        {
+            get
+            {
+                return _repositoryBannerHistory ??= new Repository<BannerHistory>(_db);
+            }
+        }
         public Repository<UserPreferenceTags> RepositoryUserPreferenceTags
         {
             get

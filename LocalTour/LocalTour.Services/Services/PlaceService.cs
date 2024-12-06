@@ -205,18 +205,26 @@ namespace LocalTour.Services.Services
             return degree * Math.PI / 180.0;
         }
 
-        public async Task<PlaceDetailModel> GetPlaceById(string languageCode, int placeid)
+        public async Task<PlaceDetailModel> GetPlaceById(string? languageCode, int placeid)
         {
             var placeEntity = await _unitOfWork.RepositoryPlace.GetAll()
                 .Include(p => p.PlaceMedia)
-                .Include(p => p.PlaceTranslations.Where(pt => pt.LanguageCode == languageCode))
+                .Include(p => p.PlaceTranslations)
                 .Include(p => p.PlaceActivities)
-                .ThenInclude(pa => pa.PlaceActivityTranslations.Where(pat => pat.LanguageCode == languageCode) )
+                .ThenInclude(pa => pa.PlaceActivityTranslations)
                 .Include(p => p.PlaceActivities)
                 .ThenInclude(pa => pa.PlaceActivityMedia)
                 .FirstOrDefaultAsync(e => e.Id == placeid);
             
             var placeFeedback = await _unitOfWork.RepositoryPlaceFeeedback.GetAll().Where(p => p.PlaceId == placeid).ToListAsync();
+
+            if (languageCode != null)
+            {
+                placeEntity.PlaceTranslations = (ICollection<PlaceTranslation>)placeEntity.PlaceTranslations.Where(p => p.LanguageCode.Contains(languageCode));
+                placeEntity.PlaceActivities = (ICollection<PlaceActivity>)placeEntity.PlaceActivities
+                    .Where(p => p.PlaceActivityTranslations
+                        .Any(a => a.LanguageCode.Contains(languageCode)));
+            }
             
             double AverageRating = placeFeedback.Any() ? placeFeedback.Average(feedback => feedback.Rating) : 0;
             

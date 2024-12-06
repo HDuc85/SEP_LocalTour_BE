@@ -85,6 +85,8 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
     public virtual DbSet<ModTag> ModTags { get; set; }
     
     public virtual DbSet<UserNotification> UserNotifications { get; set; }
+    public virtual DbSet<Banner> Banners { get; set; }
+    public virtual DbSet<BannerHistory> BannerHistories { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -92,6 +94,36 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Banner>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("Banner");
+
+            entity.HasOne(d => d.Author)
+                .WithMany(p => p.Banners)
+                .HasForeignKey(d => d.AuthorId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+        
+        modelBuilder.Entity<BannerHistory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("BannerHistory");
+
+            entity.HasOne(d => d.Banner)
+                .WithMany(p => p.BannerHistories)
+                .HasForeignKey(d => d.BannerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+  
+            entity.HasOne(d => d.Approver)
+                .WithMany(p => p.ApprovedBannerHistories)
+                .HasForeignKey(d => d.ApproverId)
+                .OnDelete(DeleteBehavior.Restrict); 
+        });
+        
         modelBuilder.Entity<UserPreferenceTags>(entity =>
         {
             entity.HasKey(e => e.Id);
