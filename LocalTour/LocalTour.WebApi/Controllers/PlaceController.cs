@@ -21,7 +21,7 @@ namespace LocalTour.WebApi.Controllers
             _placeService = placeService;
         }
         [HttpPost("create")]
-        public async Task<ActionResult<ApiReponseModel<PlaceRequest>>> CreatePlace([FromForm]PlaceRequest request)
+        public async Task<ActionResult<ApiReponseModel<PlaceRequest>>> CreatePlace(PlaceRequest request)
         {
             if (request == null)
             {
@@ -51,7 +51,7 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpGet("getPlaceById")]
-        public async Task<ActionResult<ApiReponseModel<Place>>> GetPlaceById(string languageCode, int placeid)
+        public async Task<ActionResult<ApiReponseModel<Place>>> GetPlaceById(string? languageCode, int placeid)
         {
             try
             {

@@ -37,5 +37,7 @@ public partial class User : IdentityUser<Guid>
     public virtual ICollection<PlaceReport> UserReportPlaces { get; set; } = new List<PlaceReport>();
     public virtual ICollection<UserPreferenceTags> UserPreferenceTags { get; set; } = new List<UserPreferenceTags>();
     public virtual ICollection<UserNotification> UserNotifications { get; set; } = new List<UserNotification>();
+    public virtual ICollection<Banner> Banners { get; set; } = new List<Banner>();
+    public virtual ICollection<BannerHistory> ApprovedBannerHistories { get; set; } = new List<BannerHistory>();
     
 }

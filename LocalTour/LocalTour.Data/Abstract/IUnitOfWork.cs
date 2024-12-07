@@ -40,6 +40,8 @@ namespace LocalTour.Data.Abstract
                 Repository<ModTag> RepositoryModTag { get; }
                 Repository<UserNotification> RepositoryUserNotification { get; }
                 Repository<UserReport> RepositoryUserReport { get; }
+                Repository<Banner> RepositoryBanner { get; }
+                Repository<BannerHistory> RepositoryBannerHistory { get; }
                 Task CommitAsync();
 
         }

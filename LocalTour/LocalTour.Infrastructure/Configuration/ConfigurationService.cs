@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Service.Common.Mapping;
 using System.Text;
+using System.Web.Http;
+using System.Web.Http.Cors;
 using Quartz;
 using Quartz.Impl;
 
@@ -86,6 +88,8 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<IPlaceFeedbackHelpfulService, PlaceFeedbackHelpfulService>();
             service.AddScoped<ITagService, TagService>();
             service.AddScoped<IAddressService, AddressService>();
+            service.AddScoped<IBannerService, BannerService>();
+
 
         }
 
