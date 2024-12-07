@@ -282,16 +282,17 @@ namespace LocalTour.Services.Services
                 }).ToListAsync();
             return places;
         }
-        public async Task<PlaceRequest> UpdatePlace(int placeid, PlaceRequest request)
+        public async Task<PlaceUpdateRequest> UpdatePlace(int placeid, PlaceUpdateRequest request)
         {
             var existingPlace = await _unitOfWork.RepositoryPlace.GetById(placeid);
             if (existingPlace == null)
             {
                 throw new ArgumentException($"Event with id {placeid} not found.");
             }
-            if (!string.IsNullOrEmpty(existingPlace.PhotoDisplay))
+            if (request.PhotoDisplay != null)
             {
-                await _fileService.DeleteFile(existingPlace.PhotoDisplay);
+                var photoUrl = await _fileService.SaveImageFile(request.PhotoDisplay);
+                existingPlace.PhotoDisplay = photoUrl.Data;
             }
             var photos = await _fileService.SaveImageFile(request.PhotoDisplay);
             existingPlace.WardId = request.WardId;
@@ -299,7 +300,6 @@ namespace LocalTour.Services.Services
             existingPlace.TimeClose = request.TimeClose;
             existingPlace.Longitude = request.Longitude;
             existingPlace.Latitude = request.Latitude;
-            existingPlace.PhotoDisplay = photos.Data;
             existingPlace.Status = "Pending";
             existingPlace.ContactLink = request.ContactLink;
             var existingMedia = await _unitOfWork.RepositoryPlaceMedium.GetAll()
@@ -352,33 +352,28 @@ namespace LocalTour.Services.Services
                 };
                 await _unitOfWork.RepositoryPlaceTranslation.Insert(translationEntity);
             }
-            var photoSaveResult = await _fileService.SaveStaticFiles(request.PlaceMedia);
-            if (!photoSaveResult.Success)
+            foreach (var mediaUrl in request.PlaceMedia)
             {
-                throw new Exception(photoSaveResult.Message);
-            }
+                string mediaType = "Unknown";
+                var fileExtension = Path.GetExtension(mediaUrl).ToLower();
+                if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png" || fileExtension == ".gif")
+                {
+                    mediaType = "Image";
+                }
+                else if (fileExtension == ".mp4" || fileExtension == ".avi" || fileExtension == ".mkv")
+                {
+                    mediaType = "Video";
+                }
 
-            foreach (var photoUrl in photoSaveResult.Data.imageUrls)
-            {
-                var photo = new PlaceMedium
+                var placeMedium = new PlaceMedium
                 {
                     PlaceId = existingPlace.Id,
                     CreateDate = DateTime.Now,
-                    Type = "Image",
-                    Url = photoUrl
-                };
-                await _unitOfWork.RepositoryPlaceMedium.Insert(photo);
-            }
-            foreach (var mediaUrl in photoSaveResult.Data.videoUrls)
-            {
-                var media = new PlaceMedium
-                {
-                    PlaceId = existingPlace.Id,
-                    CreateDate = DateTime.Now,
-                    Type = "Video",
+                    Type = mediaType,
                     Url = mediaUrl
                 };
-                await _unitOfWork.RepositoryPlaceMedium.Insert(media);
+
+                await _unitOfWork.RepositoryPlaceMedium.Insert(placeMedium);
             }
             _unitOfWork.RepositoryPlace.Update(existingPlace);
             await _unitOfWork.CommitAsync();

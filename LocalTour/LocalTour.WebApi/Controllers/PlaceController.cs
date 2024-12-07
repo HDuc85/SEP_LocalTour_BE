@@ -77,7 +77,7 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpPut("update")]
-        public async Task<ActionResult<ApiReponseModel<PlaceRequest>>> UpdatePlace(int placeid,PlaceRequest request)
+        public async Task<ActionResult<ApiReponseModel<PlaceUpdateRequest>>> UpdatePlace(int placeid,PlaceUpdateRequest request)
         {
             if (request == null)
             {
