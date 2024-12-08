@@ -13,7 +13,7 @@ namespace LocalTour.Services.ViewModel
     {
         public int WardId { get; set; }
 
-        public IFormFile PhotoDisplay { get; set; } = null!;
+        public string PhotoDisplay { get; set; } = null!;
 
         public TimeOnly TimeOpen { get; set; }
 

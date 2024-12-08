@@ -207,7 +207,7 @@ namespace LocalTour.Services.Services
 
         public async Task<PlaceDetailModel> GetPlaceById(string? languageCode, int placeid)
         {
-            var placeEntity = await _unitOfWork.RepositoryPlace.GetAll()
+            var placeEntity = await _unitOfWork.RepositoryPlace.GetDataQueryable()
                 .Include(p => p.PlaceMedia)
                 .Include(p => p.PlaceTranslations)
                 .Include(p => p.PlaceActivities)
@@ -220,10 +220,18 @@ namespace LocalTour.Services.Services
 
             if (languageCode != null)
             {
-                placeEntity.PlaceTranslations = (ICollection<PlaceTranslation>)placeEntity.PlaceTranslations.Where(p => p.LanguageCode.Contains(languageCode));
-                placeEntity.PlaceActivities = (ICollection<PlaceActivity>)placeEntity.PlaceActivities
-                    .Where(p => p.PlaceActivityTranslations
-                        .Any(a => a.LanguageCode.Contains(languageCode)));
+                if (placeEntity.PlaceTranslations.Count > 0)
+                {
+                    placeEntity.PlaceTranslations = placeEntity.PlaceTranslations.Where(p => p.LanguageCode.Contains(languageCode)).ToList();
+                }
+
+                if (placeEntity.PlaceActivities.Count > 0)
+                {
+                    placeEntity.PlaceActivities = placeEntity.PlaceActivities
+                        .Where(p => p.PlaceActivityTranslations
+                            .Any(a => a.LanguageCode.Contains(languageCode))).ToList();
+                }
+                
             }
             
             double AverageRating = placeFeedback.Any() ? placeFeedback.Average(feedback => feedback.Rating) : 0;
@@ -297,12 +305,7 @@ namespace LocalTour.Services.Services
             {
                 throw new ArgumentException($"Event with id {placeid} not found.");
             }
-            if (request.PhotoDisplay != null)
-            {
-                var photoUrl = await _fileService.SaveImageFile(request.PhotoDisplay);
-                existingPlace.PhotoDisplay = photoUrl.Data;
-            }
-            var photos = await _fileService.SaveImageFile(request.PhotoDisplay);
+            existingPlace.PhotoDisplay = request.PhotoDisplay;
             existingPlace.WardId = request.WardId;
             existingPlace.TimeOpen = request.TimeOpen;
             existingPlace.TimeClose = request.TimeClose;

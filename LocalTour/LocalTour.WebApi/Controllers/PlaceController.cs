@@ -21,6 +21,7 @@ namespace LocalTour.WebApi.Controllers
             _placeService = placeService;
         }
         [HttpPost("create")]
+        [Authorize(Roles = "Service Owner")]
         public async Task<ActionResult<ApiReponseModel<PlaceRequest>>> CreatePlace(PlaceRequest request)
         {
             if (request == null)
@@ -77,6 +78,7 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpPut("update")]
+        [Authorize]
         public async Task<ActionResult<ApiReponseModel<PlaceUpdateRequest>>> UpdatePlace(int placeid,PlaceUpdateRequest request)
         {
             if (request == null)
@@ -94,6 +96,7 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpPut("changeStatusPlace")]
+        [Authorize(Roles = "Moderator,Admin")]
         public async Task<ActionResult<Place>> ChangeStatusPlace([FromQuery] int placeid, [FromQuery] string status)
         {
             try
@@ -107,6 +110,7 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpDelete("delete")]
+        [Authorize(Roles = "Service Owner")]
         public async Task<ActionResult<Place>> DeletePlace(int placeid)
         {
             if (placeid == null)
@@ -126,7 +130,9 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(500, new ApiReponseModel<Place>(false, $"An error occurred: {ex.Message}"));
             }
         }
+        [Authorize]
         [HttpGet("getAllByRole")]
+        [Authorize]
         public async Task<ActionResult<PaginatedList<PlaceVM>>> GetAllPlacesByRole([FromQuery] GetPlaceRequest request)
         {
             try

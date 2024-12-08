@@ -38,5 +38,22 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(500, new ServiceResponseModel<MediaFileStaticVM>(false, $"An error occurred: {ex.Message}"));
             }
         }
+        [HttpPost("link")]
+        public async Task<ActionResult<MediaFileStaticVM>> SaveImageFiles(IFormFile file)
+        {
+            if (file == null)
+            {
+                return BadRequest(new ServiceResponseModel<MediaFileStaticVM>(false, "Request cannot be null"));
+            }
+            try
+            {
+                var fileEntity = await _fileService.SaveImageFile(file);
+                return Ok(fileEntity);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ServiceResponseModel<MediaFileStaticVM>(false, $"An error occurred: {ex.Message}"));
+            }
+        }
     }
 }
