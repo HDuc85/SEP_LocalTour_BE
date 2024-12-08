@@ -1,4 +1,6 @@
-﻿namespace LocalTour.Domain.Entities;
+﻿using System.Text.Json.Serialization;
+
+namespace LocalTour.Domain.Entities;
 
 public partial class BannerHistory
 {
@@ -8,7 +10,8 @@ public partial class BannerHistory
     public DateTime TimeEnd { get; set; }
     public string Status { get; set; }
     public Guid ApproverId { get; set; }
-
+    [JsonIgnore]
     public Banner Banner { get; set; }
+    [JsonIgnore]
     public User Approver { get; set; }
 }

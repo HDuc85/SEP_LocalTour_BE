@@ -32,8 +32,8 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpGet("GetAll")]
-        [Authorize]
-        public async Task<IActionResult> GetAllBanner(GetAllBannerRequest request)
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> GetAllBanner([FromQuery] GetAllBannerRequest request)
         {
             try
             {
@@ -49,7 +49,7 @@ namespace LocalTour.WebApi.Controllers
         
         [HttpGet("GetByAuthor")]
         [Authorize]
-        public async Task<IActionResult> GetById(GetAllBannerRequest request)
+        public async Task<IActionResult> GetById([FromQuery]GetAllBannerRequest request)
         {
             try
             {
@@ -109,6 +109,24 @@ namespace LocalTour.WebApi.Controllers
                 var userId= User.GetUserId();
                 
                 var result = await _bannerService.UpdateAsync(bannerRequest, userId,bannerId);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
+            }
+        }
+        
+        [HttpPut("UpdateHistoryStatus")]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> UpdateHistoryStatus(Guid bannerHistoryId, string status)
+        {
+            try
+            {
+                var userId= User.GetUserId();
+                
+                var result = await _bannerService.UpdateBannerHistoryStatus(bannerHistoryId,status);
 
                 return Ok(result);
             }

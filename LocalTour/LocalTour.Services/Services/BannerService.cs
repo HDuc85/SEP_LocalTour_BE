@@ -73,7 +73,6 @@ public class BannerService : IBannerService
             newBanner.Id = item.Id;
             bannerRespone.Add(newBanner);
         }
-        bannerRespone = bannerRespone.Where(x => x.BannerHistories.Count > 0).ToList();
         
         
         return bannerRespone;
@@ -119,7 +118,7 @@ public class BannerService : IBannerService
         return bannerRespone;
     }
 
-    public async Task<Banner> CreateAsync(BannerRequest bannerRequest, String userId)
+    public async Task<BannerRespone> CreateAsync(BannerRequest bannerRequest, String userId)
     {
         var user = await _userService.FindById(userId);
         
@@ -132,9 +131,18 @@ public class BannerService : IBannerService
         banner.BannerUrl = url.Data;
         
         await _unitOfWork.RepositoryBanner.Insert(banner);
-        _unitOfWork.CommitAsync();
-
-        return banner;
+        await _unitOfWork.CommitAsync();
+        BannerRespone response = new BannerRespone()
+        {
+            Id = banner.Id,
+            BannerName = banner.BannerName,
+            BannerUrl = banner.BannerUrl,
+            UpdatedDate = DateTime.Now,
+            CreatedDate = DateTime.Now,
+            AuthorId = user.Id,
+            AuthorName = user.UserName,
+        };
+        return response;
     }
 
     public async Task<BannerRespone> UpdateAsync(BannerRequest bannerRequest, String userId, string id)
@@ -158,7 +166,7 @@ public class BannerService : IBannerService
         var url =  await _fileService.SaveImageFile(bannerRequest.BannerUrl);
         banner.BannerUrl = url.Data;
          _unitOfWork.RepositoryBanner.Update(banner);
-         _unitOfWork.CommitAsync();
+         await _unitOfWork.CommitAsync();
          
          var result = await GetByIdAsync(banner.Id, userId);
          
@@ -169,7 +177,7 @@ public class BannerService : IBannerService
     {
         var user = await _userService.FindById(userId);
         var banner = await _unitOfWork.RepositoryBanner.GetById(id);
-
+        
         if (banner == null)
         {
             throw new Exception("Banner not found");
@@ -179,9 +187,11 @@ public class BannerService : IBannerService
         {
             throw new Exception("User does not belong to this banner");
         }
-        
+
+        _unitOfWork.RepositoryBannerHistory.Delete(x => x.BannerId == id);
+        await _fileService.DeleteFile(banner.BannerUrl);
         _unitOfWork.RepositoryBanner.Delete(banner);
-        _unitOfWork.CommitAsync();
+        await _unitOfWork.CommitAsync();
         return true;
     }
 
@@ -201,7 +211,7 @@ public class BannerService : IBannerService
         bannerHistory.ApproverId = user.Id;
         
         await _unitOfWork.RepositoryBannerHistory.Insert(bannerHistory);
-        _unitOfWork.CommitAsync();
+        await _unitOfWork.CommitAsync();
         return bannerHistory;
     }
     public async Task<BannerUrlResponse> GetPublicBannerActive()
@@ -213,10 +223,41 @@ public class BannerService : IBannerService
         var listbanner =  _unitOfWork.RepositoryBanner
             .GetDataQueryable()
             .Include(x => x.BannerHistories)
-            .Where(y => y.BannerHistories.Any(z => z.Status == "Active" && now >= z.TimeStart && now < z.TimeEnd))
             .ToList();
+        foreach (var banner in listbanner)
+        {
+            if (banner.BannerHistories.Count > 0)
+            {
+                foreach (var item in banner.BannerHistories)
+                {
+                    if (now >= item.TimeEnd)
+                    {
+                        item.Status = "Completed";
+                        _unitOfWork.RepositoryBannerHistory.Update(item);
+                    }
+                }
+            }
+        }
+        await _unitOfWork.CommitAsync();
+        
+        
+        listbanner = listbanner
+            .Where(y => y.BannerHistories
+                .Any(z => z.Status == "Active" && now >= z.TimeStart && now < z.TimeEnd)).ToList();
+
+        
        bannerUrlResponse.bannerUrls =listbanner.Select(x => x.BannerUrl).ToList();
        return bannerUrlResponse;
+    }
+
+    public async Task<bool> UpdateBannerHistoryStatus(Guid bannerHistoryId, String status)
+    {
+        var banner = await _unitOfWork.RepositoryBannerHistory.GetById(bannerHistoryId);
+        
+        banner.Status = status;
+        
+        await _unitOfWork.CommitAsync();
+        return true;
     }
     
 }

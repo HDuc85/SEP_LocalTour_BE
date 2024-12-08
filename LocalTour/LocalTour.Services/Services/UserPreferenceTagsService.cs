@@ -33,6 +33,7 @@ namespace LocalTour.Services.Services
                 {
                     Id = mt.TagId,
                     TagName = mt.Tag.TagName,
+                    TagVi = mt.Tag.TagVi,
                     TagPhotoUrl = mt.Tag.TagPhotoUrl,
                 })
                 .ToListAsync();
