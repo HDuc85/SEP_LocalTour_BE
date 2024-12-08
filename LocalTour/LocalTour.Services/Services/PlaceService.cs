@@ -297,12 +297,7 @@ namespace LocalTour.Services.Services
             {
                 throw new ArgumentException($"Event with id {placeid} not found.");
             }
-            if (request.PhotoDisplay != null)
-            {
-                var photoUrl = await _fileService.SaveImageFile(request.PhotoDisplay);
-                existingPlace.PhotoDisplay = photoUrl.Data;
-            }
-            var photos = await _fileService.SaveImageFile(request.PhotoDisplay);
+            existingPlace.PhotoDisplay = request.PhotoDisplay;
             existingPlace.WardId = request.WardId;
             existingPlace.TimeOpen = request.TimeOpen;
             existingPlace.TimeClose = request.TimeClose;

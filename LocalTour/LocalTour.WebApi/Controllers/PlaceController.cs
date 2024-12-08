@@ -126,6 +126,7 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(500, new ApiReponseModel<Place>(false, $"An error occurred: {ex.Message}"));
             }
         }
+        [Authorize]
         [HttpGet("getAllByRole")]
         public async Task<ActionResult<PaginatedList<PlaceVM>>> GetAllPlacesByRole([FromQuery] GetPlaceRequest request)
         {
