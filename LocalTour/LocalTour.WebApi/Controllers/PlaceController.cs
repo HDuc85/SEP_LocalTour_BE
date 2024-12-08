@@ -96,13 +96,28 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpPut("changeStatusPlace")]
-        [Authorize(Roles = "Moderator,Admin")]
+        [Authorize(Roles = "Moderator")]
         public async Task<ActionResult<Place>> ChangeStatusPlace([FromQuery] int placeid, [FromQuery] string status)
         {
             try
             {
                 var placeEntity = await _placeService.ChangeStatusPlace(placeid, status);
                 return Ok(placeEntity);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiReponseModel<Place>(false, $"An error occurred: {ex.Message}"));
+            }
+        }
+        
+        [HttpPut("transferAuthor")]
+        [Authorize(Roles = "Service Owner")]
+        public async Task<ActionResult<Place>> TransferAuthor([FromQuery] int placeId, [FromQuery] Guid userIdTransfer)
+        {
+            try
+            {
+                var placeEntity = await _placeService.TransferAuthor(placeId, userIdTransfer);
+                return Ok("Success");
             }
             catch (Exception ex)
             {
@@ -130,7 +145,6 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(500, new ApiReponseModel<Place>(false, $"An error occurred: {ex.Message}"));
             }
         }
-        [Authorize]
         [HttpGet("getAllByRole")]
         [Authorize]
         public async Task<ActionResult<PaginatedList<PlaceVM>>> GetAllPlacesByRole([FromQuery] GetPlaceRequest request)

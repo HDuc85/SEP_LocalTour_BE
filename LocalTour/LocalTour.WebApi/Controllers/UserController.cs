@@ -279,7 +279,20 @@ namespace LocalTour.WebApi.Controllers
             }
             return BadRequest(new { message = "Failed to unban user. User may not exist in the ban list." });
         }
-
+        [HttpGet("getListByRole")]
+        [Authorize(Roles = "Service Owner,Moderator,Administrator")]
+        public async Task<ActionResult<List<GetUserRequest>>> GetListByRole([FromQuery] string roleName)
+        {
+            try
+            {
+                var users = await _userService.GetListByRole(roleName);
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
         [HttpGet("getlist")]
         [Authorize(Roles = "Administrator")]
         public async Task<ActionResult<List<GetUserRequest>>> GetListUsers()

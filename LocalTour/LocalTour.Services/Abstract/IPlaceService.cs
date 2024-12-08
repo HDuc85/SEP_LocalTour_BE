@@ -15,6 +15,7 @@ namespace LocalTour.Services.Abstract
                 Task<PlaceDetailModel> GetPlaceById(string languageCode, int placeid);
                 Task<PlaceUpdateRequest> UpdatePlace(int placeid, PlaceUpdateRequest request);
                 Task<Place> ChangeStatusPlace(int placeid, string status);
+                Task<Place> TransferAuthor(int placeId, Guid userIdTransfer);
                 Task<bool> DeletePlace(int placeid);
                 Task<List<TagViewModel>> GetTagsByPlaceId(int placeid);
                 Task<PaginatedList<PlaceVM>> GetAllPlaceByRole(GetPlaceRequest request);

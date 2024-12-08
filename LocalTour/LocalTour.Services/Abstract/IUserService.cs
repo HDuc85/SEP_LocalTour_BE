@@ -31,5 +31,6 @@ namespace LocalTour.Services.Abstract
                 Task<bool> RemoveEmail(String userId);
                 Task<bool> UnbanUser(String userId);
                 Task<List<GetUserRequest>> GetAllUsersAsync();
-    }
+                Task<List<ListUserResponse>> GetListByRole(string roleName);
+        }
 }

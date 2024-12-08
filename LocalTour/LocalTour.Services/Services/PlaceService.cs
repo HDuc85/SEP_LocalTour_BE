@@ -181,6 +181,7 @@ namespace LocalTour.Services.Services
                     request.Size,
                     request.SortBy,
                     request.SortOrder,
+                    request.Distance,
                     request.CurrentLongitude,
                     request.CurrentLatitude,
                     userTags,
@@ -410,6 +411,28 @@ namespace LocalTour.Services.Services
             await _unitOfWork.CommitAsync();
             return existingPlace;
         }
+        public async Task<Place> TransferAuthor(int placeId, Guid userIdTransfer)
+        {
+            var existingPlace = await _unitOfWork.RepositoryPlace.GetById(placeId);
+            if (existingPlace == null)
+            {
+                throw new ArgumentException($" {placeId} not found.");
+            }
+            var userid = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userid, out var userId))
+            {
+                throw new InvalidOperationException("User ID is not a valid GUID.");
+            }
+
+            if (existingPlace.AuthorId != userId)
+            {
+                throw new InvalidOperationException("User ID is not the same as existing one.");
+            }
+            existingPlace.AuthorId = userIdTransfer;
+            _unitOfWork.RepositoryPlace.Update(existingPlace);
+            await _unitOfWork.CommitAsync();
+            return existingPlace;
+        }
         public async Task<bool> DeletePlace(int placeid)
         {
             var places = await _unitOfWork.RepositoryPlace.GetById(placeid);
@@ -540,6 +563,7 @@ namespace LocalTour.Services.Services
                     request.Size,
                     request.SortBy,
                     request.SortOrder,
+                    request.Distance,
                     request.CurrentLongitude,
                     request.CurrentLatitude,
                     userTags,

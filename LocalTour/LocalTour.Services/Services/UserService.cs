@@ -392,6 +392,28 @@ namespace LocalTour.Services.Services
 
             return userRequests;
         }
+        
+        public async Task<List<ListUserResponse>> GetListByRole(string roleName)
+        {
+            var users = await _userManager.GetUsersInRoleAsync(roleName);
+
+            var userRequests = new List<ListUserResponse>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);  // Lấy các vai trò của người dùng từ UserManager
+
+                userRequests.Add(new ListUserResponse
+                {
+                    Id = user.Id,
+                    Username = user.UserName,
+                    FullName = user.FullName,
+                    ProfilePictureUrl = user.ProfilePictureUrl,
+                });
+            }
+
+            return userRequests;
+        }
 
         public async Task<bool> UnbanUser(string userId)
         {

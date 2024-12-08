@@ -123,6 +123,7 @@ int? page,
 int? size,
 string? sortBy,
 string? sortOrder,
+int? distance,
 double longitude,
 double latitude,
 List<int> userTags,
@@ -158,6 +159,7 @@ where TEntityDto : IMapFrom<TEntity>
         })
         .ToList();
 
+        
         var count = await items.CountAsync();
         if (sortBy.Equals("created_by", StringComparison.OrdinalIgnoreCase) && userId.HasValue)
         {
@@ -216,6 +218,12 @@ where TEntityDto : IMapFrom<TEntity>
             {
                   placesWithDistance = placesWithDistance.OrderByDescending(x => x.Distance).ToList();
             }
+
+            if (distance != null)
+            {
+                placesWithDistance = placesWithDistance.Where(x => x.Distance <= distance).ToList();
+            }
+            
             var paginatedList = placesWithDistance
          .Skip((pageNumber - 1) * sizeNumber)
          .Take(sizeNumber)

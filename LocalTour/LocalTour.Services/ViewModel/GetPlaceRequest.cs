@@ -10,6 +10,8 @@ public class GetPlaceRequest : PaginatedQueryParams
     public double CurrentLatitude { get; set; }
     public double CurrentLongitude { get; set; }
     public string LanguageCode { get; set; }
+    
+    public int? Distance { get; set; }
     public List<int>? Tags { get; set; }
     public string? Status { get; set; }
     public List<int>? DistrictNCityIds { get; set; }
