@@ -5,6 +5,7 @@ using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.Extensions;
 using LocalTour.Services.ViewModel;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 
@@ -126,13 +127,24 @@ namespace LocalTour.Services.Services
                     .Select(ut => ut.TagId)
                 : Enumerable.Empty<int>();
             
+            
             var tagPlaceCounts = _unitOfWork.RepositoryPlaceTag.GetDataQueryable()
+                .Include(x => x.Place)
+                .Where(y => y.Place.Status == "Approved")
                 .GroupBy(pt => pt.TagId)
                 .Select(g => new
                 {
                     TagId = g.Key,
                     PlaceCount = g.Count()
                 });
+            
+            /*var tagPlaceCounts = _unitOfWork.RepositoryPlaceTag.GetDataQueryable()
+                .GroupBy(pt => pt.TagId)
+                .Select(g => new
+                {
+                    TagId = g.Key,
+                    PlaceCount = g.Count()
+                });*/
             
             var userPreferredTags = tagPlaceCounts
                 .Where(tag => userTags.Contains(tag.TagId))

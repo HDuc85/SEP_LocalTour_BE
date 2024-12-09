@@ -89,6 +89,7 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<ITagService, TagService>();
             service.AddScoped<IAddressService, AddressService>();
             service.AddScoped<IBannerService, BannerService>();
+            service.AddScoped<IStatisticService, StatisticService>();
 
 
         }
