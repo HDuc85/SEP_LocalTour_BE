@@ -30,7 +30,7 @@ public class FollowUserService : IFollowUserService
         var userFollowUsers = await _unitOfWork.RepositoryFollowUser.GetData(x => x.UserId == userId);
         var users = await _unitOfWork.RepositoryUser.GetData();
 
-        var results = userFollowUsers.Select(x => users.Single(y => y.Id == x.UserId)).ToList();
+        var results = userFollowUsers.Select(x => users.Single(y => y.Id == x.UserFollow)).ToList();
         return results;
     }
     public async Task<ServiceResponseModel<User>> AddFollowUser(Guid userFollowedId, string userId)

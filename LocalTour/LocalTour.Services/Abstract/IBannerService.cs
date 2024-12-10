@@ -8,7 +8,7 @@ public interface IBannerService
     Task<List<BannerRespone>> GetAllAsync(GetAllBannerRequest request);
     Task<BannerRespone> GetByIdAsync(Guid id, String userId);
     Task<BannerRespone> CreateAsync(BannerRequest bannerRequest, String userId);
-    Task<BannerRespone> UpdateAsync(BannerRequest bannerRequest, String userId, string id);
+    Task<BannerRespone> UpdateAsync(BannerUpdateRequest bannerRequest, String userId, string id);
     Task<bool> DeleteAsync(Guid id, String userId);
     Task<BannerHistory> CreateHistoryBanner(BannerHistoryRequest historyRequest, String userId);
     Task<BannerUrlResponse> GetPublicBannerActive();

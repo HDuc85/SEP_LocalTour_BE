@@ -102,7 +102,7 @@ namespace LocalTour.WebApi.Controllers
         
         [HttpPut("Update")]
         [Authorize]
-        public async Task<IActionResult> Update(string bannerId,[FromForm]BannerRequest bannerRequest)
+        public async Task<IActionResult> Update(string bannerId,[FromForm]BannerUpdateRequest bannerRequest)
         {
             try
             {

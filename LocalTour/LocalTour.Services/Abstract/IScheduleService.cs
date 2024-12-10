@@ -12,7 +12,7 @@ namespace LocalTour.Services.Abstract
         {
                 Task<PaginatedList<ScheduleRequest>> GetAllSchedulesAsync(GetScheduleRequest request, String userId);
                 Task<ScheduleRequest?> GetScheduleByIdAsync(int id);
-                Task<List<ScheduleRequest>> GetSchedulesByUserIdAsync(Guid userId);
+                Task<List<ScheduleRequest>> GetSchedulesByUserIdAsync(Guid userId, string languageCode);
                 Task<ScheduleRequest> CreateScheduleAsync(CreateScheduleRequest request, String userId);
                 Task<bool> UpdateScheduleAsync(UpdateScheduleRequest request, string userId);
                 Task<bool> DeleteScheduleAsync(int id, string userId);

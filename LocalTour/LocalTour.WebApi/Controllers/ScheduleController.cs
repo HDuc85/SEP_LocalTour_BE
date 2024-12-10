@@ -80,7 +80,7 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpGet("getByUserId/{userId}")]
-        public async Task<IActionResult> GetSchedulesByUserId(Guid userId)
+        public async Task<IActionResult> GetSchedulesByUserId(Guid userId,string languageCode)
         {
             try
             {
@@ -89,7 +89,7 @@ namespace LocalTour.WebApi.Controllers
                     return BadRequest(new { statusCode = 400, message = "Invalid user ID." });
                 }
 
-                var schedules = await _scheduleService.GetSchedulesByUserIdAsync(userId);
+                var schedules = await _scheduleService.GetSchedulesByUserIdAsync(userId, languageCode);
 
                 if (schedules == null || !schedules.Any())
                 {

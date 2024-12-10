@@ -54,7 +54,7 @@ namespace LocalTour.WebApi.Controllers
         }
         [HttpPut("update")]
         [Authorize]
-        public async Task<ActionResult<ApiReponseModel<FeedbackRequest>>> UpdateEvent(int feedbackid, FeedbackRequest request)
+        public async Task<ActionResult<ApiReponseModel<FeedbackRequest>>> UpdateFeedback(int feedbackid, FeedbackRequest request)
         {
             if (request == null)
             {

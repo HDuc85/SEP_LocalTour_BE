@@ -55,6 +55,8 @@ namespace LocalTour.Services.Services
                     schedulesQuery = schedulesQuery.Where(x => x.IsPublic == true).ToList();
                 }
             }
+            schedulesQuery = schedulesQuery.Where(x => x.IsPublic == true).ToList();
+            
 
             if (request.SortBy == "liked")
             {
@@ -145,25 +147,61 @@ namespace LocalTour.Services.Services
             return scheduleRequest;
         }
 
-        public async Task<List<ScheduleRequest>> GetSchedulesByUserIdAsync(Guid userId)
+        public async Task<List<ScheduleRequest>> GetSchedulesByUserIdAsync(Guid userId, string languageCode)
         {
-            Expression<Func<Schedule, bool>> expression = schedule => schedule.UserId == userId;
-            var schedules = await _unitOfWork.RepositorySchedule.GetData(expression);
-
+            var schedules =  _unitOfWork.RepositorySchedule.GetDataQueryable(schedule => schedule.UserId == userId)
+                .Include(x => x.Destinations)
+                .ThenInclude(z => z.Place)
+                .ThenInclude(t => t.PlaceTranslations)
+                .Include(y => y.ScheduleLikes)
+                .ToList();
+            
+            var user = await _unitOfWork.RepositoryUser.GetById(userId);
             var scheduleRequests = new List<ScheduleRequest>();
+            var userIdCurrent = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+            if (user.Id != Guid.Parse(userIdCurrent))
+            {
+                schedules = schedules.Where(x => x.IsPublic == true).ToList();
+            }
+            
             foreach (var schedule in schedules)
             {
-                var scheduleRequest = _mapper.Map<ScheduleRequest>(schedule);
+                var scheduleRequest = new ScheduleRequest()
+                {
+                    Id = schedule.Id,
+                    CreatedDate = schedule.CreatedDate,
+                    UserName = schedule.User.UserName,
+                    ScheduleName = schedule.ScheduleName,
+                    StartDate = schedule.StartDate,
+                    EndDate = schedule.EndDate,
+                    IsPublic = schedule.IsPublic,
+                    Status = schedule.Status,
+                    TotalLikes = schedule.ScheduleLikes.Count,
+                    UserProfileImage = user.ProfilePictureUrl ?? "",
+                    UserId = user.Id,
+                    IsLiked = schedule.ScheduleLikes.Any(x => x.UserId == user.Id && x.ScheduleId == schedule.Id),
+                };
+                List<DestinationRequest> destinations = new List<DestinationRequest>();
+                foreach (var item in schedule.Destinations)
+                {
+                    destinations.Add(new DestinationRequest()
+                    {
+                        PlaceId = item.PlaceId,
+                        StartDate = item.StartDate,
+                        EndDate = item.EndDate,
+                        Detail = item.Detail,
+                        IsArrived = item.IsArrived,
+                        ScheduleId = item.ScheduleId,
+                        Id = item.Id,
+                        PlaceName = item.Place.PlaceTranslations.Count>0 ? item.Place.PlaceTranslations.FirstOrDefault(y => y.LanguageCode == languageCode).Name : "",
+                        PlacePhotoDisplay = item.Place.PhotoDisplay,
+                        Longitude = item.Place.Longitude,
+                        Latitude = item.Place.Latitude,
+                    });
+                }
 
-                // Fetch destinations associated with the schedule
-                var destinations = await _unitOfWork.RepositoryDestination.GetData(d => d.ScheduleId == schedule.Id);
-                scheduleRequest.Destinations = _mapper.Map<List<DestinationRequest>>(destinations);
-
-                // Fetch total likes for the schedule
-                var totalLikes = await _unitOfWork.RepositoryScheduleLike.GetData(l => l.ScheduleId == schedule.Id);
-                scheduleRequest.TotalLikes = totalLikes.Count();
-
+                scheduleRequest.Destinations = destinations;
                 scheduleRequests.Add(scheduleRequest);
             }
 

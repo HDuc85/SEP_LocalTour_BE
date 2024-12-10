@@ -24,7 +24,8 @@ public class BannerService : IBannerService
     {
         
         var listban = _unitOfWork.RepositoryBanner.GetAll()
-            .Include(y => y.BannerHistories).ToList();
+            .Include(y => y.BannerHistories)
+            .Include(x => x.Author).ToList();
 
         if (request.UserId != null)
         {
@@ -145,30 +146,36 @@ public class BannerService : IBannerService
         return response;
     }
 
-    public async Task<BannerRespone> UpdateAsync(BannerRequest bannerRequest, String userId, string id)
+    public async Task<BannerRespone> UpdateAsync(BannerUpdateRequest bannerRequest, String userId, string id)
     {
         var user = await _userService.FindById(userId);
         
-        var banner = await _unitOfWork.RepositoryBanner.GetById(id);
+        var banner = await _unitOfWork.RepositoryBanner.GetData(x => x.Id == Guid.Parse(id));
 
         if (banner == null)
         {
             throw new Exception("Banner not found");
         }
 
-        if (banner.AuthorId != user.Id)
+        if (banner.First().AuthorId != user.Id)
         {
             throw new Exception("User does not belong to this banner");
         }
-        
-        banner.BannerName = bannerRequest.BannerName;
-        banner.UpdatedDate = DateTime.Now;
-        var url =  await _fileService.SaveImageFile(bannerRequest.BannerUrl);
-        banner.BannerUrl = url.Data;
-         _unitOfWork.RepositoryBanner.Update(banner);
+
+        if (bannerRequest.BannerName != null)
+        {
+            banner.First().BannerName = bannerRequest.BannerName;
+        }
+
+        if (bannerRequest.BannerUrl != null)
+        {
+            banner.First().BannerUrl = bannerRequest.BannerUrl;
+        }
+        banner.First().UpdatedDate = DateTime.Now;
+         _unitOfWork.RepositoryBanner.Update(banner.First());
          await _unitOfWork.CommitAsync();
          
-         var result = await GetByIdAsync(banner.Id, userId);
+         var result = await GetByIdAsync(banner.First().Id, userId);
          
          return result;
     }
