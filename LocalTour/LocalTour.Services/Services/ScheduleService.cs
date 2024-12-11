@@ -4,15 +4,9 @@ using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.ViewModel;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Security.Claims;
-using System.Text.Json;
-using System.Threading.Tasks;
 using LocalTour.Services.Model;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace LocalTour.Services.Services
@@ -24,7 +18,6 @@ namespace LocalTour.Services.Services
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        private double ToRadians(double deg) => deg * (Math.PI / 180);
 
         public ScheduleService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
@@ -363,6 +356,13 @@ namespace LocalTour.Services.Services
         public async Task<ServiceResponseModel<List<DestinationVM>>> GenerateSchedule(SuggestScheduleRequest request, string userId)
         {
             List<DestinationVM> schedule = new List<DestinationVM>();
+            if (request.days != null)
+            {
+                if (request.days > 10)
+                {
+                    request.days = 10;
+                }
+            }
             var userTags = await _unitOfWork.RepositoryUserPreferenceTags.GetData(x => x.UserId == Guid.Parse(userId));
             if (!userTags.Any())
             {
@@ -446,7 +446,8 @@ namespace LocalTour.Services.Services
 
         private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
         {
-            // Haversine formula to calculate distance in kilometers between two lat/lon points
+            double ToRadians(double deg) => deg * (Math.PI / 180);
+
             double R = 6371; // Radius of the earth in km
             double dLat = ToRadians(lat2 - lat1);
             double dLon = ToRadians(lon2 - lon1);

@@ -22,6 +22,7 @@ namespace LocalTour.WebApi.Controllers
         {
             try
             {
+                var x = User.GetUserId();
                 var result = await _bannerService.GetPublicBannerActive();
 
                 return Ok(result);

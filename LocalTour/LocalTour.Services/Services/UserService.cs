@@ -39,12 +39,18 @@ namespace LocalTour.Services.Services
             {
                 return new ServiceResponseModel<User>(success: false, message: "Phone number or email address not found");
             }
-
+            
             var result = await _userManager.CheckPasswordAsync(user, password);
 
             if (!result)
             {
                 return new ServiceResponseModel<User>(success: false, message: "Wrong password");
+            }
+
+            var isBan = await IsUserBanned(user.Id.ToString());
+            if (isBan)
+            {
+                return new ServiceResponseModel<User>(success: false, message: "User is banned");
             }
 
             return new ServiceResponseModel<User>(success: true, user);

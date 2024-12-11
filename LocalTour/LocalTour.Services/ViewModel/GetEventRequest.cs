@@ -11,6 +11,5 @@ public class GetEventRequest : PaginatedQueryParams
     public string languageCode { get; set; }
     public double latitude { get; set; }
     public double longitude { get; set; }
-    
     public string? status { get; set; }
 }
