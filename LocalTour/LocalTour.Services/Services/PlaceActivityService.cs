@@ -251,7 +251,9 @@ namespace LocalTour.Services.Services
             var activity = await _unitOfWork.RepositoryPlaceActivity.GetById(activityid);
             if (activity != null)
             {
-                    _unitOfWork.RepositoryPlaceActivity.Delete(activity);
+                _unitOfWork.RepositoryPlaceActivityTranslation.Delete(x => x.PlaceActivityId == activity.Id);
+                _unitOfWork.RepositoryPlaceActivityMedium.Delete(x => x.PlaceActivityId == activity.Id);
+                _unitOfWork.RepositoryPlaceActivity.Delete(activity);
             }
             await _unitOfWork.CommitAsync();
             return true;
