@@ -62,8 +62,8 @@ namespace LocalTour.Services.Services
             {
                 UserReportId = xserReportId,
                 ReportDate = DateTime.Now,
-                UserId = report.UserId,
-                Content = report.Content,
+                //UserId = report.UserId,
+                //Content = report.Content,
                 Status = "Pending",
             };
             await _unitOfWork.RepositoryUserReport.Insert(reportEntity);
@@ -73,22 +73,23 @@ namespace LocalTour.Services.Services
         }
 
         public async Task<bool> UpdateReport(UserReport report)
-        {
-            if (report == null) throw new ArgumentNullException(nameof(report));
+{
+    if (report == null) throw new ArgumentNullException(nameof(report));
 
-            var reportEntity = await _unitOfWork.RepositoryUserReport.GetById(report.Id);
-            if (reportEntity == null) return false;
+    // Lấy report từ cơ sở dữ liệu
+    var reportEntity = await _unitOfWork.RepositoryUserReport.GetById(report.Id);
+    if (reportEntity == null) return false;
 
-            reportEntity.Status = report.Status;
-            reportEntity.ReportDate = report.ReportDate;
-            reportEntity.UserId = report.UserId;
-            reportEntity.UserReportId = report.UserReportId;
+    // Chỉ cập nhật trường Status
+    reportEntity.Status = report.Status;
 
-            _unitOfWork.RepositoryUserReport.Update(reportEntity);
-            await _unitOfWork.CommitAsync();
+    // Cập nhật report trong cơ sở dữ liệu
+    _unitOfWork.RepositoryUserReport.Update(reportEntity);
+    await _unitOfWork.CommitAsync();
 
-            return true;
-        }
+    return true;
+}
+
 
         public async Task<ServiceResponseModel<bool>> DeleteReport(int reportId)
         {
