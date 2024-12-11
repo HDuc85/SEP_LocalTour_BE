@@ -160,6 +160,8 @@ namespace LocalTour.Services.Services
             var scheduleRequests = new List<ScheduleRequest>();
             var userIdCurrent = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+            schedules = schedules.OrderByDescending(x => x.CreatedDate).ToList();
+            
             if (user.Id != Guid.Parse(userIdCurrent))
             {
                 schedules = schedules.Where(x => x.IsPublic == true).ToList();
@@ -185,6 +187,7 @@ namespace LocalTour.Services.Services
                 List<DestinationRequest> destinations = new List<DestinationRequest>();
                 foreach (var item in schedule.Destinations)
                 {
+                    
                     destinations.Add(new DestinationRequest()
                     {
                         PlaceId = item.PlaceId,

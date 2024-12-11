@@ -43,3 +43,4 @@ msbuild.err
 msbuild.wrn
 /LocalTour/LocalTour.WebApi/wwwroot
 LocalTour/LocalTour.WebApi/firebaseServiceAccount.json
+/LocalTour/.sonarqube
