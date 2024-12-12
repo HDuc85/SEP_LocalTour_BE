@@ -92,7 +92,7 @@ namespace LocalTour.Services.Services
             return tag;
         }
 
-        public async Task<TagUpdateRequest> UpdateTag(int tagid, TagUpdateRequest request)
+        public async Task<Tag> UpdateTag(int tagid, TagUpdateRequest request)
         {
             var existingTag = await _unitOfWork.RepositoryTag.GetById(tagid);
             if (existingTag == null)
@@ -115,7 +115,7 @@ namespace LocalTour.Services.Services
             existingTag.TagVi = request.TagVi;
             _unitOfWork.RepositoryTag.Update(existingTag);
             await _unitOfWork.CommitAsync();
-            return request;
+            return existingTag;
         }
 
         public async Task<List<TagViewModel>> GetTagsTopPlace(String? userId)
