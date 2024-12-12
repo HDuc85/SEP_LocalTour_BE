@@ -62,6 +62,14 @@ namespace LocalTour.Services.Services
                     throw new Exception("You can only provide feedback every 7 days for the same place.");
                 }
             }
+            else
+            {
+                var isTraveled = _unitOfWork.RepositoryTraveledPlace.GetDataQueryable(x => x.UserId == userId && x.PlaceId == request.placeid).ToList();
+                if (isTraveled.Count == 0)
+                {
+                    throw new Exception("You have not reached this point yet, please set up a schedule and go there to be evaluated");
+                }
+            }
             var feedback = new PlaceFeeedback
             {
                 PlaceId = request.placeid,

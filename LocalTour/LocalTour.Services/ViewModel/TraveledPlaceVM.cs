@@ -10,6 +10,7 @@ public class TraveledPlaceVM
 
 public class PlaceTraveledVM
 {
+    public int PlaceId { get; set; }
     public string PlaceName { get; set; }
     public string PlacePhotoDisplay { get; set; }
     public string WardName { get; set; }

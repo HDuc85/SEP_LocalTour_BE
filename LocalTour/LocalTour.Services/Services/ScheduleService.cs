@@ -246,24 +246,23 @@ namespace LocalTour.Services.Services
                 if (request.StartDate <= DateTime.UtcNow)
                 {
                     throw new ArgumentException("StartDate cannot be in the past.");
+                }else
+                {
+                    schedule.StartDate = request.StartDate;
                 }
             }
-            else
-            {
-                schedule.StartDate = request.StartDate;
-            }
-
+            
             if (request.EndDate != null)
             {
                 if (request.StartDate >= request.EndDate)
                 {
                     throw new ArgumentException("StartDate must be less than EndDate.");
+                }  else
+                {
+                    schedule.EndDate = request.EndDate;
                 }
             }
-            else
-            {
-                schedule.EndDate = request.EndDate;
-            }
+          
 
             if (request.ScheduleName != null)
             {
@@ -291,17 +290,28 @@ namespace LocalTour.Services.Services
                 return false;
             }
 
-            // Delete all related destinations
             var destinations = await _unitOfWork.RepositoryDestination.GetData(d => d.ScheduleId == schedule.Id);
             foreach (var destination in destinations)
             {
                 _unitOfWork.RepositoryDestination.Delete(destination);
             }
             
-             _unitOfWork.RepositoryScheduleLike.Delete(l => l.ScheduleId == schedule.Id);
-             _unitOfWork.RepositoryPost.Delete(p => p.ScheduleId == schedule.Id);
+            _unitOfWork.RepositoryScheduleLike.Delete(l => l.ScheduleId == schedule.Id);
+            var posts = await _unitOfWork.RepositoryPost.GetData(p => p.ScheduleId == schedule.Id);
+            foreach (var post in posts)
+            {
+                var postcmt = await _unitOfWork.RepositoryPostComment.GetData(x => x.PostId == post.Id);
+                foreach (var comment in postcmt)
+                {
+                    _unitOfWork.RepositoryPostCommentLike.Delete(x => x.PostCommentId == comment.Id);
+                }
+                _unitOfWork.RepositoryPostComment.Delete(x => x.PostId == post.Id);
+                _unitOfWork.RepositoryPostLike.Delete(x => x.PostId == post.Id);
+                _unitOfWork.RepositoryPostMedium.Delete(x => x.PostId == post.Id);
+            }
             _unitOfWork.RepositorySchedule.Delete(schedule);
             await _unitOfWork.CommitAsync();
+
             return true;
         }
 

@@ -110,6 +110,7 @@ public class TraveledPlaceService : ITraveledPlaceService
                 {
                     Place = new PlaceTraveledVM
                     {
+                        PlaceId = place.Id,
                         PlaceName = placetrans.Name,
                         WardName = place.Ward.WardName,
                         PlacePhotoDisplay = place.PhotoDisplay,
