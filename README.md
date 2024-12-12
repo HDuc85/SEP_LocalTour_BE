@@ -21,7 +21,7 @@ A unified platform for travelers and tour operators to discover, manage, and par
 1. Clone the repository:
    ```bash
    git clone https://github.com/HDuc85/SEP_LocalTour_BE.git
-   cd local-tour-backend
+   cd LocalTour
    ```
 2. Configure environment variables in `.env` or `appsettings.json`.
 3. Restore dependencies:
