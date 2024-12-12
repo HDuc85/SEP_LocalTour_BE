@@ -13,7 +13,7 @@ namespace LocalTour.Services.Abstract
         Task<PaginatedList<TagViewModel>> GetAllTag( PaginatedQueryParams request);
         Task<Tag> GetTagById( int tagid);
         Task<TagRequest> CreateTag(TagRequest request);
-        Task<TagRequest> UpdateTag(int tagid, TagRequest request);
+        Task<TagUpdateRequest> UpdateTag(int tagid, TagUpdateRequest request);
         Task<bool> DeleteTag( int tagid);
         Task<List<TagViewModel>> GetTagsTopPlace(String? userId);
     }

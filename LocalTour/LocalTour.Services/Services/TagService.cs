@@ -7,6 +7,7 @@ using LocalTour.Services.Extensions;
 using LocalTour.Services.ViewModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Reflection;
 
 
 namespace LocalTour.Services.Services
@@ -91,7 +92,7 @@ namespace LocalTour.Services.Services
             return tag;
         }
 
-        public async Task<TagRequest> UpdateTag(int tagid, TagRequest request)
+        public async Task<TagUpdateRequest> UpdateTag(int tagid, TagUpdateRequest request)
         {
             var existingTag = await _unitOfWork.RepositoryTag.GetById(tagid);
             if (existingTag == null)
@@ -106,13 +107,11 @@ namespace LocalTour.Services.Services
             {
                 await _fileService.DeleteFile(existingTag.TagPhotoUrl);
             }
-            var photoSaveResult = await _fileService.SaveImageFile(request.TagPhotoUrl);
-            if (!photoSaveResult.Success)
+            if (existingTag.TagPhotoUrl != null)
             {
-                throw new Exception(photoSaveResult.Message);
+                existingTag.TagPhotoUrl= request.TagPhotoUrl;
             }
             existingTag.TagName = request.TagName;
-            existingTag.TagPhotoUrl = photoSaveResult.Data;
             existingTag.TagVi = request.TagVi;
             _unitOfWork.RepositoryTag.Update(existingTag);
             await _unitOfWork.CommitAsync();

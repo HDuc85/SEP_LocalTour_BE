@@ -58,7 +58,7 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpPut("update")]
-        public async Task<ActionResult<ServiceResponseModel<TagRequest>>> UpdateTag(int tagid, TagRequest request)
+        public async Task<ActionResult<ServiceResponseModel<TagUpdateRequest>>> UpdateTag(int tagid,[FromForm] TagUpdateRequest request)
         {
             if (request == null)
             {
