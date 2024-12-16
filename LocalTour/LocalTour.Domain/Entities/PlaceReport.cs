@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace LocalTour.Domain.Entities;
 
@@ -13,6 +14,8 @@ public partial class PlaceReport
     
     public string Content { get; set; } = null!;
 
+    [JsonIgnore]
     public virtual User UserReport { get; set; } = null!;
+    [JsonIgnore]
     public virtual Place Place { get; set; } = null!;
 }
