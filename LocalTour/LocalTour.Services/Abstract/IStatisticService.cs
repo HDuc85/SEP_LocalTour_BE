@@ -6,4 +6,5 @@ public interface IStatisticService
   public  Task<int> GetTotalSuccessfulTravelsAsync(DateTime startDate, DateTime endDate);
   public  Task<int> GetTotalSchedulesCreatedAsync(DateTime startDate, DateTime endDate);
   public  Task<int> GetTotalPostsCreatedAsync(DateTime startDate, DateTime endDate);
+    Task<Dictionary<int, int>> GetModApprovedPlaceByMonthAsync(int year);
 }

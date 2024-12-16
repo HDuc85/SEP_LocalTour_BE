@@ -75,7 +75,22 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
             }
         }
-        
+        [HttpGet("GetModApprovedPlaceByMonthAsync")]
+        // [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> GetModApprovedPlaceByMonthAsync(int year)
+        {
+            try
+            {
+                var result = await _statistics.GetModApprovedPlaceByMonthAsync(year);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
+            }
+        }
+
     }
 
 }

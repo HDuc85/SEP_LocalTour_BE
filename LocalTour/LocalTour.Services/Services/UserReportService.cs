@@ -60,9 +60,9 @@ namespace LocalTour.Services.Services
 
             var reportEntity = new UserReport()
             {
-                UserReportId = report.UserId,
+                UserReportId = xserReportId,
                 ReportDate = DateTime.Now,
-                UserId = xserReportId,
+                UserId = report.UserId,
                 Content = report.Content,
                 Status = "Pending",
             };

@@ -64,9 +64,36 @@ public class StatisticService : IStatisticService
             .CountAsync();
         return total;
     }
+    public async Task<Dictionary<int, int>> GetModApprovedPlaceByMonthAsync(int year)
+    {
+        var registrationByMonth = new Dictionary<int, int>();
+
+        for (int month = 1; month <= 12; month++)
+        {
+            registrationByMonth[month] = 0;
+        }
+
+        var users = await _unitOfWork.RepositoryPlace.GetDataQueryable()
+            .Where(u => u.ApprovedTime.HasValue && u.ApprovedTime.Value.Year == year)
+            .GroupBy(u => u.ApprovedTime.Value.Month)
+            .Select(group => new
+            {
+                Month = group.Key,
+                Count = group.Count()
+            })
+            .ToListAsync();
 
 
-    
+        foreach (var userGroup in users)
+        {
+            registrationByMonth[userGroup.Month] = userGroup.Count;
+        }
 
-    
+        return registrationByMonth;
+    }
+
+
+
+
+
 }
