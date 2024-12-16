@@ -36,6 +36,7 @@ public static class QueryableExtensions
                      typeof(TEntity) == typeof(PlaceActivity) ? nameof(PlaceActivity.Id) :
                      typeof(TEntity) == typeof(PlaceFeeedback) ? nameof(PlaceFeeedback.Id) :
                      typeof(TEntity) == typeof(Tag) ? nameof(Tag.Id) :
+                     typeof(TEntity) == typeof(PlaceReport) ? nameof(PlaceReport.Id) :
                      throw new ArgumentException("Invalid sortBy property.");
         }
 

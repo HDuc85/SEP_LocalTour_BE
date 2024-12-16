@@ -11,5 +11,6 @@ namespace LocalTour.Services.Abstract
         Task<IEnumerable<PlaceReportRequest>> GetReportsByTag(int tagId);
         Task<PlaceReportRequest?> UpdateReport(int id, PlaceReportRequest request);
         Task<bool> DeleteReport(int id);
+        Task<PaginatedList<PlaceReportVM>> GetAllPlaceReportByMod(PlaceReportViewModel request, String userId);
     }
 }

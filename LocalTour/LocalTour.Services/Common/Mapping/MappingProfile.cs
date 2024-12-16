@@ -87,6 +87,7 @@ public class MappingProfile : Profile
 
         CreateMap<PlaceReport, PlaceReportRequest>()
                         .ForMember(dest => dest.Message, opt => opt.MapFrom(src => src.Content));
+        CreateMap<PlaceReport, PlaceReportVM>();
 
         // Add mapping for UserPreferenceTagsRequest to UserPreferenceTags
         CreateMap<UserPreferenceTagsRequest, UserPreferenceTags>()

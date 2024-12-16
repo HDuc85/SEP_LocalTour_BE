@@ -2,8 +2,10 @@
 using LocalTour.Data.Abstract;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
+using LocalTour.Services.Extensions;
 using LocalTour.Services.ViewModel;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace LocalTour.Services.Services
 {
@@ -101,6 +103,39 @@ namespace LocalTour.Services.Services
             _unitOfWork.RepositoryPlaceReport.Delete(reportEntity);
             await _unitOfWork.CommitAsync();
             return true;
+        }
+
+        public async Task<PaginatedList<PlaceReportVM>> GetAllPlaceReportByMod(PlaceReportViewModel request,String userId)
+        {
+           
+            var modTags = await _unitOfWork.RepositoryModTag.GetAll()
+                .Where(mt => mt.UserId == Guid.Parse(userId))
+                .Select(s => s.DistrictNcityId)
+                .ToListAsync();
+
+            if (request.DistrictNCityIds != null && request.DistrictNCityIds.Any())
+            {
+                modTags = modTags.Where(x => request.DistrictNCityIds.Contains(x)).ToList();
+            }
+            IQueryable<PlaceReport> reports;
+                reports = _unitOfWork.RepositoryPlaceReport.GetAll()
+                        .Include(y => y.UserReport)
+                        .Include(z => z.Place)
+                        .Where(x => modTags.Contains(x.Place.Ward.DistrictNcityId))
+                        .AsQueryable();
+
+            if (request.Status != null)
+            {
+                reports = reports.Where(p => p.Status == request.Status);
+            }
+
+            return await reports
+                .ListPaginateWithSortAsync<PlaceReport, PlaceReportVM>(
+                    request.Page,
+                    request.Size,
+                    request.SortBy,
+                    request.SortOrder,
+                    _mapper.ConfigurationProvider);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
+using LocalTour.Services.Services;
 using LocalTour.Services.ViewModel;
 using LocalTour.WebApi.Helper;
 using Microsoft.AspNetCore.Authorization;
@@ -80,6 +81,20 @@ namespace LocalTour.WebApi.Controllers
             if (!result) return NotFound();
 
             return NoContent();
+        }
+        [HttpGet("getAllByMod")]
+        //[Authorize]
+        public async Task<ActionResult<PaginatedList<PlaceReportVM>>> GetAllPlaceReportByMod([FromQuery] PlaceReportViewModel request)
+        {
+            try
+            {
+                var reports = await _placeReportService.GetAllPlaceReportByMod(request, User.GetUserId());
+                return Ok(reports);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, new ApiReponseModel<PlaceReportVM>(false, $"An error occurred: {ex.Message}"));
+            }
         }
     }
 }
