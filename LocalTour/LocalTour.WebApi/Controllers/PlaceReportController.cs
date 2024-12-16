@@ -1,4 +1,5 @@
-﻿using LocalTour.Services.Abstract;
+﻿using LocalTour.Domain.Entities;
+using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
 using LocalTour.Services.Services;
 using LocalTour.Services.ViewModel;
@@ -44,7 +45,7 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ServiceResponseModel<PlaceReportRequest>>> GetPlaceReportById(int id)
+        public async Task<ActionResult<ServiceResponseModel<PlaceReportVM>>> GetPlaceReportById(int id)
         {
             var report = await _placeReportService.GetPlaceReportById(id);
             if (report == null)
@@ -52,7 +53,7 @@ namespace LocalTour.WebApi.Controllers
                 return NotFound(new ServiceResponseModel<PlaceReportRequest>(false, "Place report not found"));
             }
 
-            return Ok(new ServiceResponseModel<PlaceReportRequest>(report));
+            return Ok(new ServiceResponseModel<PlaceReportVM>(report));
         }
 
         // Endpoint để lấy báo cáo theo tag

@@ -5,6 +5,7 @@ using LocalTour.Services.Abstract;
 using LocalTour.Services.Extensions;
 using LocalTour.Services.ViewModel;
 using Microsoft.EntityFrameworkCore;
+using System.Numerics;
 using System.Security.Claims;
 
 namespace LocalTour.Services.Services
@@ -64,10 +65,14 @@ namespace LocalTour.Services.Services
             return _mapper.Map<IEnumerable<PlaceReportRequest>>(reports);
         }
 
-        public async Task<PlaceReportRequest?> GetPlaceReportById(int id)
+        public async Task<PlaceReportVM> GetPlaceReportById(int id)
         {
-            var report = await _unitOfWork.RepositoryPlaceReport.GetById(id);
-            return _mapper.Map<PlaceReportRequest>(report);
+            var report = await _unitOfWork.RepositoryPlaceReport.GetDataQueryable()
+                .Include(pr => pr.UserReport)
+                .Include(pr => pr.Place)
+                .Include(pr => pr.Place.PlaceTranslations)
+                .FirstOrDefaultAsync(e => e.Id == id);
+            return _mapper.Map<PlaceReportVM>(report);
         }
 
         // Thêm phương thức để lấy báo cáo theo tag
@@ -127,6 +132,13 @@ namespace LocalTour.Services.Services
             if (request.Status != null)
             {
                 reports = reports.Where(p => p.Status == request.Status);
+            }
+            if (request.SearchTerm is not null)
+            {
+                reports = reports.Where(e =>
+                        (e.Place.PlaceTranslations != null && e.Place.PlaceTranslations.Any(t => t.Name.Contains(request.SearchTerm))) ||
+                        (e.UserReport != null && e.UserReport.UserName.Contains(request.SearchTerm))
+);
             }
 
             return await reports
