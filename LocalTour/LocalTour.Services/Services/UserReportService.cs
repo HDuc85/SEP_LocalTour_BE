@@ -60,10 +60,10 @@ namespace LocalTour.Services.Services
 
             var reportEntity = new UserReport()
             {
-                UserReportId = xserReportId,
+                UserReportId = report.UserId,
                 ReportDate = DateTime.Now,
-                //UserId = report.UserId,
-                //Content = report.Content,
+                UserId = xserReportId,
+                Content = report.Content,
                 Status = "Pending",
             };
             await _unitOfWork.RepositoryUserReport.Insert(reportEntity);
