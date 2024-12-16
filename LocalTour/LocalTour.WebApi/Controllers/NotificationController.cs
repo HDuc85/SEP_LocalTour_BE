@@ -1,4 +1,5 @@
 ﻿using LocalTour.Services.Abstract;
+using LocalTour.Services.ViewModel;
 using LocalTour.WebApi.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -57,9 +58,9 @@ namespace LocalTour.WebApi.Controllers
 
         [HttpPost("notificationEvent")]
         [Authorize(Roles = "Administrator,Moderator")]
-        public async Task<IActionResult> NotificationEvent([FromForm] int eventId, string title, string body, DateTime timeSend)
+        public async Task<IActionResult> NotificationEvent([FromBody] int eventId, string title, string body)
         {
-            var result = await _notificationService.SetNotificationForEvent(User.GetUserId(), eventId, title, body, timeSend);
+            var result = await _notificationService.SetNotificationForEvent(eventId, title,body);
             if (!result.IsNullOrEmpty())
             {
                 return Ok(result);
@@ -77,6 +78,21 @@ namespace LocalTour.WebApi.Controllers
             }
             return BadRequest();
         }
+        
+        [HttpDelete("deleteNotification")]
+        [Authorize]
+        public async Task<IActionResult> DeleteNotification([FromBody] TokenRequest deviceToken)
+        {
+            try
+            {
+                var result = await _notificationService.DeleteNotification(User.GetUserId(), deviceToken.Token);  
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }   
+        }
 
         [HttpPost("SendNotificationNow")]
         [Authorize(Roles = "Administrator,Moderator")]
@@ -89,6 +105,21 @@ namespace LocalTour.WebApi.Controllers
                 return Ok(result);
             }
             return BadRequest();
+        }
+
+        [HttpPost("AddDeviceToken")]
+        [Authorize]
+        public async Task<IActionResult> AddDeviceToken([FromBody] TokenRequest deviceToken)
+        {
+            try
+            {
+                var result = await _notificationService.AddDeviceToken(User.GetUserId(), deviceToken.Token);  
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+               return BadRequest(e.Message);
+            }   
         }
     }
 }

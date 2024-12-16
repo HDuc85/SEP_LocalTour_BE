@@ -1,9 +1,11 @@
 ﻿using FirebaseAdmin.Messaging;
 using LocalTour.Data.Abstract;
+using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
+using Notification = FirebaseAdmin.Messaging.Notification;
 
 namespace LocalTour.Services.Services;
 
@@ -75,44 +77,50 @@ public class NotificaitonService : INotificationService
             return false; 
         }
     }
-    public async Task<string> SetNotificationForEvent(string userId, int eventId, string title, string body, DateTime timeSend)
+    public async Task<string> SetNotificationForEvent(int eventId, string title, string body)
     {
         var envent = await _unitOfWork.RepositoryEvent.GetById(eventId);
         if (envent == null)
         {
             return "Event not found";
         }
-        var users = await _unitOfWork.RepositoryMarkPlace.GetData(x => x.PlaceId == envent.PlaceId);
+        
+        var tag =  _unitOfWork.RepositoryPlaceTag.GetDataQueryable(x => x.PlaceId == envent.PlaceId)
+            .Select(x => x.TagId)
+            .ToList();
+        
+        var users =  _unitOfWork.RepositoryUserPreferenceTags.
+            GetDataQueryable(x => tag.Contains(x.TagId)).ToList();
         if (users.Any())
         {
-            var devices = await _unitOfWork.RepositoryUserDevice.GetData();
-            
-            var notification = new Domain.Entities.Notification
-            {
-                Title = title,
-                UserId = Guid.Parse(userId),
-                NotificationType = "Event",
-                TimeSend = timeSend,
-                Message = body,
-                DateCreated = DateTime.Now,
-            };
-            await _unitOfWork.RepositoryNotification.Insert(notification);
-            await _unitOfWork.CommitAsync();
-            var userNotifications = new List<Domain.Entities.UserNotification>();
+            var userIds = users.Select(x => x.UserId).ToList();
+            var devices = _unitOfWork.RepositoryUserDevice
+                .GetDataQueryable(x => userIds.Contains(x.UserId)).Select(x => x.DeviceId).ToList();
+            string results ="Success";
+
             foreach (var device in devices)
             {
-                userNotifications.Add(new Domain.Entities.UserNotification
+                var message = new Message()
                 {
-                    NotificationId = notification.Id,
-                    UserId = device.UserId,
-                    IsReaded = false,
-                });
-            }
-            var result = await ScheduleNotification(devices.Select(x => x.DeviceId).ToList(),notification.Id,  title, body, timeSend);
+                    Notification = new Notification()
+                    {
+                        Title = title,
+                        Body = body,
+                    },
+                    Data = new Dictionary<string, string>()
+                    {
+                        { "title", title },
+                        { "body", body },
+                        { "placeId", envent.PlaceId.ToString() },
+                        { "eventId", envent.Id.ToString() },
+                    },
+                    Token = device,
+                };
 
-            await _unitOfWork.RepositoryUserNotification.Insert(userNotifications);
-            await _unitOfWork.CommitAsync();
-            return result;
+                string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
+            }
+            
+            return results;
         }
 
         return string.Empty;
@@ -214,5 +222,61 @@ public class NotificaitonService : INotificationService
             return messId;
         }
         return string.Empty;
+    }
+
+    public async Task<string> AddDeviceToken(string userId, string deviceToken)
+    {
+        var user =  _unitOfWork.RepositoryUserDevice.GetDataQueryable(x => x.UserId == Guid.Parse(userId)).ToList();
+        if (user != null)
+        {
+            var isExist = user.Any(x => x.DeviceId == deviceToken);
+            if (isExist)
+            {
+                return "Device token already exist";
+            }
+        }
+        try
+        {
+            UserDevice newUserDevice = new UserDevice()
+            {
+                UserId = Guid.Parse(userId),
+                DeviceId = deviceToken,
+            };
+            await _unitOfWork.RepositoryUserDevice.Insert(newUserDevice);
+            await _unitOfWork.CommitAsync();
+            return "Success";
+        }
+        catch (Exception e)
+        {
+           
+            throw new Exception("Server error");
+        }
+
+    }
+    public async Task<string> DeleteNotification(string userId, string deviceToken)
+    {
+        var user =  _unitOfWork.RepositoryUserDevice.
+            GetDataQueryable(x => x.UserId == Guid.Parse(userId)
+            && x.DeviceId == deviceToken).ToList();
+        if (user != null)
+        {
+            var isExist = user.Any(x => x.DeviceId == deviceToken);
+            if (isExist)
+            {
+                return "Device token already exist";
+            }
+        }
+        try
+        {
+             _unitOfWork.RepositoryUserDevice.Delete(user.FirstOrDefault());
+            await _unitOfWork.CommitAsync();
+            return "Success";
+        }
+        catch (Exception e)
+        {
+           
+            throw new Exception("Server error");
+        }
+
     }
 }
