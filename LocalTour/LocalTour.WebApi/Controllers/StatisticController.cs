@@ -1,4 +1,5 @@
 ﻿using LocalTour.Services.Abstract;
+using LocalTour.WebApi.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.Elfie.Diagnostics;
@@ -75,13 +76,43 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
             }
         }
-        [HttpGet("GetModApprovedPlaceByMonthAsync")]
+        [HttpGet("GetTotalModApprovedPlaceByMonthAsync")]
         // [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> GetModApprovedPlaceByMonthAsync(int year)
         {
             try
             {
                 var result = await _statistics.GetModApprovedPlaceByMonthAsync(year);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
+            }
+        }
+        [HttpGet("GetModApprovedPlaceByMonthAsync")]
+        [Authorize]
+        public async Task<IActionResult> GetModApprovedByMonthAsync(int year)
+        {
+            try
+            {
+                var result = await _statistics.GetModApprovedByMonthAsync(year, User.GetUserId());
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
+            }
+        }
+        [HttpGet("GetTotalModApprovedAsync")]
+        [Authorize]
+        public async Task<IActionResult> GetTotalModApprovedAsync()
+        {
+            try
+            {
+                var result = await _statistics.GetTotalModApprovedAsync(User.GetUserId());
 
                 return Ok(result);
             }

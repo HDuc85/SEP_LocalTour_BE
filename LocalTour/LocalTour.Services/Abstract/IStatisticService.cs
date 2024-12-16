@@ -7,4 +7,6 @@ public interface IStatisticService
   public  Task<int> GetTotalSchedulesCreatedAsync(DateTime startDate, DateTime endDate);
   public  Task<int> GetTotalPostsCreatedAsync(DateTime startDate, DateTime endDate);
     Task<Dictionary<int, int>> GetModApprovedPlaceByMonthAsync(int year);
+    Task<Dictionary<int, int>> GetModApprovedByMonthAsync(int year, String userId);
+    Task<int> GetTotalModApprovedAsync(String userId);
 }

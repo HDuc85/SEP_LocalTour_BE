@@ -91,9 +91,41 @@ public class StatisticService : IStatisticService
 
         return registrationByMonth;
     }
+    public async Task<Dictionary<int, int>> GetModApprovedByMonthAsync(int year, String userId)
+    {
+        var registrationByMonth = new Dictionary<int, int>();
+        int curentmonth = DateTime.Now.Month;
+
+        for (int month = 1; month <= curentmonth; month++)
+        {
+            registrationByMonth[month] = 0;
+        }
+
+        var users = await _unitOfWork.RepositoryPlace.GetDataQueryable()
+            .Where(u => u.ApprovedTime.HasValue && u.ApprovedTime.Value.Year == year)
+            .Where(u => u.ApproverId == Guid.Parse(userId) )
+            .GroupBy(u => u.ApprovedTime.Value.Month)
+            .Select(group => new
+            {
+                Month = group.Key,
+                Count = group.Count()
+            })
+            .ToListAsync();
 
 
+        foreach (var userGroup in users)
+        {
+            registrationByMonth[userGroup.Month] = userGroup.Count;
+        }
 
-
+        return registrationByMonth;
+    }
+    public async Task<int> GetTotalModApprovedAsync(String userId)
+    {
+        var total = await _unitOfWork.RepositoryPlace.GetDataQueryable()
+            .Where(u => u.ApproverId == Guid.Parse(userId))
+            .CountAsync();
+        return total;
+    }
 
 }
