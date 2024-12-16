@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace LocalTour.Domain.Entities;
 
@@ -34,6 +35,7 @@ public partial class User : IdentityUser<Guid>
     public virtual ICollection<UserReport> UserReporteds { get; set; } = new List<UserReport>();
 
     public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
+    [JsonIgnore]
     public virtual ICollection<PlaceReport> UserReportPlaces { get; set; } = new List<PlaceReport>();
     public virtual ICollection<UserPreferenceTags> UserPreferenceTags { get; set; } = new List<UserPreferenceTags>();
     public virtual ICollection<UserNotification> UserNotifications { get; set; } = new List<UserNotification>();

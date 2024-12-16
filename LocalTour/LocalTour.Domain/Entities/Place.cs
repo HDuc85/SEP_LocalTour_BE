@@ -40,6 +40,7 @@ public partial class Place
     public virtual ICollection<PlaceFeeedback> PlaceFeeedbacks { get; set; } = new List<PlaceFeeedback>();
 
     public virtual ICollection<PlaceMedium> PlaceMedia { get; set; } = new List<PlaceMedium>();
+    [JsonIgnore]
 
     public virtual ICollection<PlaceReport> PlaceReports { get; set; } = new List<PlaceReport>();
 

@@ -19,10 +19,10 @@ namespace LocalTour.Services.ViewModel
 
             public string Content { get; set; } = null!;
 
-            //[JsonIgnore]
-            //public virtual User UserReport { get; set; } = null!;
-            //[JsonIgnore]
-            //public virtual Place Place { get; set; } = null!;
-        
+        //[JsonIgnore]
+        public virtual User UserReport { get; set; } = null!;
+        //[JsonIgnore]
+        public virtual Place Place { get; set; } = null!;
+
     }
 }
