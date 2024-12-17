@@ -16,6 +16,7 @@ builder.Services.RegesterContextDb(builder.Configuration);
 builder.Services.RegesterDI(builder.Configuration);
 builder.Services.RegesterIdentity(builder.Configuration);
 builder.Services.RegesterTokenBearer(builder.Configuration);
+builder.Services.RegesterPayOS(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddMemoryCache();
 builder.Services.AddControllers();

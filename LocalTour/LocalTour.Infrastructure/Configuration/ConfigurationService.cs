@@ -13,6 +13,7 @@ using Service.Common.Mapping;
 using System.Text;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using Net.payOS;
 using Quartz;
 using Quartz.Impl;
 
@@ -156,15 +157,15 @@ namespace LocalTour.Infrastructure.Configuration
 
         }
 
-        public static void RegesterQuazrtz(this IServiceCollection service)
+        public static void RegesterPayOS(this IServiceCollection service,IConfiguration configuration)
         {
-            service.AddQuartz(options =>
-            {
-                options.UseMicrosoftDependencyInjectionJobFactory();
-            });
-            service.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
+            PayOS payOS = new PayOS(configuration["PayOS:clientID"]
+                , configuration["PayOS:apiKey"]
+                , configuration["PayOS:checkSumKey"]);
+            service.AddSingleton(payOS);
         }
-
+        
+      
     }
 
 }

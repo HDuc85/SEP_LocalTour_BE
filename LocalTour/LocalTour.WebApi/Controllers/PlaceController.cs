@@ -5,8 +5,10 @@ using LocalTour.Services.Model;
 using LocalTour.Services.Services;
 using LocalTour.Services.ViewModel;
 using LocalTour.Services.ViewModel;
+using LocalTour.WebApi.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Net.payOS.Types;
 
 namespace LocalTour.WebApi.Controllers
 {
@@ -157,6 +159,39 @@ namespace LocalTour.WebApi.Controllers
             catch (Exception ex)
             {
                 return StatusCode(400, new ApiReponseModel<PlaceVM>(false, $"An error occurred: {ex.Message}"));
+            }
+        }
+        
+        [HttpGet("GetUrlPlaceRegister")]
+       // [Authorize]
+        public async Task<ActionResult<PaginatedList<PlaceVM>>> CreatePaymentPlaceRegister(int placeId)
+        {
+            try
+            {
+                //var userId = User.GetUserId();
+                var userId = "a487545c-c732-4b58-b1bf-830258328184";
+                var places = await _placeService.CreatePaymentPlaceRegister(placeId,userId);
+                return Ok(places);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, ex.Message);
+            }
+        }
+        [HttpPost("ComfirmPaymentRegister")]
+        // [Authorize]
+        public async Task<ActionResult<PaginatedList<PlaceVM>>> ComfirmPaymentRegister(WebhookType body)
+        {
+            try
+            {
+                var places = await _placeService.ComfirmPaymentRegister(body);
+                if(places)
+                    return Ok(places);
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, ex.Message);
             }
         }
     }

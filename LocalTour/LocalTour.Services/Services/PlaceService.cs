@@ -21,6 +21,8 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
+using Net.payOS;
+using Net.payOS.Types;
 
 namespace LocalTour.Services.Services
 {
@@ -31,13 +33,18 @@ namespace LocalTour.Services.Services
         private readonly IMapper _mapper;
         private readonly IFileService _fileService;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public PlaceService(IUnitOfWork unitOfWork, IMapper mapper,IUserService userService, IFileService fileService, IHttpContextAccessor httpContextAccessor)
+        private readonly IConfiguration _configuration;
+        private readonly PayOS _payOS;
+
+        public PlaceService(IUnitOfWork unitOfWork, IMapper mapper,IUserService userService, IFileService fileService, IHttpContextAccessor httpContextAccessor, IConfiguration configuration, PayOS payOS)
         {
             _userService = userService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _fileService = fileService;
             _httpContextAccessor = httpContextAccessor;
+            _configuration = configuration;
+            _payOS = payOS;
         }
         public async Task<PlaceRequest> CreatePlace(PlaceRequest place)
         {
@@ -569,6 +576,50 @@ namespace LocalTour.Services.Services
                     userTags,
                     userId,
                     _mapper.ConfigurationProvider);
+        }
+
+        public async Task<CreatePaymentResult> CreatePaymentPlaceRegister(int placeId, string userId)
+        {
+            var place = await _unitOfWork.RepositoryPlace.GetById(placeId);
+            if (place == null)
+            {
+                throw new Exception("Place is not exists.");
+            }
+            var user = await _unitOfWork.RepositoryUser.GetById(Guid.Parse(userId));
+            if (place.AuthorId != user.Id)
+            {
+                throw new Exception("User does not have permission to access this page.");
+            }
+
+            long orderCode = place.Id;
+            ItemData item = new ItemData("Register place", 1, int.Parse(_configuration["PayOS:placeRegisterPrice"]?? "50000"));
+            List<ItemData> items = new List<ItemData>();
+            items.Add(item);
+            PaymentData paymentData = new PaymentData(orderCode,
+                int.Parse(_configuration["PayOS:placeRegisterPrice"]?? "50000"),
+                $"Register placeId {place.Id}",
+                items,
+                _configuration["PayOS:cancelUrl"],
+                _configuration["PayOS:successUrl"]);
+            
+            CreatePaymentResult createPayment = await _payOS.createPaymentLink(paymentData);
+            return createPayment;
+        }
+
+        public async Task<bool> ComfirmPaymentRegister(WebhookType body)
+        {
+            if (body.success)
+            {
+                WebhookData data = _payOS.verifyPaymentWebhookData(body);
+                var place = await _unitOfWork.RepositoryPlace.GetById(Convert.ToInt32(data.orderCode));
+                if (place != null)
+                {
+                    place.Status = "Pending";
+                }
+                _unitOfWork.RepositoryPlace.Update(place);
+                await _unitOfWork.CommitAsync();
+            }
+            return false;            
         }
     }
 

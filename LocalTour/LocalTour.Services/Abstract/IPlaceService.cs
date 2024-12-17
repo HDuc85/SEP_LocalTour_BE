@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Net.payOS.Types;
 
 namespace LocalTour.Services.Abstract
 {
@@ -19,5 +20,7 @@ namespace LocalTour.Services.Abstract
                 Task<bool> DeletePlace(int placeid);
                 Task<List<TagViewModel>> GetTagsByPlaceId(int placeid);
                 Task<PaginatedList<PlaceVM>> GetAllPlaceByRole(GetPlaceRequest request);
+                Task<CreatePaymentResult> CreatePaymentPlaceRegister(int placeId, string userId);
+                Task<bool> ComfirmPaymentRegister(WebhookType body);
         }
 }
