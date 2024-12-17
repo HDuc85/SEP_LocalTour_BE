@@ -149,5 +149,16 @@ namespace LocalTour.Services.Services
                     request.SortOrder,
                     _mapper.ConfigurationProvider);
         }
+        public async Task<PlaceReport> ChangeStatusPlaceReport(int placereportid, string status)
+        {
+            var existingPlacereport = await _unitOfWork.RepositoryPlaceReport.GetById(placereportid);
+            if (existingPlacereport == null)
+            {
+                throw new ArgumentException($" {placereportid} not found.");
+            }
+            existingPlacereport.Status = status;
+            await _unitOfWork.CommitAsync();
+            return existingPlacereport;
+        }
     }
 }
