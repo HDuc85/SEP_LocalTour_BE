@@ -12,5 +12,6 @@ namespace LocalTour.Services.Abstract
         Task<PlaceReportRequest?> UpdateReport(int id, PlaceReportRequest request);
         Task<bool> DeleteReport(int id);
         Task<PaginatedList<PlaceReportVM>> GetAllPlaceReportByMod(PlaceReportViewModel request, String userId);
+        Task<PlaceReport> ChangeStatusPlaceReport(int placereportid, string status);
     }
 }

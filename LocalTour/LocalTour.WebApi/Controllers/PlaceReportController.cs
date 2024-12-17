@@ -97,5 +97,18 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(400, new ApiReponseModel<PlaceReportVM>(false, $"An error occurred: {ex.Message}"));
             }
         }
+        [HttpPut("changeStatusPlaceReport")]
+        public async Task<ActionResult<PlaceReport>> ChangeStatusPlaceReport([FromQuery] int placereportid, [FromQuery] string status)
+        {
+            try
+            {
+                var placeEntity = await _placeReportService.ChangeStatusPlaceReport(placereportid, status);
+                return Ok(placeEntity);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiReponseModel<Place>(false, $"An error occurred: {ex.Message}"));
+            }
+        }
     }
 }
