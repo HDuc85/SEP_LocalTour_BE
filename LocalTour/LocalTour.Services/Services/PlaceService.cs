@@ -68,7 +68,8 @@ namespace LocalTour.Services.Services
                 PhotoDisplay = photos.Data,
                 ContactLink = place.ContactLink,
                 AuthorId = userId,
-                Status = "Pending",
+                Status = "Unpaid",
+                BRC = place.BRC,
             };
             await _unitOfWork.RepositoryPlace.Insert(placeEntity);
             await _unitOfWork.CommitAsync();
@@ -591,35 +592,57 @@ namespace LocalTour.Services.Services
                 throw new Exception("User does not have permission to access this page.");
             }
 
-            long orderCode = place.Id;
+            long orderCode = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             ItemData item = new ItemData("Register place", 1, int.Parse(_configuration["PayOS:placeRegisterPrice"]?? "50000"));
             List<ItemData> items = new List<ItemData>();
             items.Add(item);
             PaymentData paymentData = new PaymentData(orderCode,
+                //2000,
                 int.Parse(_configuration["PayOS:placeRegisterPrice"]?? "50000"),
                 $"Register placeId {place.Id}",
                 items,
-                _configuration["PayOS:cancelUrl"],
-                _configuration["PayOS:successUrl"]);
+                $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/api/Place/PlaceCancelPayment",
+                $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/api/Place/PlaceSuccessPayment");
             
             CreatePaymentResult createPayment = await _payOS.createPaymentLink(paymentData);
+            _unitOfWork.RepositoryPlacePayment.Insert(new PlacePayment()
+            {
+                OrderCode = orderCode,
+                PlaceId = place.Id,
+                Status = "Created",
+            });
+            await _unitOfWork.CommitAsync();
             return createPayment;
         }
 
-        public async Task<bool> ComfirmPaymentRegister(WebhookType body)
+        public async Task<string> PlaceSuccessPayment(long orderCode, string status)
         {
-            if (body.success)
+           var placePayment = await _unitOfWork.RepositoryPlacePayment.GetDataQueryable(x => x.OrderCode == orderCode).FirstOrDefaultAsync();
+           if (placePayment == null)
+           {
+               throw new Exception("OrderCode is not exists.");
+           }
+           var place = await _unitOfWork.RepositoryPlace.GetById(placePayment.PlaceId);
+           placePayment.Status = status;
+           place.Status = "Pending";
+           _unitOfWork.RepositoryPlacePayment.Update(placePayment);
+           _unitOfWork.RepositoryPlace.Update(place);
+           await _unitOfWork.CommitAsync();
+           
+           return _configuration["PayOS:successUrl"];
+        }
+        
+        public async Task<string> PlaceCancelPayment(long orderCode, string status)
+        {
+            var placePayment = await _unitOfWork.RepositoryPlacePayment.GetDataQueryable(x => x.OrderCode == orderCode).FirstOrDefaultAsync();
+            if (placePayment == null)
             {
-                WebhookData data = _payOS.verifyPaymentWebhookData(body);
-                var place = await _unitOfWork.RepositoryPlace.GetById(Convert.ToInt32(data.orderCode));
-                if (place != null)
-                {
-                    place.Status = "Pending";
-                }
-                _unitOfWork.RepositoryPlace.Update(place);
-                await _unitOfWork.CommitAsync();
+                throw new Exception("OrderCode is not exists.");
             }
-            return false;            
+            placePayment.Status = status;
+            _unitOfWork.RepositoryPlacePayment.Update(placePayment);
+            await _unitOfWork.CommitAsync();
+            return _configuration["PayOS:cancelUrl"];
         }
     }
 

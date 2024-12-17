@@ -87,6 +87,8 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
     public virtual DbSet<UserNotification> UserNotifications { get; set; }
     public virtual DbSet<Banner> Banners { get; set; }
     public virtual DbSet<BannerHistory> BannerHistories { get; set; }
+    public virtual DbSet<PlacePayment> PlacePayments { get; set; }
+    public virtual DbSet<ModCheckPlace> ModCheckPlaces { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -94,6 +96,25 @@ public partial class LocalTourDbContext : IdentityDbContext<User,Role,Guid>
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<PlacePayment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("PlacePayment");
+        });
+        
+        modelBuilder.Entity<ModCheckPlace>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("ModCheckPlace");
+
+            entity.HasOne(d => d.Place).WithMany(p => p.ModCheckPlaces)
+                .HasForeignKey(d => d.PlaceId);
+            entity.HasOne(d => d.Mod).WithMany(p => p.ModCheckPlaces)
+                .HasForeignKey(d => d.ModId);
+        });
+        
         modelBuilder.Entity<Banner>(entity =>
         {
             entity.HasKey(e => e.Id);

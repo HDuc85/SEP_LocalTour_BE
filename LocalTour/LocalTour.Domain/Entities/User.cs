@@ -41,5 +41,8 @@ public partial class User : IdentityUser<Guid>
     public virtual ICollection<UserNotification> UserNotifications { get; set; } = new List<UserNotification>();
     public virtual ICollection<Banner> Banners { get; set; } = new List<Banner>();
     public virtual ICollection<BannerHistory> ApprovedBannerHistories { get; set; } = new List<BannerHistory>();
+    [JsonIgnore]
+    public virtual ICollection<ModCheckPlace> ModCheckPlaces { get; set; } = new List<ModCheckPlace>();
+
     
 }

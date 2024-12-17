@@ -21,6 +21,7 @@ namespace LocalTour.Services.Abstract
                 Task<List<TagViewModel>> GetTagsByPlaceId(int placeid);
                 Task<PaginatedList<PlaceVM>> GetAllPlaceByRole(GetPlaceRequest request);
                 Task<CreatePaymentResult> CreatePaymentPlaceRegister(int placeId, string userId);
-                Task<bool> ComfirmPaymentRegister(WebhookType body);
+                Task<string> PlaceSuccessPayment(long orderCode, string status);
+                Task<string> PlaceCancelPayment(long orderCode, string status);
         }
 }

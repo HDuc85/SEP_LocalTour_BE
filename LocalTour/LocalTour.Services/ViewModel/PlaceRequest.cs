@@ -21,6 +21,8 @@ public class PlaceRequest
     public double Latitude { get; set; }
     public string ContactLink { get; set; }
     public List<int> Tags { get; set; }
+    
+    public string? BRC { get; set; }
     public List<IFormFile>? PlaceMedia { get; set; }
     [ModelBinder(BinderType = typeof(FromJsonBinder))]
     public List<PlaceTranslationRequest> PlaceTranslation { get; set; }

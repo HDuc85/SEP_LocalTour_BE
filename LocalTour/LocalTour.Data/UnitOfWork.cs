@@ -47,11 +47,27 @@ namespace LocalTour.Data
         Repository<UserReport> _repositoryUserReport;
         Repository<Banner> _repositoryBanner;
         Repository<BannerHistory> _repositoryBannerHistory;
+        Repository<PlacePayment> _repositoryPlacePayment;
+        Repository<ModCheckPlace> _repositoryModCheckPlace;
 
 
         public UnitOfWork(LocalTourDbContext db)
         {
             _db = db;
+        }
+        public Repository<PlacePayment> RepositoryPlacePayment
+        {
+            get
+            {
+                return _repositoryPlacePayment ??= new Repository<PlacePayment>(_db);
+            }
+        }
+        public Repository<ModCheckPlace> RepositoryModCheckPlace
+        {
+            get
+            {
+                return _repositoryModCheckPlace ??= new Repository<ModCheckPlace>(_db);
+            }
         }
         public Repository<Banner> RepositoryBanner
         {
@@ -59,7 +75,8 @@ namespace LocalTour.Data
             {
                 return _repositoryBanner ??= new Repository<Banner>(_db);
             }
-        }public Repository<BannerHistory> RepositoryBannerHistory
+        }
+        public Repository<BannerHistory> RepositoryBannerHistory
         {
             get
             {

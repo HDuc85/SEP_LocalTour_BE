@@ -29,7 +29,11 @@ public partial class Place
     public DateTime? ApprovedTime { get; set; }
 
     public Guid AuthorId { get; set; }
+    
+    public string? BRC  { get; set; }
     public virtual ICollection<Destination> Destinations { get; set; } = new List<Destination>();
+    [JsonIgnore]
+    public virtual ICollection<ModCheckPlace> ModCheckPlaces { get; set; } = new List<ModCheckPlace>();
 
     public virtual ICollection<Event> Events { get; set; } = new List<Event>();
 

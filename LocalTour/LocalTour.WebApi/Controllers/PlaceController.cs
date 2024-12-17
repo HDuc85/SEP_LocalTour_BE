@@ -1,4 +1,5 @@
-﻿using Azure.Core;
+﻿using Azure;
+using Azure.Core;
 using LocalTour.Domain.Entities;
 using LocalTour.Services.Abstract;
 using LocalTour.Services.Model;
@@ -8,7 +9,9 @@ using LocalTour.Services.ViewModel;
 using LocalTour.WebApi.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Net.payOS;
 using Net.payOS.Types;
+using Response = LocalTour.Services.ViewModel.Response;
 
 namespace LocalTour.WebApi.Controllers
 {
@@ -18,9 +21,11 @@ namespace LocalTour.WebApi.Controllers
     public class PlaceController : ControllerBase
     {
         private readonly IPlaceService _placeService;
-        public PlaceController(IPlaceService placeService)
+        private readonly PayOS _payOS;
+        public PlaceController(IPlaceService placeService, PayOS payOS)
         {
             _placeService = placeService;
+            _payOS = payOS;
         }
         [HttpPost("create")]
         [Authorize(Roles = "Service Owner")]
@@ -163,31 +168,43 @@ namespace LocalTour.WebApi.Controllers
         }
         
         [HttpGet("GetUrlPlaceRegister")]
-       // [Authorize]
-        public async Task<ActionResult<PaginatedList<PlaceVM>>> CreatePaymentPlaceRegister(int placeId)
+        [Authorize]
+        public async Task<ActionResult> CreatePaymentPlaceRegister(int placeId)
         {
             try
             {
-                //var userId = User.GetUserId();
-                var userId = "a487545c-c732-4b58-b1bf-830258328184";
+                var userId = User.GetUserId();
+               // var userId = "a487545c-c732-4b58-b1bf-830258328184";
                 var places = await _placeService.CreatePaymentPlaceRegister(placeId,userId);
-                return Ok(places);
+                return Ok(places.checkoutUrl);
             }
             catch (Exception ex)
             {
                 return StatusCode(400, ex.Message);
             }
         }
-        [HttpPost("ComfirmPaymentRegister")]
-        // [Authorize]
-        public async Task<ActionResult<PaginatedList<PlaceVM>>> ComfirmPaymentRegister(WebhookType body)
+        [HttpGet("PlaceSuccessPayment")]
+        public async Task<ActionResult> ComfirmPaymentRegister([FromQuery]ReturnUrlPayOS returnUrlPayOS)
         {
             try
             {
-                var places = await _placeService.ComfirmPaymentRegister(body);
-                if(places)
-                    return Ok(places);
-                return BadRequest();
+                var places = await _placeService.PlaceSuccessPayment(returnUrlPayOS.orderCode,returnUrlPayOS.status);
+               
+                return RedirectPermanent(places);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, ex.Message);
+            }
+        }
+        [HttpGet("PlaceCancelPayment")]
+        public async Task<IActionResult> CancelOrder([FromQuery]ReturnUrlPayOS returnUrlPayOS)
+        {
+            try
+            {
+                var places = await _placeService.PlaceCancelPayment(returnUrlPayOS.orderCode,returnUrlPayOS.status);
+               
+                return RedirectPermanent(places);
             }
             catch (Exception ex)
             {
