@@ -21,12 +21,14 @@ namespace LocalTour.Services.Services
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IFileService _fileService;
-        public EventService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IFileService fileService)
+        private readonly INotificationService _notificationService;
+        public EventService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IFileService fileService, INotificationService notificationService)
         {
             _fileService = fileService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
+            _notificationService = notificationService;
         }
         public async Task<PaginatedList<EventViewModel>> GetAllEventByPlaceid(int placeid, GetEventRequest request)
         {
@@ -327,6 +329,12 @@ namespace LocalTour.Services.Services
             existingEvent.EventStatus = status;
             _unitOfWork.RepositoryEvent.Update(existingEvent);
             await _unitOfWork.CommitAsync();
+
+            if (existingEvent.EventStatus == "Approved")
+            {
+                await _notificationService.SetNotificationForEvent(existingEvent.Id, existingEvent.EventName, existingEvent.Description);
+            }
+            
             return existingEvent;
         }
         

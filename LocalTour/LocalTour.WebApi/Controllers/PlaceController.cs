@@ -211,5 +211,23 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(400, ex.Message);
             }
         }
+        [HttpPost("sendMail")]
+        [Authorize(Roles = "Moderator")]
+        public async Task<IActionResult> SendMail(SendMailRequest request)
+        {
+            try
+            {
+                var isSend = await _placeService.sendMail(request);
+                if (isSend)
+                {
+                    return Ok();
+                }
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, ex.Message);
+            }
+        }
     }
 }

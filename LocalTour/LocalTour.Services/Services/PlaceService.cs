@@ -35,8 +35,9 @@ namespace LocalTour.Services.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _configuration;
         private readonly PayOS _payOS;
+        private readonly IMailService _mailService;
 
-        public PlaceService(IUnitOfWork unitOfWork, IMapper mapper,IUserService userService, IFileService fileService, IHttpContextAccessor httpContextAccessor, IConfiguration configuration, PayOS payOS)
+        public PlaceService(IUnitOfWork unitOfWork, IMapper mapper,IUserService userService, IFileService fileService, IHttpContextAccessor httpContextAccessor, IConfiguration configuration, PayOS payOS, IMailService mailService)
         {
             _userService = userService;
             _unitOfWork = unitOfWork;
@@ -45,6 +46,7 @@ namespace LocalTour.Services.Services
             _httpContextAccessor = httpContextAccessor;
             _configuration = configuration;
             _payOS = payOS;
+            _mailService = mailService;
         }
         public async Task<PlaceRequest> CreatePlace(PlaceRequest place)
         {
@@ -586,6 +588,11 @@ namespace LocalTour.Services.Services
             {
                 throw new Exception("Place is not exists.");
             }
+
+            if (place.Status != "Unpaid")
+            {
+                throw new Exception("Place is already paid.");
+            }
             var user = await _unitOfWork.RepositoryUser.GetById(Guid.Parse(userId));
             if (place.AuthorId != user.Id)
             {
@@ -643,6 +650,43 @@ namespace LocalTour.Services.Services
             _unitOfWork.RepositoryPlacePayment.Update(placePayment);
             await _unitOfWork.CommitAsync();
             return _configuration["PayOS:cancelUrl"];
+        }
+        
+        public async Task<bool> sendMail(SendMailRequest request)
+        {
+            var place = await _unitOfWork.RepositoryPlace.GetById(request.PlaceId);
+            if (place != null)
+            {
+                throw new Exception("Place is not exists.");
+            }
+            var author = await _unitOfWork.RepositoryUser.GetById(place.AuthorId); 
+            var placemodel = await _unitOfWork.RepositoryPlace.GetDataQueryable(x => x.Id == request.PlaceId)
+                .Include(y => y.PlaceTranslations)
+                .FirstOrDefaultAsync();
+
+            string placeName = "";
+            foreach (var item in placemodel.PlaceTranslations)
+            {
+                placeName = $"{placeName} / {item.Name}";
+            }
+            
+            try
+            {
+                _mailService.SendEmail(new SendEmailModel()
+                {
+                    ServiceOwnerName = author.UserName,
+                    IsApproved = request.IsApproved,
+                    To = author.Email,
+                    RejectReason = request.RejectReason,
+                    PlaceName = placeName,
+                    Subject = request.IsApproved ? "Place Approved" : "Place Rejected"
+                });
+                return true;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Error in server {e.Message}");
+            }
         }
     }
 

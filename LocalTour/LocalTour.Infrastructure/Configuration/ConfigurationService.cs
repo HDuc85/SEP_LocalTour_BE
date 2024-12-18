@@ -92,6 +92,7 @@ namespace LocalTour.Infrastructure.Configuration
             service.AddScoped<IBannerService, BannerService>();
             service.AddScoped<IStatisticService, StatisticService>();
             service.AddScoped<IModCheckService, ModCheckService>();
+            service.AddScoped<IMailService, MailService>();
 
 
         }

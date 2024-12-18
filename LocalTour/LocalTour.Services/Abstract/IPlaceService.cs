@@ -23,5 +23,6 @@ namespace LocalTour.Services.Abstract
                 Task<CreatePaymentResult> CreatePaymentPlaceRegister(int placeId, string userId);
                 Task<string> PlaceSuccessPayment(long orderCode, string status);
                 Task<string> PlaceCancelPayment(long orderCode, string status);
+                Task<bool> sendMail(SendMailRequest request);
         }
 }
