@@ -91,7 +91,7 @@ public class StatisticService : IStatisticService
 
         return registrationByMonth;
     }
-    public async Task<Dictionary<int, int>> GetModApprovedByMonthAsync(int year, String userId)
+    public async Task<Dictionary<int, int>> GetModApprovedByMonthAsync(int year, string userId)
     {
         var registrationByMonth = new Dictionary<int, int>();
         int curentmonth = DateTime.Now.Month;

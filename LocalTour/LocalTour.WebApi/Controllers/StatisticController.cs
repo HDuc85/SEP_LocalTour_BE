@@ -92,12 +92,12 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpGet("GetModApprovedPlaceByMonthAsync")]
-        [Authorize]
-        public async Task<IActionResult> GetModApprovedByMonthAsync(int year)
+
+        public async Task<IActionResult> GetModApprovedByMonthAsync(int year, string userId)
         {
             try
             {
-                var result = await _statistics.GetModApprovedByMonthAsync(year, User.GetUserId());
+                var result = await _statistics.GetModApprovedByMonthAsync(year, userId);
 
                 return Ok(result);
             }
