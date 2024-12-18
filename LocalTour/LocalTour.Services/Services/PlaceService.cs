@@ -322,7 +322,10 @@ namespace LocalTour.Services.Services
             existingPlace.TimeClose = request.TimeClose;
             existingPlace.Longitude = request.Longitude;
             existingPlace.Latitude = request.Latitude;
-            existingPlace.Status = "Pending";
+            if (existingPlace.Status != "Unpaid")
+            {
+                existingPlace.Status = "Pending";
+            }
             existingPlace.ContactLink = request.ContactLink;
             var existingMedia = await _unitOfWork.RepositoryPlaceMedium.GetAll()
                                                                  .Where(e => e.PlaceId == placeid)
@@ -655,7 +658,7 @@ namespace LocalTour.Services.Services
         public async Task<bool> sendMail(SendMailRequest request)
         {
             var place = await _unitOfWork.RepositoryPlace.GetById(request.PlaceId);
-            if (place != null)
+            if (place == null)
             {
                 throw new Exception("Place is not exists.");
             }
@@ -664,7 +667,7 @@ namespace LocalTour.Services.Services
                 .Include(y => y.PlaceTranslations)
                 .FirstOrDefaultAsync();
 
-            string placeName = "";
+            string placeName = "name is:";
             foreach (var item in placemodel.PlaceTranslations)
             {
                 placeName = $"{placeName} / {item.Name}";
