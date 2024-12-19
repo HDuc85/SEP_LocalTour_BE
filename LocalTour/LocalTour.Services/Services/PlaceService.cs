@@ -289,6 +289,8 @@ namespace LocalTour.Services.Services
                 TraveledPlaces = placeEntity.TraveledPlaces,
                 PlaceSearchHistories = placeEntity.PlaceSearchHistories,
                 Rating = AverageRating,
+                BRC =placeEntity.BRC,
+                CreatedDate = placeEntity.CreatedDate,
             };
 
             return result;
