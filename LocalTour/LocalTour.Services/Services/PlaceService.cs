@@ -72,6 +72,7 @@ namespace LocalTour.Services.Services
                 AuthorId = userId,
                 Status = "Unpaid",
                 BRC = place.BRC,
+                CreatedDate = DateTime.UtcNow,
             };
             await _unitOfWork.RepositoryPlace.Insert(placeEntity);
             await _unitOfWork.CommitAsync();

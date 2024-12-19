@@ -2,6 +2,7 @@
 
 public class EventSearchResponse
 {
+    public int EventId {get; set; }
     public int PlaceId { get; set; }
     public string PlaceName { get; set; }
     public string PlacePhoto  { get; set; }

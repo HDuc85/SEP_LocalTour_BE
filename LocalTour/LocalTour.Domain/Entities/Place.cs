@@ -31,6 +31,8 @@ public partial class Place
     public Guid AuthorId { get; set; }
     
     public string? BRC  { get; set; }
+    
+    public DateTime? CreatedDate { get; set; }
     public virtual ICollection<Destination> Destinations { get; set; } = new List<Destination>();
     [JsonIgnore]
     public virtual ICollection<ModCheckPlace> ModCheckPlaces { get; set; } = new List<ModCheckPlace>();

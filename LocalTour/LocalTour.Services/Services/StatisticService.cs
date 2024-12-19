@@ -1,16 +1,20 @@
 ﻿using LocalTour.Data.Abstract;
 using LocalTour.Services.Abstract;
+using LocalTour.Services.ViewModel;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace LocalTour.Services.Services;
 
 public class StatisticService : IStatisticService
 {
     readonly private IUnitOfWork _unitOfWork;
+    readonly private IConfiguration _configuration; 
 
-    public StatisticService(IUnitOfWork unitOfWork)
+    public StatisticService(IUnitOfWork unitOfWork, IConfiguration configuration)
     {
         _unitOfWork = unitOfWork;
+        _configuration = configuration;
     }
 
    
@@ -64,15 +68,9 @@ public class StatisticService : IStatisticService
             .CountAsync();
         return total;
     }
-    public async Task<Dictionary<int, int>> GetModApprovedPlaceByMonthAsync(int year)
+    public async Task<List<GetStatsticReponse>> GetModApprovedPlaceByMonthAsync(int year)
     {
-        var registrationByMonth = new Dictionary<int, int>();
-
-        for (int month = 1; month <= 12; month++)
-        {
-            registrationByMonth[month] = 0;
-        }
-
+        var registrationByMonth = new List<GetStatsticReponse>();
         var users = await _unitOfWork.RepositoryPlace.GetDataQueryable()
             .Where(u => u.ApprovedTime.HasValue && u.ApprovedTime.Value.Year == year)
             .GroupBy(u => u.ApprovedTime.Value.Month)
@@ -86,22 +84,20 @@ public class StatisticService : IStatisticService
 
         foreach (var userGroup in users)
         {
-            registrationByMonth[userGroup.Month] = userGroup.Count;
+           registrationByMonth.Add(new GetStatsticReponse()
+           {
+               Month =  userGroup.Month,
+               Total = userGroup.Count,
+               TotalPrice = _configuration.GetValue<int>("ModCheckPlacePrice") * userGroup.Count,
+           });
         }
 
         return registrationByMonth;
     }
-    public async Task<Dictionary<int, int>> GetModApprovedByMonthAsync(int year, string userId)
+    public async Task<StatsticMonth> GetModApprovedByMonthAsync(int year, string userId)
     {
-        var registrationByMonth = new Dictionary<int, int>();
-        int curentmonth = DateTime.Now.Month;
-
-        for (int month = 1; month <= curentmonth; month++)
-        {
-            registrationByMonth[month] = 0;
-        }
-
-        var users = await _unitOfWork.RepositoryPlace.GetDataQueryable()
+        var registrationByMonth = new List<GetStatsticReponse>();
+        var userCount = await _unitOfWork.RepositoryPlace.GetDataQueryable()
             .Where(u => u.ApprovedTime.HasValue && u.ApprovedTime.Value.Year == year)
             .Where(u => u.ApproverId == Guid.Parse(userId) )
             .GroupBy(u => u.ApprovedTime.Value.Month)
@@ -111,14 +107,24 @@ public class StatisticService : IStatisticService
                 Count = group.Count()
             })
             .ToListAsync();
-
-
-        foreach (var userGroup in users)
+        foreach (var userGroup in userCount)
         {
-            registrationByMonth[userGroup.Month] = userGroup.Count;
+            registrationByMonth.Add(new GetStatsticReponse()
+            {
+                Month = userGroup.Month,
+                Total = userGroup.Count,
+                TotalPrice = _configuration.GetValue<int>("ModCheckPlacePrice") * userGroup.Count,
+            });
         }
-
-        return registrationByMonth;
+        var user = await _unitOfWork.RepositoryUser.GetById(Guid.Parse(userId));
+        var result = new StatsticMonth()
+        {
+            Avatar = user.ProfilePictureUrl,
+            list = registrationByMonth,
+            UserId = user.Id,
+            UserName =  user.UserName,
+        };
+        return result;
     }
     public async Task<int> GetTotalModApprovedAsync(String userId)
     {
@@ -127,5 +133,58 @@ public class StatisticService : IStatisticService
             .CountAsync();
         return total;
     }
+    public async Task<List<PlaceGetStatsticReponse>> GetPlaceByMonthAsync(int year)
+    {
+        var registrationByMonth = new List<PlaceGetStatsticReponse>();
+        var users = await _unitOfWork.RepositoryPlace.GetDataQueryable()
+            .Where(u => u.CreatedDate.Value.Year == year)
+            .GroupBy(u => u.CreatedDate.Value.Month)
+            .ToListAsync();
 
+
+        foreach (var userGroup in users)
+        {
+            
+           registrationByMonth.Add(new PlaceGetStatsticReponse()
+           {
+               Month =  userGroup.Key,
+               Total = userGroup.Count(),
+               TotalPrice = _configuration.GetValue<int>("PayOS:placeRegisterPrice") * userGroup.Count(),
+               TotalPlacePaid = userGroup.Count(x => x.Status != "Unpaid"),
+               TotalPlaceUnpaid = userGroup.Count(x => x.Status == "Unpaid"),   
+           });
+        }
+
+        return registrationByMonth;
+    }
+    public async Task<PlaceStatsticMonth> GetPlaceByMonthAsync(int year, string userId)
+    {
+        var registrationByMonth = new List<PlaceGetStatsticReponse>();
+        var userCount = await _unitOfWork.RepositoryPlace.GetDataQueryable()
+            .Where(u => u.CreatedDate.Value.Year == year)
+            .Where(u => u.AuthorId == Guid.Parse(userId))
+            .GroupBy(u => u.CreatedDate.Value.Month)
+            .ToListAsync();
+
+        foreach (var userGroup in userCount)
+        {
+            registrationByMonth.Add(new PlaceGetStatsticReponse()
+            {
+                Month = userGroup.Key,
+                Total = userGroup.Count(),
+                TotalPrice = _configuration.GetValue<int>("PayOS:placeRegisterPrice") * userGroup.Count(),
+                TotalPlacePaid = userGroup.Count(x => x.Status != "Unpaid"),
+                TotalPlaceUnpaid = userGroup.Count(x => x.Status == "Unpaid"),   
+            });
+        }
+        var user = await _unitOfWork.RepositoryUser.GetById(Guid.Parse(userId));
+        var result = new PlaceStatsticMonth()
+        {
+            Avatar = user.ProfilePictureUrl,
+            list = registrationByMonth,
+            UserId = user.Id,
+            UserName =  user.UserName,
+        };
+        return result;
+    }
 }
