@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 using Net.payOS;
 using Net.payOS.Types;
+using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace LocalTour.Services.Services
 {
@@ -60,6 +61,7 @@ namespace LocalTour.Services.Services
                 throw new UnauthorizedAccessException("User not found or invalid User ID.");
             }
             var photos = await _fileService.SaveImageFile(place.PhotoDisplay);
+            var brcs = await _fileService.SaveImageFile(place.BRC);
             var placeEntity = new Place
             {
                 WardId = place.WardId,
@@ -71,7 +73,7 @@ namespace LocalTour.Services.Services
                 ContactLink = place.ContactLink,
                 AuthorId = userId,
                 Status = "Unpaid",
-                BRC = place.BRC,
+                BRC = brcs.Data,
             };
             await _unitOfWork.RepositoryPlace.Insert(placeEntity);
             await _unitOfWork.CommitAsync();
@@ -102,33 +104,28 @@ namespace LocalTour.Services.Services
                 };
                 await _unitOfWork.RepositoryPlaceTranslation.Insert(translationEntity);
             }
-            var photoSaveResult = await _fileService.SaveStaticFiles(place.PlaceMedia);
-            if (!photoSaveResult.Success)
+            foreach (var mediaUrl in place.PlaceMedia)
             {
-                throw new Exception(photoSaveResult.Message);
-            }
+                string mediaType = "Unknown";
+                var fileExtension = Path.GetExtension(mediaUrl).ToLower();
+                if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png" || fileExtension == ".gif")
+                {
+                    mediaType = "Image";
+                }
+                else if (fileExtension == ".mp4" || fileExtension == ".avi" || fileExtension == ".mkv")
+                {
+                    mediaType = "Video";
+                }
 
-            foreach (var photoUrl in photoSaveResult.Data.imageUrls)
-            {
-                var photo = new PlaceMedium
+                var placeMedium = new PlaceMedium
                 {
                     PlaceId = placeEntity.Id,
                     CreateDate = DateTime.Now,
-                    Type = "Image",
-                    Url = photoUrl
-                };
-                await _unitOfWork.RepositoryPlaceMedium.Insert(photo);
-            }
-            foreach (var mediaUrl in photoSaveResult.Data.videoUrls)
-            {
-                var media = new PlaceMedium
-                {
-                    PlaceId = placeEntity.Id,
-                    CreateDate = DateTime.Now,
-                    Type = "Video",
+                    Type = mediaType,
                     Url = mediaUrl
                 };
-                await _unitOfWork.RepositoryPlaceMedium.Insert(media);
+
+                await _unitOfWork.RepositoryPlaceMedium.Insert(placeMedium);
             }
             await _unitOfWork.CommitAsync();
             return place;
@@ -317,6 +314,7 @@ namespace LocalTour.Services.Services
                 throw new ArgumentException($"Event with id {placeid} not found.");
             }
             existingPlace.PhotoDisplay = request.PhotoDisplay;
+            existingPlace.BRC = request.brc;
             existingPlace.WardId = request.WardId;
             existingPlace.TimeOpen = request.TimeOpen;
             existingPlace.TimeClose = request.TimeClose;
