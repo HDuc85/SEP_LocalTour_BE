@@ -187,4 +187,18 @@ public class StatisticService : IStatisticService
         };
         return result;
     }
+    public async Task<PlaceGetStatsticReponse> GetTotalPlaceAsync(String userId)
+    {
+         var userCount = await _unitOfWork.RepositoryPlace.GetDataQueryable()
+            .Where(u => u.AuthorId == Guid.Parse(userId))
+            .ToListAsync();
+        return new PlaceGetStatsticReponse()
+        {
+            TotalPrice = _configuration.GetValue<int>("PayOS:placeRegisterPrice") * userCount.Count(),
+            TotalPlacePaid = userCount.Count(x => x.Status != "Unpaid"),
+            TotalPlaceUnpaid = userCount.Count(x => x.Status == "Unpaid"),
+            Total = userCount.Count(),
+            Month = -1,
+        };
+    }
 }

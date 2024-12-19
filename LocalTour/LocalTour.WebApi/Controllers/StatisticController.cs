@@ -121,7 +121,51 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
             }
         }
+        [HttpGet("GetTotalPlaceByMonthAsync")]
+        // [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> GetTotalPlaceByMonthAsync(int year)
+        {
+            try
+            {
+                var result = await _statistics.GetPlaceByMonthAsync(year);
 
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
+            }
+        }
+        [HttpGet("GetPlaceByMonthAsync")]
+
+        public async Task<IActionResult> GetPlaceByMonthAsync(int year, string userId)
+        {
+            try
+            {
+                var result = await _statistics.GetPlaceByMonthAsync(year, userId);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
+            }
+        }
+        [HttpGet("GetTotalPlaceAsync")]
+        [Authorize]
+        public async Task<IActionResult> GetTotalPlaceAsync()
+        {
+            try
+            {
+                var result = await _statistics.GetTotalPlaceAsync(User.GetUserId());
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { statusCode = 500, message = $"Internal server error: {ex.Message}" });
+            }
+        }
     }
 
 }
