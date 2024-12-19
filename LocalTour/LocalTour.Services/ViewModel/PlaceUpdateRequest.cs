@@ -25,6 +25,7 @@ namespace LocalTour.Services.ViewModel
         public string ContactLink { get; set; }
         public List<int> Tags { get; set; }
         public List<string>? PlaceMedia { get; set; }
+        public string? brc { get; set; } = null!;
         [ModelBinder(BinderType = typeof(FromJsonBinder))]
         public List<PlaceTranslationRequest> PlaceTranslation { get; set; }
     }

@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 using Net.payOS;
 using Net.payOS.Types;
+using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace LocalTour.Services.Services
 {
@@ -37,7 +38,7 @@ namespace LocalTour.Services.Services
         private readonly PayOS _payOS;
         private readonly IMailService _mailService;
 
-        public PlaceService(IUnitOfWork unitOfWork, IMapper mapper,IUserService userService, IFileService fileService, IHttpContextAccessor httpContextAccessor, IConfiguration configuration, PayOS payOS, IMailService mailService)
+        public PlaceService(IUnitOfWork unitOfWork, IMapper mapper, IUserService userService, IFileService fileService, IHttpContextAccessor httpContextAccessor, IConfiguration configuration, PayOS payOS, IMailService mailService)
         {
             _userService = userService;
             _unitOfWork = unitOfWork;
@@ -60,6 +61,7 @@ namespace LocalTour.Services.Services
                 throw new UnauthorizedAccessException("User not found or invalid User ID.");
             }
             var photos = await _fileService.SaveImageFile(place.PhotoDisplay);
+            var brcs = await _fileService.SaveImageFile(place.BRC);
             var placeEntity = new Place
             {
                 WardId = place.WardId,
@@ -71,8 +73,8 @@ namespace LocalTour.Services.Services
                 ContactLink = place.ContactLink,
                 AuthorId = userId,
                 Status = "Unpaid",
-                BRC = place.BRC,
                 CreatedDate = DateTime.UtcNow,
+                BRC = brcs.Data,
             };
             await _unitOfWork.RepositoryPlace.Insert(placeEntity);
             await _unitOfWork.CommitAsync();
@@ -103,33 +105,28 @@ namespace LocalTour.Services.Services
                 };
                 await _unitOfWork.RepositoryPlaceTranslation.Insert(translationEntity);
             }
-            var photoSaveResult = await _fileService.SaveStaticFiles(place.PlaceMedia);
-            if (!photoSaveResult.Success)
+            foreach (var mediaUrl in place.PlaceMedia)
             {
-                throw new Exception(photoSaveResult.Message);
-            }
+                string mediaType = "Unknown";
+                var fileExtension = Path.GetExtension(mediaUrl).ToLower();
+                if (fileExtension == ".jpg" || fileExtension == ".jpeg" || fileExtension == ".png" || fileExtension == ".gif")
+                {
+                    mediaType = "Image";
+                }
+                else if (fileExtension == ".mp4" || fileExtension == ".avi" || fileExtension == ".mkv")
+                {
+                    mediaType = "Video";
+                }
 
-            foreach (var photoUrl in photoSaveResult.Data.imageUrls)
-            {
-                var photo = new PlaceMedium
+                var placeMedium = new PlaceMedium
                 {
                     PlaceId = placeEntity.Id,
                     CreateDate = DateTime.Now,
-                    Type = "Image",
-                    Url = photoUrl
-                };
-                await _unitOfWork.RepositoryPlaceMedium.Insert(photo);
-            }
-            foreach (var mediaUrl in photoSaveResult.Data.videoUrls)
-            {
-                var media = new PlaceMedium
-                {
-                    PlaceId = placeEntity.Id,
-                    CreateDate = DateTime.Now,
-                    Type = "Video",
+                    Type = mediaType,
                     Url = mediaUrl
                 };
-                await _unitOfWork.RepositoryPlaceMedium.Insert(media);
+
+                await _unitOfWork.RepositoryPlaceMedium.Insert(placeMedium);
             }
             await _unitOfWork.CommitAsync();
             return place;
@@ -145,15 +142,15 @@ namespace LocalTour.Services.Services
             }
             List<int> userTags = new List<int>();
             if (user != null)
-            {  
+            {
                 userTags = await _unitOfWork.RepositoryUserPreferenceTags.GetAll()
                     .Where(mt => mt.UserId == user.Id)
                     .Select(mt => mt.TagId)
                     .ToListAsync();
             }
-            
+
             var roles = _httpContextAccessor.HttpContext.User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
-            
+
             IQueryable<Place> places;
             if (roles.Contains("Visitor") || roles.IsNullOrEmpty())
             {
@@ -227,7 +224,7 @@ namespace LocalTour.Services.Services
                 .Include(p => p.PlaceActivities)
                 .ThenInclude(pa => pa.PlaceActivityMedia)
                 .FirstOrDefaultAsync(e => e.Id == placeid);
-            
+
             var placeFeedback = await _unitOfWork.RepositoryPlaceFeeedback.GetAll().Where(p => p.PlaceId == placeid).ToListAsync();
 
             if (languageCode != null)
@@ -243,25 +240,25 @@ namespace LocalTour.Services.Services
                         .Where(p => p.PlaceActivityTranslations
                             .Any(a => a.LanguageCode.Contains(languageCode))).ToList();
                 }
-                
+
             }
-            
+
             double AverageRating = placeFeedback.Any() ? placeFeedback.Average(feedback => feedback.Rating) : 0;
-            
+
 
             if (placeEntity == null)
             {
                 throw new KeyNotFoundException($"Place with ID {placeid} not found.");
             }
-            
-            
-            
+
+
+
             placeEntity.PlaceMedia = placeEntity.PlaceMedia
             .OrderByDescending(pm => pm.Type == "Video")
             .ThenBy(pm => pm.Id)
             .ToList();
-         
-            
+
+
             placeEntity.PlaceActivities = placeEntity.PlaceActivities.OrderBy(x => x.DisplayNumber).ToList();
             PlaceDetailModel result = new PlaceDetailModel
             {
@@ -318,6 +315,7 @@ namespace LocalTour.Services.Services
                 throw new ArgumentException($"Event with id {placeid} not found.");
             }
             existingPlace.PhotoDisplay = request.PhotoDisplay;
+            existingPlace.BRC = request.brc;
             existingPlace.WardId = request.WardId;
             existingPlace.TimeOpen = request.TimeOpen;
             existingPlace.TimeClose = request.TimeClose;
@@ -462,7 +460,7 @@ namespace LocalTour.Services.Services
                     _unitOfWork.RepositoryEvent.Delete(eventEntity);
                 }
             }
-            
+
             var activity = await _unitOfWork.RepositoryPlaceActivity.GetData(e => e.PlaceId == placeid);
             if (activity != null && activity.Any())
             {
@@ -481,7 +479,7 @@ namespace LocalTour.Services.Services
                     _unitOfWork.RepositoryPlaceTag.Delete(tagEntity);
                 }
             }
-            
+
             var feedback = await _unitOfWork.RepositoryPlaceFeeedback.GetData(e => e.PlaceId == placeid);
             if (feedback != null && feedback.Any())
             {
@@ -491,16 +489,16 @@ namespace LocalTour.Services.Services
                     _unitOfWork.RepositoryPlaceFeeedbackMedium.Delete(x => x.Id == item.PlaceId);
                 }
             }
-            
+
             _unitOfWork.RepositoryPlaceFeeedback.Delete(e => e.PlaceId == placeid);
             _unitOfWork.RepositoryPlaceMedium.Delete(x => x.PlaceId == placeid);
             _unitOfWork.RepositoryMarkPlace.Delete(x => x.PlaceId == placeid);
             _unitOfWork.RepositoryPlaceReport.Delete(x => x.PlaceId == placeid);
             _unitOfWork.RepositoryTraveledPlace.Delete(x => x.PlaceId == placeid);
             _unitOfWork.RepositoryPlaceTranslation.Delete(x => x.PlaceId == placeid);
-            
+
             _unitOfWork.RepositoryPlace.Delete(places);
-            
+
             await _unitOfWork.CommitAsync();
             return true;
 
@@ -525,7 +523,7 @@ namespace LocalTour.Services.Services
             {
                 modTags = modTags.Where(x => request.DistrictNCityIds.Contains(x)).ToList();
             }
-            
+
             var roles = _httpContextAccessor.HttpContext.User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
             if (!roles.Any())
             {
@@ -552,7 +550,8 @@ namespace LocalTour.Services.Services
                            .Where(y => modTags.Contains(y.Ward.DistrictNcityId))
                            .AsQueryable();
 
-            } else
+            }
+            else
             {
                 throw new UnauthorizedAccessException("You do not have permission to access this page");
             }
@@ -570,7 +569,7 @@ namespace LocalTour.Services.Services
             {
                 places = places.Where(p => p.Status == request.Status);
             }
-            
+
             return await places
                 .ListPaginateWithSortPlaceAsync<Place, PlaceVM>(
                     request.Page,
@@ -604,17 +603,17 @@ namespace LocalTour.Services.Services
             }
 
             long orderCode = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-            ItemData item = new ItemData("Register place", 1, int.Parse(_configuration["PayOS:placeRegisterPrice"]?? "50000"));
+            ItemData item = new ItemData("Register place", 1, int.Parse(_configuration["PayOS:placeRegisterPrice"] ?? "50000"));
             List<ItemData> items = new List<ItemData>();
             items.Add(item);
             PaymentData paymentData = new PaymentData(orderCode,
                 //2000,
-                int.Parse(_configuration["PayOS:placeRegisterPrice"]?? "50000"),
+                int.Parse(_configuration["PayOS:placeRegisterPrice"] ?? "50000"),
                 $"Register placeId {place.Id}",
                 items,
                 $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/api/Place/PlaceCancelPayment",
                 $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/api/Place/PlaceSuccessPayment");
-            
+
             CreatePaymentResult createPayment = await _payOS.createPaymentLink(paymentData);
             _unitOfWork.RepositoryPlacePayment.Insert(new PlacePayment()
             {
@@ -628,21 +627,21 @@ namespace LocalTour.Services.Services
 
         public async Task<string> PlaceSuccessPayment(long orderCode, string status)
         {
-           var placePayment = await _unitOfWork.RepositoryPlacePayment.GetDataQueryable(x => x.OrderCode == orderCode).FirstOrDefaultAsync();
-           if (placePayment == null)
-           {
-               throw new Exception("OrderCode is not exists.");
-           }
-           var place = await _unitOfWork.RepositoryPlace.GetById(placePayment.PlaceId);
-           placePayment.Status = status;
-           place.Status = "Pending";
-           _unitOfWork.RepositoryPlacePayment.Update(placePayment);
-           _unitOfWork.RepositoryPlace.Update(place);
-           await _unitOfWork.CommitAsync();
-           
-           return _configuration["PayOS:successUrl"];
+            var placePayment = await _unitOfWork.RepositoryPlacePayment.GetDataQueryable(x => x.OrderCode == orderCode).FirstOrDefaultAsync();
+            if (placePayment == null)
+            {
+                throw new Exception("OrderCode is not exists.");
+            }
+            var place = await _unitOfWork.RepositoryPlace.GetById(placePayment.PlaceId);
+            placePayment.Status = status;
+            place.Status = "Pending";
+            _unitOfWork.RepositoryPlacePayment.Update(placePayment);
+            _unitOfWork.RepositoryPlace.Update(place);
+            await _unitOfWork.CommitAsync();
+
+            return _configuration["PayOS:successUrl"];
         }
-        
+
         public async Task<string> PlaceCancelPayment(long orderCode, string status)
         {
             var placePayment = await _unitOfWork.RepositoryPlacePayment.GetDataQueryable(x => x.OrderCode == orderCode).FirstOrDefaultAsync();
@@ -655,7 +654,7 @@ namespace LocalTour.Services.Services
             await _unitOfWork.CommitAsync();
             return _configuration["PayOS:cancelUrl"];
         }
-        
+
         public async Task<bool> sendMail(SendMailRequest request)
         {
             var place = await _unitOfWork.RepositoryPlace.GetById(request.PlaceId);
@@ -663,7 +662,7 @@ namespace LocalTour.Services.Services
             {
                 throw new Exception("Place is not exists.");
             }
-            var author = await _unitOfWork.RepositoryUser.GetById(place.AuthorId); 
+            var author = await _unitOfWork.RepositoryUser.GetById(place.AuthorId);
             var placemodel = await _unitOfWork.RepositoryPlace.GetDataQueryable(x => x.Id == request.PlaceId)
                 .Include(y => y.PlaceTranslations)
                 .FirstOrDefaultAsync();
@@ -673,7 +672,7 @@ namespace LocalTour.Services.Services
             {
                 placeName = $"{placeName} / {item.Name}";
             }
-            
+
             try
             {
                 _mailService.SendEmail(new SendEmailModel()
