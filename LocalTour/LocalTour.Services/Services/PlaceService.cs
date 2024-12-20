@@ -61,7 +61,7 @@ namespace LocalTour.Services.Services
                 throw new UnauthorizedAccessException("User not found or invalid User ID.");
             }
             var photos = await _fileService.SaveImageFile(place.PhotoDisplay);
-            var brcs = await _fileService.SaveImageFile(place.BRC);
+
             var placeEntity = new Place
             {
                 WardId = place.WardId,
@@ -74,8 +74,13 @@ namespace LocalTour.Services.Services
                 AuthorId = userId,
                 Status = "Unpaid",
                 CreatedDate = DateTime.UtcNow,
-                BRC = brcs.Data,
+                //BRC = brcs.Data,
             };
+            if(place.BRC != null)
+            {
+            var brcs = await _fileService.SaveImageFile(place.BRC);
+                placeEntity.BRC=brcs.Data;
+            }
             await _unitOfWork.RepositoryPlace.Insert(placeEntity);
             await _unitOfWork.CommitAsync();
             foreach (var tags in place.Tags)
