@@ -32,5 +32,6 @@ namespace LocalTour.Services.Abstract
                 Task<bool> UnbanUser(String userId);
                 Task<List<GetUserRequest>> GetAllUsersAsync();
                 Task<List<ListUserResponse>> GetListByRole(string roleName);
+                Task<List<Guid>> GetListUsersBan();
         }
 }

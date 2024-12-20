@@ -307,5 +307,18 @@ namespace LocalTour.WebApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpGet("getUserBan")]
+        public async Task<ActionResult<List<GetUserRequest>>> getUserBan()
+        {
+            try
+            {
+                var users = await _userService.GetListUsersBan();
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

@@ -448,6 +448,15 @@ namespace LocalTour.Services.Services
             }
         }
 
+        public async Task<List<Guid>> GetListUsersBan()
+        {
+            DateTime now = DateTime.UtcNow;
+            var users = await _unitOfWork.RepositoryUserBan.GetDataQueryable()
+                .Where(x => x.EndDate > now)
+                .GroupBy(x => x.UserId)
+                .Select(x => x.Key).ToListAsync();
+            return users;
+        }
 
     }
 }

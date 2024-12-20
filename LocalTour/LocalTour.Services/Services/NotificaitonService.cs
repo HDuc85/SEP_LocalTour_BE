@@ -261,9 +261,9 @@ public class NotificaitonService : INotificationService
         if (user != null)
         {
             var isExist = user.Any(x => x.DeviceId == deviceToken);
-            if (isExist)
+            if (!isExist)
             {
-                return "Device token already exist";
+                return "Device token is not exist";
             }
         }
         try
