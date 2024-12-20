@@ -103,7 +103,7 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpPut("changeStatusPlace")]
-        [Authorize(Roles = "Moderator")]
+        [Authorize(Roles = "Moderator,Administrator")]
         public async Task<ActionResult<Place>> ChangeStatusPlace([FromQuery] int placeid, [FromQuery] string status)
         {
             try

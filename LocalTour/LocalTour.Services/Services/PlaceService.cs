@@ -503,7 +503,7 @@ namespace LocalTour.Services.Services
             _unitOfWork.RepositoryPlaceReport.Delete(x => x.PlaceId == placeid);
             _unitOfWork.RepositoryTraveledPlace.Delete(x => x.PlaceId == placeid);
             _unitOfWork.RepositoryPlaceTranslation.Delete(x => x.PlaceId == placeid);
-
+            _unitOfWork.RepositoryModCheckPlace.Delete(x => x.PlaceId == placeid);
             _unitOfWork.RepositoryPlace.Delete(places);
 
             await _unitOfWork.CommitAsync();
