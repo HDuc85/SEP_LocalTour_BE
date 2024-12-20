@@ -10,6 +10,7 @@ namespace LocalTour.Services.ViewModel
 
         public class ChangeStatus
         {
-                public string? status { get; set; }
+                public int Id { get; set; }
+                public string? Status { get; set; }
         }
 }

@@ -11,7 +11,7 @@ namespace LocalTour.Services.Abstract
         Task<List<UserReport>> GetAllReports();
         Task<UserReport?> GetReportById(int reportId);
         Task<UserReport> CreateReport(UserReportRequest report, String userReportId);
-        Task<bool> UpdateReport(UserReport report);
+        Task<bool> UpdateReport(ChangeStatus report);
         Task<ServiceResponseModel<bool>> DeleteReport(int reportId);
     }
 }

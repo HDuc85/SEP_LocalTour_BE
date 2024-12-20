@@ -60,19 +60,17 @@ namespace LocalTour.WebApi.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateUserReport(int id, [FromBody] ChangeStatus request)
+        [HttpPut]
+        public async Task<ActionResult> UpdateUserReport([FromBody] ChangeStatus request)
         {
             if (request == null) return BadRequest();
 
-            var reportEntity = _mapper.Map<UserReport>(request);
-            reportEntity.Id = id;
 
-            if (!await _userReportService.UpdateReport(reportEntity))
+            if (!await _userReportService.UpdateReport(request))
             {
                 return NotFound();
             }
-            return NoContent();
+            return Ok();
         }
 
         [HttpDelete("{id}")]

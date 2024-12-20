@@ -72,7 +72,7 @@ namespace LocalTour.Services.Services
             return _mapper.Map<UserReport>(reportEntity);
         }
 
-        public async Task<bool> UpdateReport(UserReport report)
+        public async Task<bool> UpdateReport(ChangeStatus report)
             {
                 if (report == null) throw new ArgumentNullException(nameof(report));
 
