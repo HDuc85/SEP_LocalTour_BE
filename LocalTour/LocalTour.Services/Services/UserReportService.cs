@@ -73,22 +73,22 @@ namespace LocalTour.Services.Services
         }
 
         public async Task<bool> UpdateReport(UserReport report)
-{
-    if (report == null) throw new ArgumentNullException(nameof(report));
+            {
+                if (report == null) throw new ArgumentNullException(nameof(report));
 
-    // Lấy report từ cơ sở dữ liệu
-    var reportEntity = await _unitOfWork.RepositoryUserReport.GetById(report.Id);
-    if (reportEntity == null) return false;
+                // Lấy report từ cơ sở dữ liệu
+                var reportEntity = await _unitOfWork.RepositoryUserReport.GetById(report.Id);
+                if (reportEntity == null) return false;
 
-    // Chỉ cập nhật trường Status
-    reportEntity.Status = report.Status;
+                // Chỉ cập nhật trường Status
+                reportEntity.Status = report.Status;
 
-    // Cập nhật report trong cơ sở dữ liệu
-    _unitOfWork.RepositoryUserReport.Update(reportEntity);
-    await _unitOfWork.CommitAsync();
+                // Cập nhật report trong cơ sở dữ liệu
+                _unitOfWork.RepositoryUserReport.Update(reportEntity);
+                await _unitOfWork.CommitAsync();
 
-    return true;
-}
+                return true;
+            }
 
 
         public async Task<ServiceResponseModel<bool>> DeleteReport(int reportId)

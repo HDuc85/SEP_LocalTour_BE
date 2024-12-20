@@ -61,7 +61,7 @@ namespace LocalTour.WebApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateUserReport(int id, [FromBody] UserReportRequest request)
+        public async Task<ActionResult> UpdateUserReport(int id, [FromBody] ChangeStatus request)
         {
             if (request == null) return BadRequest();
 
