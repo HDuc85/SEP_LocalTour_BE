@@ -516,8 +516,8 @@ namespace LocalTour.Services.Services
                 // Fetch the like-related information sequentially
                 parentRequest.TotalLikes = await scopedContext.PostCommentLikes.CountAsync(pc => pc.PostCommentId == parent.Id);
                 parentRequest.LikedByUser = userId != null ? await scopedContext.PostCommentLikes.AnyAsync(pc => pc.UserId == Guid.Parse(userId) && pc.PostCommentId == parent.Id) : false;
-                parentRequest.UserFullName = parent.User.FullName;
-                parentRequest.UserProfilePictureUrl = parent.User.ProfilePictureUrl;
+                parentRequest.UserFullName = parent.User != null ? parent.User.UserName : "";
+                parentRequest.UserProfilePictureUrl = parent.User != null ? parent.User.ProfilePictureUrl : "";
                 return parentRequest;
             }
         }

@@ -68,6 +68,7 @@ public class ModCheckService : IModCheckService
         
         _unitOfWork.RepositoryModCheckPlace.Delete(x => x.PlaceId == request.PlaceId);
         await _unitOfWork.CommitAsync();
+        
         foreach (var item in request.Files)
         {
             var url = await _fileService.SaveImageFile(item);
