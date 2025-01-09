@@ -180,7 +180,7 @@ public class BannerService : IBannerService
          return result;
     }
 
-    public async Task<bool> DeleteAsync(Guid id, String userId)
+    public async Task<bool> DeleteAsync(Guid id, string userId)
     {
         var user = await _userService.FindById(userId);
         var banner = await _unitOfWork.RepositoryBanner.GetById(id);

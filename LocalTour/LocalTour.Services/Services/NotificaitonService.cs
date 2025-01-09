@@ -234,6 +234,8 @@ public class NotificaitonService : INotificationService
             {
                 return "Device token already exist";
             }
+            _unitOfWork.RepositoryUserDevice.Delete(x => x.UserId == Guid.Parse(userId));
+            await _unitOfWork.CommitAsync();
         }
         try
         {
