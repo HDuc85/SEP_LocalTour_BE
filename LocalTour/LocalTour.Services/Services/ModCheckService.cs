@@ -24,6 +24,7 @@ public class ModCheckService : IModCheckService
             .Include(u => u.Place)
             .ThenInclude(y => y.Ward)
             .Where(x => (queryParams.DistricNCityId == null || x.Place.Ward.DistrictNcityId == queryParams.DistricNCityId))
+            .Where(p => (queryParams.PlaceId == null || p.Place.Id == queryParams.PlaceId))
             .Include(x => x.Place)
             .ThenInclude(y => y.PlaceTranslations)
             .Include(z => z.Place)
@@ -31,7 +32,7 @@ public class ModCheckService : IModCheckService
             .Include(o => o.Mod)
             .GroupBy(x => new { x.ModId, x.PlaceId })
             .AsQueryable();
-       
+
         var pageNumber = queryParams.Page.GetValueOrDefault(1);
         var sizeNumber = queryParams.Size.GetValueOrDefault(10);
 
@@ -66,8 +67,8 @@ public class ModCheckService : IModCheckService
             throw new Exception("Place not found");
         }
         
-        _unitOfWork.RepositoryModCheckPlace.Delete(x => x.PlaceId == request.PlaceId);
-        await _unitOfWork.CommitAsync();
+        // _unitOfWork.RepositoryModCheckPlace.Delete(x => x.PlaceId == request.PlaceId);
+        // await _unitOfWork.CommitAsync();
         
         foreach (var item in request.Files)
         {
