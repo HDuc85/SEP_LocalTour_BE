@@ -17,7 +17,7 @@ namespace LocalTour.WebApi.Controllers
         }
         
         [HttpGet("GetAll")]
-        [Authorize(Roles = "Administrator")]
+        //[Authorize(Roles = "Administrator")]
         public async Task<IActionResult> GetAllModChecks([FromQuery]GetAllModRequest queryParams)
         {
             try
