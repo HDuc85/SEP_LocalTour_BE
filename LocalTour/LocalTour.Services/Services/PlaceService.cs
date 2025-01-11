@@ -737,11 +737,36 @@ namespace LocalTour.Services.Services
                 var currentDate = DateTime.UtcNow;
                 foreach (var place in places)
                 {
-                    if (place.ApprovedTime.HasValue && (currentDate - place.ApprovedTime.Value).TotalDays > 90)
+                    if (place.Authentic != "Pending")
                     {
-                        place.Authentic = "Unverified";
+                        if (place.ApprovedTimeUpdate == null)
+                        {
+                            if (place.ApprovedTime.HasValue && (currentDate - place.ApprovedTime.Value).TotalDays > 90)
+                            {
+                                place.Authentic = "Unverified";
+                            }
+                            else
+                            {
+                                place.Authentic = "Verified";
+                            }
+
+                        }
+                        else
+                        {
+                            if (place.ApprovedTimeUpdate.HasValue && (currentDate - place.ApprovedTimeUpdate.Value).TotalDays > 90)
+                            {
+                                place.Authentic = "Unverified";
+                            }
+                            else
+                            {
+                                place.Authentic = "Verified";
+                            }
+                        }
+                        _unitOfWork.RepositoryPlace.Update(place);
                     }
+
                 }
+                await _unitOfWork.CommitAsync();
 
             }
             else
@@ -776,6 +801,114 @@ namespace LocalTour.Services.Services
                     userId,
                     _mapper.ConfigurationProvider);
         }
+        public async Task<Place> ChangeStatusApproved(int placeid, string status)
+        {
+            var existingPlace = await _unitOfWork.RepositoryPlace.GetById(placeid);
+            if (existingPlace == null)
+            {
+                throw new ArgumentException($" {placeid} not found.");
+            }
+            var userid = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userid, out var userId))
+            {
+                throw new InvalidOperationException("User ID is not a valid GUID.");
+            }
+            existingPlace.Authentic = status;
+            _unitOfWork.RepositoryPlace.Update(existingPlace);
+            await _unitOfWork.CommitAsync();
+            return existingPlace;
+        }
+        public async Task<Place> ChangeStatusAuthentic(int placeid, string status)
+        {
+            var existingPlace = await _unitOfWork.RepositoryPlace.GetById(placeid);
+            if (existingPlace == null)
+            {
+                throw new ArgumentException($" {placeid} not found.");
+            }
+            var userid = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!Guid.TryParse(userid, out var userId))
+            {
+                throw new InvalidOperationException("User ID is not a valid GUID.");
+            }
+            existingPlace.Authentic = "Verified";
+            existingPlace.Status = status;
+            existingPlace.ApprovedTimeUpdate = DateTime.UtcNow;
+            _unitOfWork.RepositoryPlace.Update(existingPlace);
+            await _unitOfWork.CommitAsync();
+            return existingPlace;
+        }
+        public async Task<PaginatedList<PlaceVM>> GetAllPlaceByAuthentic(GetPlaceRequest request)
+        {
+            var user = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(user) || !Guid.TryParse(user, out var userId))
+            {
+                throw new UnauthorizedAccessException("User not found or invalid User ID.");
+            }
+            var userTags = await _unitOfWork.RepositoryUserPreferenceTags.GetAll()
+                .Where(mt => mt.UserId == userId)
+                .Select(mt => mt.TagId)
+                .ToListAsync();
+            var modTags = await _unitOfWork.RepositoryModTag.GetAll()
+                .Where(mt => mt.UserId == userId)
+                .Select(s => s.DistrictNcityId)
+                .ToListAsync();
+
+            if (request.DistrictNCityIds != null && request.DistrictNCityIds.Any())
+            {
+                modTags = modTags.Where(x => request.DistrictNCityIds.Contains(x)).ToList();
+            }
+
+            var roles = _httpContextAccessor.HttpContext.User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
+            if (!roles.Any())
+            {
+                throw new UnauthorizedAccessException("User has no assigned roles.");
+            }
+            IQueryable<Place> places;
+            if (roles.Contains("Service Owner"))
+            {
+                places = _unitOfWork.RepositoryPlace.GetAll().Include(x => x.PlaceTranslations.Where(pt => pt.LanguageCode == request.LanguageCode))
+                        .Include(y => y.PlaceTags)
+                        .Include(z => z.PlaceActivities)
+                        .Include(r => r.PlaceMedia)
+                        .Include(w => w.Ward)
+                        .Where(r => r.AuthorId == userId)
+                        .Where(y => y.Authentic == "Pending")
+                        .AsQueryable();
+
+            }
+            else
+            {
+                throw new UnauthorizedAccessException("You do not have permission to access this page");
+            }
+            if (request.Tags != null && request.Tags.Any())
+            {
+                places = places.Where(p => p.PlaceTags.Any(pt => request.Tags.Contains(pt.TagId)));
+            }
+            if (request.SearchTerm is not null)
+            {
+                places = places.Where(x => x.PlaceTranslations.Any(pt => pt.Name.Contains(request.SearchTerm)) ||
+                                           x.PlaceTranslations.Any(pt => pt.Address.Contains(request.SearchTerm)));
+            }
+
+            if (request.Status != null)
+            {
+                places = places.Where(p => p.Status == request.Status);
+            }
+
+            return await places
+                .ListPaginateWithSortPlaceAsync<Place, PlaceVM>(
+                    request.Page,
+                    request.Size,
+                    request.SortBy,
+                    request.SortOrder,
+                    request.Distance,
+                    request.CurrentLongitude,
+                    request.CurrentLatitude,
+                    userTags,
+                    userId,
+                    _mapper.ConfigurationProvider);
+        }
+
     }
 
 }

@@ -243,5 +243,47 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(400, new ApiReponseModel<PlaceVM>(false, $"An error occurred: {ex.Message}"));
             }
         }
+        [HttpPut("changeStatusApproved")]
+        [Authorize(Roles = "Moderator,Administrator")]
+        public async Task<ActionResult<Place>> ChangeStatusApproved([FromQuery] int placeid, [FromQuery] string status)
+        {
+            try
+            {
+                var placeEntity = await _placeService.ChangeStatusApproved(placeid, status);
+                return Ok(placeEntity);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiReponseModel<Place>(false, $"An error occurred: {ex.Message}"));
+            }
+        }
+        [HttpPut("changeStatusAuthentic")]
+        [Authorize(Roles = "Moderator,Administrator")]
+        public async Task<ActionResult<Place>> ChangeStatusAuthentic([FromQuery] int placeid, [FromQuery] string status)
+        {
+            try
+            {
+                var placeEntity = await _placeService.ChangeStatusAuthentic(placeid, status);
+                return Ok(placeEntity);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiReponseModel<Place>(false, $"An error occurred: {ex.Message}"));
+            }
+        }
+        [HttpGet("getAllPlaceByAuthentic")]
+        [Authorize]
+        public async Task<ActionResult<PaginatedList<PlaceVM>>> GetAllPlaceByAuthentic([FromQuery] GetPlaceRequest request)
+        {
+            try
+            {
+                var places = await _placeService.GetAllPlaceByAuthentic(request);
+                return Ok(places);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, new ApiReponseModel<PlaceVM>(false, $"An error occurred: {ex.Message}"));
+            }
+        }
     }
 }

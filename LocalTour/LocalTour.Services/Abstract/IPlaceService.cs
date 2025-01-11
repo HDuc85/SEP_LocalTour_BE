@@ -25,5 +25,8 @@ namespace LocalTour.Services.Abstract
                 Task<string> PlaceCancelPayment(long orderCode, string status);
                 Task<bool> sendMail(SendMailRequest request);
                 Task<PaginatedList<PlaceVM>> GetAllPlaceAuthentic(GetPlaceRequest request);
+                Task<Place> ChangeStatusApproved(int placeid, string status);
+                Task<Place> ChangeStatusAuthentic(int placeid, string status);
+                Task<PaginatedList<PlaceVM>> GetAllPlaceByAuthentic(GetPlaceRequest request);
         }
 }
