@@ -35,6 +35,9 @@ public partial class Place
     public DateTime? CreatedDate { get; set; }
     
     public DateTime? ApprovedTimeUpdate { get; set; }
+    
+    public string? Authentic {get; set;}
+    
     public virtual ICollection<Destination> Destinations { get; set; } = new List<Destination>();
     [JsonIgnore]
     public virtual ICollection<ModCheckPlace> ModCheckPlaces { get; set; } = new List<ModCheckPlace>();
