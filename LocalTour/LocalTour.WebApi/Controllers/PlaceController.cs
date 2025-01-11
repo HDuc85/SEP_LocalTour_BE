@@ -258,7 +258,7 @@ namespace LocalTour.WebApi.Controllers
             }
         }
         [HttpPut("changeStatusAuthentic")]
-        [Authorize(Roles = "Moderator,Administrator")]
+        [Authorize]
         public async Task<ActionResult<Place>> ChangeStatusAuthentic([FromQuery] int placeid, [FromQuery] string status)
         {
             try
