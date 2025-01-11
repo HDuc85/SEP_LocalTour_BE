@@ -229,5 +229,19 @@ namespace LocalTour.WebApi.Controllers
                 return StatusCode(400, ex.Message);
             }
         }
+        [HttpGet("getAllAuthentic")]
+        [Authorize]
+        public async Task<ActionResult<PaginatedList<PlaceVM>>> GetAllPlacesAuthentic([FromQuery] GetPlaceRequest request)
+        {
+            try
+            {
+                var places = await _placeService.GetAllPlaceAuthentic(request);
+                return Ok(places);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, new ApiReponseModel<PlaceVM>(false, $"An error occurred: {ex.Message}"));
+            }
+        }
     }
 }

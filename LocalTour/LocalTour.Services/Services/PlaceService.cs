@@ -698,6 +698,84 @@ namespace LocalTour.Services.Services
                 throw new Exception($"Error in server {e.Message}");
             }
         }
+        
+             public async Task<PaginatedList<PlaceVM>> GetAllPlaceAuthentic(GetPlaceRequest request)
+        {
+            var user = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(user) || !Guid.TryParse(user, out var userId))
+            {
+                throw new UnauthorizedAccessException("User not found or invalid User ID.");
+            }
+            var userTags = await _unitOfWork.RepositoryUserPreferenceTags.GetAll()
+                .Where(mt => mt.UserId == userId)
+                .Select(mt => mt.TagId)
+                .ToListAsync();
+            var modTags = await _unitOfWork.RepositoryModTag.GetAll()
+                .Where(mt => mt.UserId == userId)
+                .Select(s => s.DistrictNcityId)
+                .ToListAsync();
+
+            if (request.DistrictNCityIds != null && request.DistrictNCityIds.Any())
+            {
+                modTags = modTags.Where(x => request.DistrictNCityIds.Contains(x)).ToList();
+            }
+
+            var roles = _httpContextAccessor.HttpContext.User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
+            if (!roles.Any())
+            {
+                throw new UnauthorizedAccessException("User has no assigned roles.");
+            }
+            IQueryable<Place> places;
+             if (roles.Contains("Moderator"))
+            {
+                places = _unitOfWork.RepositoryPlace.GetAll().Include(x => x.PlaceTranslations.Where(pt => pt.LanguageCode == request.LanguageCode))
+                           .Include(z => z.PlaceActivities)
+                           .Include(r => r.PlaceMedia)
+                           .Include(w => w.Ward)
+                           .Where(y => y.Status == "Approved" && modTags.Contains(y.Ward.DistrictNcityId))
+                           .AsQueryable();
+                var currentDate = DateTime.UtcNow;
+                foreach (var place in places)
+                {
+                    if (place.ApprovedTime.HasValue && (currentDate - place.ApprovedTime.Value).TotalDays > 90)
+                    {
+                        place.Authentic = "Unverified";
+                    }
+                }
+
+            }
+            else
+            {
+                throw new UnauthorizedAccessException("You do not have permission to access this page");
+            }
+            if (request.Tags != null && request.Tags.Any())
+            {
+                places = places.Where(p => p.PlaceTags.Any(pt => request.Tags.Contains(pt.TagId)));
+            }
+            if (request.SearchTerm is not null)
+            {
+                places = places.Where(x => x.PlaceTranslations.Any(pt => pt.Name.Contains(request.SearchTerm)) ||
+                                           x.PlaceTranslations.Any(pt => pt.Address.Contains(request.SearchTerm)));
+            }
+
+            if (request.Status != null)
+            {
+                places = places.Where(p => p.Status == request.Status);
+            }
+
+            return await places
+                .ListPaginateWithSortPlaceAsync<Place, PlaceVM>(
+                    request.Page,
+                    request.Size,
+                    request.SortBy,
+                    request.SortOrder,
+                    request.Distance,
+                    request.CurrentLongitude,
+                    request.CurrentLatitude,
+                    userTags,
+                    userId,
+                    _mapper.ConfigurationProvider);
+        }
     }
 
 }

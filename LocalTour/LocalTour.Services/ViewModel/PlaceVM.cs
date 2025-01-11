@@ -30,6 +30,7 @@ namespace LocalTour.Services.ViewModel
         public double Distance { get; set; }
         public double Rating { get; set; }
         public int TotalPlaceFeedback { get; set; }
+        public string? Authentic { get; set; }
 
         public virtual ICollection<PlaceActivityRequest> PlaceActivities { get; set; }
 
