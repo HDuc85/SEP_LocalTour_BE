@@ -37,7 +37,7 @@ namespace LocalTour.Services.Services
         private readonly IConfiguration _configuration;
         private readonly PayOS _payOS;
         private readonly IMailService _mailService;
-
+        
         public PlaceService(IUnitOfWork unitOfWork, IMapper mapper, IUserService userService, IFileService fileService, IHttpContextAccessor httpContextAccessor, IConfiguration configuration, PayOS payOS, IMailService mailService)
         {
             _userService = userService;
@@ -60,6 +60,10 @@ namespace LocalTour.Services.Services
             {
                 throw new UnauthorizedAccessException("User not found or invalid User ID.");
             }
+
+            var roles = await _userService.GetListRole(user);
+            
+            
             var photos = await _fileService.SaveImageFile(place.PhotoDisplay);
 
             var placeEntity = new Place
@@ -72,7 +76,7 @@ namespace LocalTour.Services.Services
                 PhotoDisplay = photos.Data,
                 ContactLink = place.ContactLink,
                 AuthorId = userId,
-                Status = "Unpaid",
+                Status = roles.Contains("Contributor") ? "Approved" : "Unpaid",
                 CreatedDate = DateTime.UtcNow,
                 //BRC = brcs.Data,
             };

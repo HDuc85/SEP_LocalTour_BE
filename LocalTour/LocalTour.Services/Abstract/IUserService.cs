@@ -33,5 +33,6 @@ namespace LocalTour.Services.Abstract
                 Task<List<GetUserRequest>> GetAllUsersAsync();
                 Task<List<ListUserResponse>> GetListByRole(string roleName);
                 Task<List<Guid>> GetListUsersBan();
+                Task<IList<string>> GetListRole(string userId);
         }
 }

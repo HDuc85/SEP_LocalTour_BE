@@ -420,7 +420,14 @@ namespace LocalTour.Services.Services
 
             return userRequests;
         }
+        public async Task<IList<string>> GetListRole(string userId)
+        {
 
+            var userRequests = new List<ListUserResponse>();
+            var user = await _userManager.FindByIdAsync(userId);
+            IList<string> roles = await _userManager.GetRolesAsync(user);
+            return roles;
+        }
         public async Task<bool> UnbanUser(string userId)
         {
             try
