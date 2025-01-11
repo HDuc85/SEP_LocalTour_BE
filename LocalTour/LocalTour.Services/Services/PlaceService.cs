@@ -787,6 +787,10 @@ namespace LocalTour.Services.Services
             {
                 places = places.Where(p => p.Status == request.Status);
             }
+            if (request.Authentic != null)
+            {
+                places = places.Where(p => p.Authentic == request.Authentic);
+            }
 
             return await places
                 .ListPaginateWithSortPlaceAsync<Place, PlaceVM>(

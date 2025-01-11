@@ -14,6 +14,7 @@ public class GetPlaceRequest : PaginatedQueryParams
     public int? Distance { get; set; }
     public List<int>? Tags { get; set; }
     public string? Status { get; set; }
+    public string? Authentic { get; set; }
     public List<int>? DistrictNCityIds { get; set; }
     
 }
